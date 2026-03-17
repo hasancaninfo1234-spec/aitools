@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Yönetim Paneli | AI Universe</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-container { padding: 40px; max-width: 1000px; margin: 0 auto; }
+        .admin-section { background: #161926; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .admin-input { background: #0a0b14; border: 1px solid #333; color: #fff; padding: 10px; width: 100%; border-radius: 5px; margin-bottom: 15px; }
+        .admin-btn { background: #38bdf8; color: #000; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #222; color: #fff; }
+        #edit-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:999; }
+        
+        .delete-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .delete-btn:hover { background: #dc2626; transform: scale(1.05); }
+        .edit-btn { background: #38bdf8; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; }
+        .edit-btn:hover { background: #0ea5e9; }
+    </style>
+    <script>
+        const adminUser = "a";
+        const adminPass = "aa";
+        let authenticated = false;
+
+        while(!authenticated) {
+            let u = prompt("Yönetici Kullanıcı Adı:");
+            let p = prompt("Yönetici Şifresi:");
+            if (u === adminUser && p === adminPass) {
+                authenticated = true;
+            } else if (u === null || p === null) {
+                window.location.href = "index.html";
+                break;
+            } else {
+                alert("Hatalı kullanıcı adı veya şifre!");
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="edit-modal">
+        <div class="admin-section" style="width: 500px;">
+            <h2 style="color:#38bdf8">Modeli Düzenle</h2>
+            <input type="hidden" id="edit-id">
+            <input type="text" id="edit-name" class="admin-input" placeholder="Ad">
+            <input type="text" id="edit-category" class="admin-input" placeholder="Kategori">
+            <textarea id="edit-desc" class="admin-input" rows="2" placeholder="Kısa Açıklama"></textarea>
+            <textarea id="edit-specs" class="admin-input" rows="3" placeholder="Teknik Özellikler"></textarea>
+            <textarea id="edit-about" class="admin-input" rows="4" placeholder="Model Hakkında"></textarea>
+            <button onclick="updateModel()" class="admin-btn">Güncelle</button>
+            <button onclick="closeEditModal()" class="admin-btn" style="background:#444; color:#fff">İptal</button>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="color:#fff">Admin Kontrol Paneli</h1>
+            <a href="index.html" style="color: #38bdf8; text-decoration: none;">← Siteye Dön</a>
+        </div>
+        
+        <section class="admin-section" style="margin-top: 20px;">
+            <h2>Yeni Model Ekle</h2>
+            <form id="add-form">
+                <input type="text" id="add-name" class="admin-input" placeholder="Model Adı" required>
+                <input type="text" id="add-cat" class="admin-input" placeholder="Kategori" required>
+                <textarea id="add-desc" class="admin-input" placeholder="Kısa Açıklama" required></textarea>
+                <textarea id="add-specs" class="admin-input" placeholder="Teknik Özellikler (Satır satır)"></textarea>
+                <textarea id="add-about" class="admin-input" placeholder="Model Hakkında Detaylı Bilgi"></textarea>
+                <button type="submit" class="admin-btn">Sisteme Ekle</button>
+            </form>
+        </section>
+
+        <section class="admin-section">
+            <h2>Mevcut Modeller</h2>
+            <table>
+                <thead><tr><th>AD</th><th>KATEGORİ</th><th>İŞLEM</th></tr></thead>
+                <tbody id="models-tbody"></tbody>
+            </table>
+        </section>
+
+        <section class="admin-section">
+            <h2 style="color:#f59e0b">Key Yönetimi</h2>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <select id="key-duration" class="admin-input" style="width: 150px; margin-bottom: 0;">
+                    <option value="1_Saat">1 Saat</option>
+                    <option value="7_Gün">7 Gün</option>
+                    <option value="1_Ay">1 Ay</option>
+                    <option value="1_Yıl">1 Yıl</option>
+                </select>
+                <button id="gen-key-btn" class="admin-btn" style="background:#f59e0b; flex: 1; margin-bottom: 0;">Yeni Premium Key Üret</button>
+            </div>
+            <table>
+              <thead><tr><th>KOD</th><th>SÜRE</th><th>DURUM</th><th>KULLANICI</th><th>İŞLEM</th></tr></thead>
+                <tbody id="keys-tbody"></tbody>
+            </table>
+        </section>
+    </div>
+    <script src="admin.js"></script>
+</body>
+</html>

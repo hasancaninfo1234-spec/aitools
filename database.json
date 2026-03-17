@@ -1,0 +1,30 @@
+{
+  "aiTools": [],
+  "users": [
+    {
+      "id": "1773670807499",
+      "username": "aa",
+      "password": "aa"
+    }
+  ],
+  "keys": [
+    {
+      "id": "1773670830301",
+      "code": "AI-L5UC77I1K",
+      "type": "1_Saat",
+      "durationMs": 3600000,
+      "isUsed": true,
+      "usedBy": "1773670807499",
+      "expiryDate": 1773674436463
+    },
+    {
+      "id": "1773705534173",
+      "code": "AI-NLTMD9KEY",
+      "type": "7_Gün",
+      "durationMs": 604800000,
+      "isUsed": false,
+      "usedBy": null,
+      "expiryDate": null
+    }
+  ]
+}

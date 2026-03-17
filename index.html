@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Universe - Premium Araçlar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-box"></div>
+            <span class="logo-text">AI UNIVERSE</span>
+        </div>
+        
+        <nav class="menu">
+            <a href="#" class="menu-item active"><span>Ana Sayfa</span></a>
+            <a href="#" class="menu-item"><span>Kategoriler</span></a>
+            <a href="#" class="menu-item"><span>Favoriler</span></a>
+        </nav>
+        
+        <div class="premium-section"></div>
+    </aside>
+
+    <main class="main-content">
+        <canvas id="hero-canvas"></canvas>
+
+        <header class="top-header">
+            <div id="auth-ui" class="auth-container">
+                <button class="auth-btn" onclick="openAuthModal()">🔑 Giriş Yap</button>
+            </div>
+        </header>
+
+        <h1 class="main-title">Yapay Zeka Evrenini Keşfet</h1>
+        <input type="text" id="search-input" class="search-box" placeholder="Model, araç veya kategori ara...">
+
+        <div class="filter-bar">
+            <div class="filter-group" style="display: flex; gap: 12px;">
+                <button class="filter-btn active" data-category="Tümü">Tümü</button>
+                <button class="filter-btn" data-category="Görsel">Görsel</button>
+                <button class="filter-btn" data-category="Metin">Metin</button>
+                <button class="filter-btn" data-category="Kod">Kod</button>
+                <button class="filter-btn" data-category="Ses/Video">Ses/Video</button>
+            </div>
+            <button class="compare-btn">✨ Karşılaştır</button>
+        </div>
+
+        <div id="tools-container" class="tools-grid"></div>
+    </main>
+
+    <div id="auth-modal" class="modal-overlay" style="display: none;">
+        <div class="auth-card">
+            <h2 id="modal-title">Giriş Yap</h2>
+            <input type="text" id="auth-username" class="admin-input" placeholder="Kullanıcı Adı" autocomplete="off">
+            <input type="password" id="auth-password" class="admin-input" placeholder="Şifre">
+            <button id="auth-submit-btn" class="key-btn" style="width: 100%; padding: 12px; margin-bottom: 10px; font-size: 1rem;">GİRİŞ YAP</button>
+            <button class="auth-btn" style="width: 100%;" onclick="closeAuthModal()">İptal</button>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="#" id="toggle-auth" style="color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Hesabın yok mu? Kayıt Ol</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

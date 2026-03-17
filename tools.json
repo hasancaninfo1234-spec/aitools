@@ -1,0 +1,27 @@
+[
+  {
+    "id": 2,
+    "name": "Midjourney",
+    "category": "Görsel",
+    "description": "Sanatsal görsel oluşturma aracı.......",
+    "longDescription": "asdadasdasd\nAsdadadadadsddadadadad\nAsdadadada",
+    "specs": [
+      "asdadadasdsd"
+    ],
+    "url": ""
+  },
+  {
+    "id": 3,
+    "name": "GitHub Copilot",
+    "category": "Kod",
+    "description": "Yazılım geliştirme yardımcısı."
+  },
+  {
+    "id": "1773706598387",
+    "name": "asdad",
+    "category": "asdad",
+    "description": "asdada",
+    "specs": "asdadad",
+    "about": "asdadad"
+  }
+]
