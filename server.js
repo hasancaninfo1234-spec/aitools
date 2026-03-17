@@ -3,8 +3,9 @@ const cors = require('cors');
 const fs = require('fs');
 const app = express();
 
-// Render uyumlu port
+// Render ve local uyumlu port ve host
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.PORT ? '0.0.0.0' : 'localhost';
 
 const DB_FILE = './database.json';
 const TOOLS_FILE = './tools.json';
@@ -124,7 +125,7 @@ app.get('/api/verify-premium/:userId', (req, res) => {
     res.json({ status: validKey ? "premium" : "normal" });
 });
 
-// --- Render uyumlu başlatma ---
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server ${PORT} üzerinde çalışıyor!`);
+// --- Sunucu başlatma ---
+app.listen(PORT, HOST, () => {
+    console.log(`🚀 Server ${HOST}:${PORT} üzerinde çalışıyor!`);
 });
