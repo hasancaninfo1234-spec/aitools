@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const app = express();
-const PORT = 3000;
+
+// Render uyumlu port
+const PORT = process.env.PORT || 3000;
 
 const DB_FILE = './database.json';
 const TOOLS_FILE = './tools.json';
@@ -55,10 +57,8 @@ app.post('/api/tools', (req, res) => {
 
 app.put('/api/tools/:id', (req, res) => {
     let tools = loadJson(TOOLS_FILE, []);
-    // Sayısal ID sorununu String(t.id) ile burada da çözüyoruz
     const index = tools.findIndex(t => String(t.id) === req.params.id);
     if (index !== -1) {
-        // Eski ek alanları (url, longDescription vb.) kaybetmemek için objeleri birleştiriyoruz
         tools[index] = { ...tools[index], ...req.body };
         saveJson(TOOLS_FILE, tools);
         res.json(tools[index]);
@@ -124,4 +124,7 @@ app.get('/api/verify-premium/:userId', (req, res) => {
     res.json({ status: validKey ? "premium" : "normal" });
 });
 
-app.listen(PORT, () => console.log(`🚀 Server http://localhost:${PORT} adresinde çalışıyor!`));
+// --- Render uyumlu başlatma ---
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server ${PORT} üzerinde çalışıyor!`);
+});
