@@ -1,3 +1,15 @@
+# Node.js
 node_modules/
+
+# Ortam değişkenleri
 .env
+
+# VS Code ayarları
 .vscode/
+
+# Log dosyaları
+*.log
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db
