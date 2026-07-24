@@ -153,18 +153,23 @@
             const password = document.getElementById('password').value;
 
             try {
-                // Backend'e giriş isteği gönder
-                const res = await fetch('http://localhost:3000/login', {
+                let res = await fetch('/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
-                });
+                }).catch(() => null);
 
-                if (res.ok) {
+                if (!res || !res.ok) {
+                    res = await fetch('http://localhost:3000/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    }).catch(() => null);
+                }
+
+                if (res && res.ok) {
                     const data = await res.json();
-                    // Kullanıcı verisini yerel depolamaya kaydet
-                    localStorage.setItem('currentUser', JSON.stringify(data.user));
-                    
+                    localStorage.setItem('user', JSON.stringify(data.user));
                     alert("Giriş başarılı! Yönlendiriliyorsunuz...");
                     window.location.href = 'index.html';
                 } else {
@@ -172,7 +177,7 @@
                 }
             } catch (err) {
                 console.error("Giriş hatası:", err);
-                alert("Sunucuya bağlanılamadı. Lütfen server.js'in çalıştığından emin olun.");
+                alert("Sunucuya bağlanılamadı.");
             }
         };
     </script>

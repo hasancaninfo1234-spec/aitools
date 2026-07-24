@@ -1,5 +1,5 @@
 /* Bu dosya, yönetici panelinin arka plan işlemlerini yönetme işini yapar. */
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = '/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadStats();

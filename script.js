@@ -201,11 +201,21 @@ function ekranaAraclariBas(araclarListe) {
 async function modelleriGetir() {
     try {
         console.log("Veriler çekiliyor...");
-        const cevap = await fetch(`${API_BASE}/api/tools`);
-        butunAraclar = await cevap.json();
-        console.log(butunAraclar.length + " tane araç geldi kanka.");
-        ekranaAraclariBas(butunAraclar);
-        populerAraclariBas(butunAraclar);
+        let cevap = await fetch(`${API_BASE}/api/tools`).catch(() => null);
+        if (!cevap || !cevap.ok) {
+            cevap = await fetch(`http://localhost:3000/api/tools`).catch(() => null);
+        }
+        if (!cevap || !cevap.ok) {
+            cevap = await fetch(`tools.json`).catch(() => null);
+        }
+        if (cevap && cevap.ok) {
+            butunAraclar = await cevap.json();
+            console.log(butunAraclar.length + " tane araç geldi kanka.");
+            ekranaAraclariBas(butunAraclar);
+            populerAraclariBas(butunAraclar);
+        } else {
+            console.error("Hocam veriler hiçbir kaynaktan çekilemedi.");
+        }
     } catch (hata) { 
         console.error("Hocam api çöktü galiba, modeller yüklenemedi:", hata); 
     }

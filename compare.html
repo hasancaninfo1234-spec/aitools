@@ -171,8 +171,12 @@
                 //     return;
                 // }
 
-                const res = await fetch('http://localhost:3000/api/tools');
-                tools = await res.json();
+                let res = await fetch('/api/tools').catch(() => null);
+                if (!res || !res.ok) res = await fetch('http://localhost:3000/api/tools').catch(() => null);
+                if (!res || !res.ok) res = await fetch('tools.json').catch(() => null);
+                if (res && res.ok) {
+                    tools = await res.json();
+                }
                 
                 // İsimlere göre A-Z sıralama
                 tools.sort((a,b) => a.name.localeCompare(b.name));
