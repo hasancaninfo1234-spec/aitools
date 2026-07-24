@@ -8,7 +8,8 @@
  * ============================================================================
  */
 
-fetch("/api/tools"); // Node.js sunucu adresi
+const API_BASE = "";
+
 let aktifKullanici = JSON.parse(localStorage.getItem('user')) || null; // Kullanıcı giriş yapmış mı diye bakıyoruz
 let girisModuMu = true; // true ise giriş yap, false ise kayıt ol
 let butunAraclar = []; // Apiden gelen verileri burada tutucaz
