@@ -151,15 +151,18 @@ function filtreleriAyarla() {
     const aramaKutusu = document.getElementById('search-input');
     const filtreButonlari = document.querySelectorAll('.filter-btn');
     const fiyatFiltresi = document.getElementById('pricing-filter');
+    const siralamaFiltresi = document.getElementById('sort-filter');
 
     const filtreleriGuncelle = () => {
         const aktifKategori = document.querySelector('.filter-btn.active').dataset.category;
         const fiyat = fiyatFiltresi ? fiyatFiltresi.value : "Tümü";
-        aracFiltrleVeEkranaBas(aramaKutusu.value, aktifKategori, fiyat);
+        const siralama = siralamaFiltresi ? siralamaFiltresi.value : "varsayilan";
+        aracFiltrleVeEkranaBas(aramaKutusu.value, aktifKategori, fiyat, siralama);
     };
 
     if(aramaKutusu) aramaKutusu.addEventListener('input', filtreleriGuncelle);
     if(fiyatFiltresi) fiyatFiltresi.addEventListener('change', filtreleriGuncelle);
+    if(siralamaFiltresi) siralamaFiltresi.addEventListener('change', filtreleriGuncelle);
 
     filtreButonlari.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -170,7 +173,7 @@ function filtreleriAyarla() {
     });
 }
 
-function aracFiltrleVeEkranaBas(arananKelime, kategori, fiyat = "Tümü") {
+function aracFiltrleVeEkranaBas(arananKelime, kategori, fiyat = "Tümü", siralama = "varsayilan") {
     arananKelime = arananKelime.toLowerCase();
     
     // İngilizce kelimeleri Türkçeye bağlıyoruz (Hocam veritabanı İngilizce kaldı biraz)
@@ -205,6 +208,16 @@ function aracFiltrleVeEkranaBas(arananKelime, kategori, fiyat = "Tümü") {
 
         return isimUyarMi && kategoriUyarMi && fiyatUyarMi;
     });
+    
+    if (siralama === "puan-azalan") {
+        filtrelenmisListe.sort((a, b) => {
+            const aPuani = a.reviews && a.reviews.length > 0 ? a.reviews.reduce((t, r) => t + r.rating, 0) / a.reviews.length : 0;
+            const bPuani = b.reviews && b.reviews.length > 0 ? b.reviews.reduce((t, r) => t + r.rating, 0) / b.reviews.length : 0;
+            return bPuani - aPuani;
+        });
+    } else if (siralama === "isim-azalan") {
+        filtrelenmisListe.sort((a, b) => a.name.localeCompare(b.name));
+    }
     
     ekranaAraclariBas(filtrelenmisListe);
 }
