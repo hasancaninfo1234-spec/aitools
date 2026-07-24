@@ -73,9 +73,11 @@ content="https://aitools-voet.onrender.com/logo.png">
 
 </head>
 <body>
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
     <!-- Sol menü (Hocam burası fixed) -->
     <aside class="sidebar">
+        <button id="sidebar-close" class="sidebar-close-btn" aria-label="Menüyü Kapat">&times;</button>
         <div class="logo">
             <div class="logo-box"></div>
             <span class="logo-text">AI TOOLS</span>
@@ -96,7 +98,8 @@ content="https://aitools-voet.onrender.com/logo.png">
         <canvas id="hero-canvas"></canvas>
 
         <header class="top-header" style="justify-content: space-between; align-items: center;">
-            <div style="display: flex; gap: 15px;">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button id="mobile-menu-toggle" class="mobile-nav-toggle" aria-label="Menüyü Aç">☰</button>
                 <div id="dev-action-container"></div>
                 <!-- Tema değiştirme kutusu -->
                 <select id="theme-selector" class="theme-select">

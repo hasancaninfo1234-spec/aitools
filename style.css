@@ -278,12 +278,163 @@ body {
 
 
 /* --- MOBİL UYUMLULUK (Responsive Design) --- */
-/* Ekran genişliği 768px'den küçükse (Yani tablet veya telefonsa) buradaki kodlar çalışır */
+.mobile-nav-toggle {
+    display: none;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+    font-size: 1.3rem;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+.mobile-nav-toggle:hover {
+    background: rgba(56, 189, 248, 0.25);
+    transform: scale(1.03);
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
+    z-index: 9998;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.sidebar-close-btn {
+    display: none;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Ekran genişliği 768px'den küçükse (Tablet veya Telefon) */
 @media (max-width: 768px) {
-    .sidebar { width: 70px; padding: 20px 10px; } /* Menüyü daraltır */
-    .logo-text, .menu-item span { display: none; } /* Menüdeki yazıları gizler sadece ikonlar kalır */
-    .main-content { margin-left: 70px; padding: 20px; } /* İçeriği sola kaydırır */
-    .main-title { font-size: 1.8rem; } /* Başlık boyutunu küçültür */
+    .mobile-nav-toggle { display: flex; }
+    .sidebar-close-btn { display: block; }
+    
+    .sidebar { 
+        position: fixed;
+        left: -280px; /* Ekran dışına sakla */
+        top: 0;
+        width: 260px; 
+        height: 100vh; 
+        z-index: 9999;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 10px 0 30px rgba(0,0,0,0.6);
+        background: #0a0b14 !important;
+    }
+    .sidebar.mobile-open {
+        left: 0; /* Ekran içine kaydır */
+    }
+    
+    .logo-text, .menu-item span { display: inline-block !important; } 
+    .main-content { margin-left: 0 !important; padding: 20px 15px !important; width: 100% !important; }
+    .main-title { font-size: 1.8rem !important; margin-bottom: 20px !important; }
+    
+    .top-header {
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 25px !important;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 15px;
+        margin: 25px 0 35px 0 !important;
+    }
+
+    .filter-group {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 8px;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .filter-btn {
+        padding: 6px 16px !important;
+        font-size: 0.85rem !important;
+        flex-shrink: 0;
+    }
+
+    .compare-btn {
+        width: 100%;
+        text-align: center;
+        padding: 10px 20px !important;
+    }
+
+    .tools-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+        gap: 15px !important;
+    }
+
+    .auth-card {
+        width: 92vw !important;
+        max-width: 400px !important;
+        padding: 25px !important;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #advisor-window {
+        position: fixed !important;
+        top: 15px !important;
+        bottom: 85px !important;
+        left: 15px !important;
+        right: 15px !important;
+        width: auto !important;
+        height: auto !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .tools-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .top-header {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .auth-container {
+        align-items: center !important;
+        width: 100%;
+    }
+
+    .key-activation-box {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .key-input {
+        flex: 1;
+        width: auto !important;
+    }
 }
 
 /* --- YENİ ÖZELLİKLER: TEMALAR (Aydınlık ve Cyberpunk Modu) --- */

@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     kullaniciDurumunuKontrolEt(); // Giriş yapmış mı?
     modelleriGetir(); // Veritabanından araçları çek
     filtreleriAyarla(); // Arama ve buton filtreleri
-    
+    mobilMenuyuAyarla(); // Mobil yan menü aç/kapat işlemleri
+
     // TEMA KONTROLÜ (Hocam burası karanlık/aydınlık tema için)
     const temaSecici = document.getElementById('theme-selector');
     if (temaSecici) {
@@ -114,6 +115,35 @@ function canvasAnimasyonunuBaslat() {
         requestAnimationFrame(ciz); // Sürekli döngü
     }
     ciz();
+}
+
+// MOBİL MENÜ AÇMA / KAPATMA İŞLEMİ
+function mobilMenuyuAyarla() {
+    const mobileBtn = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const closeBtn = document.getElementById('sidebar-close');
+
+    if (!sidebar) return;
+
+    const openSidebar = () => {
+        sidebar.classList.add('mobile-open');
+        if (overlay) overlay.classList.add('active');
+    };
+
+    const closeSidebar = () => {
+        sidebar.classList.remove('mobile-open');
+        if (overlay) overlay.classList.remove('active');
+    };
+
+    if (mobileBtn) mobileBtn.addEventListener('click', openSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    const menuLinks = sidebar.querySelectorAll('.menu-item');
+    menuLinks.forEach(link => {
+        link.addEventListener('click', closeSidebar);
+    });
 }
 
 // FİLTRELEME İŞLEMLERİ

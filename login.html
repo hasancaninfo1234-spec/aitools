@@ -20,7 +20,7 @@
         }
 
         .login-box {
-            width: 100%;
+            width: 90vw;
             max-width: 400px;
             padding: 40px;
             background: #161926;
@@ -28,6 +28,11 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 15px; box-sizing: border-box; }
+            .login-box { padding: 25px 20px; }
         }
 
         .login-box h2 {

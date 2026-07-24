@@ -114,11 +114,26 @@
             border-radius: 12px;
             border: 1px dashed rgba(255,255,255,0.1);
         }
+        .compare-header-nav {
+            padding: 30px 50px;
+        }
+
+        @media (max-width: 768px) {
+            .compare-header-nav { padding: 20px 15px; }
+            .compare-container { padding: 20px 15px !important; margin: 15px auto !important; border-radius: 12px !important; }
+            .compare-container h1 { font-size: 1.8rem !important; margin-bottom: 25px !important; }
+            .selector-row { flex-direction: column; width: 100%; gap: 12px; margin-bottom: 25px !important; }
+            .tool-select { width: 100% !important; font-size: 0.95rem !important; padding: 12px 15px !important; }
+            .comparison-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
+            .tool-card { padding: 20px !important; }
+            .tool-title { font-size: 1.6rem !important; }
+            .empty-state { padding: 40px 15px !important; font-size: 1rem !important; }
+        }
     </style>
 </head>
 <body style="background:#0a0b14; color:white; min-height: 100vh; display: flex; flex-direction: column;">
     
-    <div style="padding: 30px 50px;">
+    <div class="compare-header-nav">
         <a href="index.html" style="color:#38bdf8; text-decoration:none; font-weight:bold; font-size: 1.1rem; transition: color 0.3s; display: inline-flex; align-items: center; gap: 8px;">
             <span style="font-size: 1.6rem;">←</span> Merkeze Dön
         </a>
