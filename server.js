@@ -14,7 +14,7 @@ const fs = require('fs');
 const app = express();
 
 // Render ve local uyumlu port ve host
-const PORT = process.env.PORT || 3000;
+fetch("/api/tools");
 const HOST = process.env.PORT ? '0.0.0.0' : 'localhost';
 
 const DB_FILE = './database.json';
