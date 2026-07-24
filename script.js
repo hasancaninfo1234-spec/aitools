@@ -181,8 +181,9 @@ function aracFiltrleVeEkranaBas(arananKelime, kategori, fiyat = "Tümü") {
 
 function ekranaAraclariBas(araclarListe) {
     const kutu = document.getElementById('tools-container');
+    if (!kutu) return;
     if(araclarListe.length === 0) {
-        kutu.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Hocam aradığınız kriterlere uygun araç bulamadık...</p>`;
+        kutu.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Aradığınız kriterlere uygun araç bulunamadı.</p>`;
         return;
     }
     kutu.innerHTML = araclarListe.map(arac => `
