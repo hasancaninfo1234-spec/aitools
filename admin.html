@@ -1,8 +1,9 @@
+<!-- Bu dosya, yönetici panelinin arayüzünü sağlama işini yapar. -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Yönetim Paneli | AI Universe</title>
+    <title>Yönetim Paneli | AI Tools</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .admin-container { padding: 40px; max-width: 1000px; margin: 0 auto; }
@@ -52,10 +53,55 @@
         </div>
     </div>
 
+    <!-- Araç İnceleme Modalı -->
+    <div id="review-modal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:999;">
+        <div class="admin-section" style="width: 500px;">
+            <h2 style="color:#10b981">Araç İncele</h2>
+            <input type="hidden" id="review-id">
+            <div style="margin-bottom: 10px;"><strong>Ad:</strong> <span id="review-name"></span></div>
+            <div style="margin-bottom: 10px;"><strong>Kategori:</strong> <span id="review-cat"></span></div>
+            <div style="margin-bottom: 10px;"><strong>URL:</strong> <a id="review-url" href="#" target="_blank" style="color: #38bdf8;"></a></div>
+            <div style="margin-bottom: 20px;"><strong>Açıklama:</strong> <p id="review-desc" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px;"></p></div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="confirmApproveTool()" class="admin-btn" style="background:#10b981; flex: 1;">ONAYLA</button>
+                <button onclick="confirmRejectTool()" class="admin-btn" style="background:#ef4444; flex: 1;">REDDET</button>
+                <button onclick="closeReviewModal()" class="admin-btn" style="background:#444; color:#fff; flex: 1;">İptal</button>
+            </div>
+        </div>
+    </div>
+
     <div class="admin-container">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h1 style="color:#fff">Admin Kontrol Paneli</h1>
             <a href="index.html" style="color: #38bdf8; text-decoration: none;">← Siteye Dön</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
+            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
+                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Toplam Üye</h3>
+                <div id="stat-users" style="color:#fff; font-size:2.5rem; font-weight:bold;">-</div>
+            </div>
+            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
+                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Premium Üye</h3>
+                <div id="stat-premium" style="color:#f59e0b; font-size:2.5rem; font-weight:bold;">-</div>
+            </div>
+            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
+                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Sistemdeki Araç</h3>
+                <div id="stat-tools" style="color:#38bdf8; font-size:2.5rem; font-weight:bold;">-</div>
+            </div>
+            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
+                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Bekleyen Araç</h3>
+                <div id="stat-pending" style="color:#10b981; font-size:2.5rem; font-weight:bold;">-</div>
+            </div>
+            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
+                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Bekleyen Geliştirici</h3>
+                <div id="stat-devs" style="color:#8b5cf6; font-size:2.5rem; font-weight:bold;">-</div>
+            </div>
+            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
+                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Bekleyen Key</h3>
+                <div id="stat-keys" style="color:#ef4444; font-size:2.5rem; font-weight:bold;">-</div>
+            </div>
         </div>
         
         <section class="admin-section" style="margin-top: 20px;">
@@ -72,10 +118,42 @@
 
         <section class="admin-section">
             <h2>Mevcut Modeller</h2>
-            <table>
-                <thead><tr><th>AD</th><th>KATEGORİ</th><th>İŞLEM</th></tr></thead>
-                <tbody id="models-tbody"></tbody>
-            </table>
+            <div style="max-height: 350px; overflow-y: auto;">
+                <table style="width: 100%;">
+                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">AD</th><th style="position: sticky; top: 0; background: #161926;">KATEGORİ</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
+                    <tbody id="models-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-section" style="border-color: #10b981;">
+            <h2 style="color:#10b981">Kullanıcı Önerileri (Bekleyen Araçlar)</h2>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table style="width: 100%;">
+                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">AD</th><th style="position: sticky; top: 0; background: #161926;">KATEGORİ</th><th style="position: sticky; top: 0; background: #161926;">ÖNEREN</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
+                    <tbody id="pending-tools-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-section" style="border-color: #8b5cf6;">
+            <h2 style="color:#8b5cf6">Bekleyen Geliştirici Başvuruları</h2>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table style="width: 100%;">
+                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">KULLANICI ADI</th><th style="position: sticky; top: 0; background: #161926;">E-POSTA</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
+                    <tbody id="pending-devs-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-section" style="border-color: #3b82f6;">
+            <h2 style="color:#3b82f6">Mevcut Geliştiriciler</h2>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table style="width: 100%;">
+                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">KULLANICI ADI</th><th style="position: sticky; top: 0; background: #161926;">E-POSTA</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
+                    <tbody id="developers-tbody"></tbody>
+                </table>
+            </div>
         </section>
 
         <section class="admin-section">
@@ -89,11 +167,22 @@
                 </select>
                 <button id="gen-key-btn" class="admin-btn" style="background:#f59e0b; flex: 1; margin-bottom: 0;">Yeni Premium Key Üret</button>
             </div>
-            <table>
-              <thead><tr><th>KOD</th><th>SÜRE</th><th>DURUM</th><th>KULLANICI</th><th>İŞLEM</th></tr></thead>
-                <tbody id="keys-tbody"></tbody>
-            </table>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table style="width: 100%;">
+                  <thead><tr><th style="position: sticky; top: 0; background: #161926;">KOD</th><th style="position: sticky; top: 0; background: #161926;">SÜRE</th><th style="position: sticky; top: 0; background: #161926;">DURUM</th><th style="position: sticky; top: 0; background: #161926;">KULLANICI</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
+                    <tbody id="keys-tbody"></tbody>
+                </table>
+            </div>
+        <section class="admin-section" style="border-color: #38bdf8;">
+            <h2 style="color:#38bdf8">Tüm Kullanıcılar</h2>
+            <div style="max-height: 300px; overflow-y: auto;">
+                <table style="width: 100%;">
+                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">KULLANICI ADI</th><th style="position: sticky; top: 0; background: #161926;">ROL</th><th style="position: sticky; top: 0; background: #161926;">PREMIUM</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
+                    <tbody id="users-tbody"></tbody>
+                </table>
+            </div>
         </section>
+
     </div>
     <script src="admin.js"></script>
 </body>

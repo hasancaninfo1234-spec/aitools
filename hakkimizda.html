@@ -1,32 +1,53 @@
+<!--
+  Hazırlayan: Bilgisayar Programcılığı Öğrencisi
+  Proje: AI Tools (Yapay Zeka Evreni)
+  Açıklama: Bu dosya hakkımızda sayfasıdır, projenin kim tarafından yapıldığını falan anlatıyor.
+-->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Hakkımızda | AI Universe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hakkımızda | Proje Ödevi</title>
+    <!-- Font ayarı kanka -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="app-wrapper">
-        <aside class="side-panel">
-            <div class="side-header">
-                <canvas id="header-canvas"></canvas>
-                <h2 class="brand-name">AI Universe</h2>
-            </div>
-            <nav class="side-nav">
-                <a href="index.html">🏠 Ana Sayfa</a>
-                <a href="hakkimizda.html" class="active">ℹ️ Hakkımızda</a>
-            </nav>
-        </aside>
+<body data-theme="dark">
 
-        <main class="main-stage">
-            <h1>Hakkımızda</h1>
-            <div class="card" style="margin-top:30px;">
-                <p>AI Universe, en güncel yapay zeka araçlarını kategorize eden profesyonel bir platformdur.</p>
-                <br>
-                <p>Kastamonu Üniversitesi öğrencileri tarafından teknoloji meraklıları için geliştirilmiştir.</p>
-            </div>
-        </main>
-    </div>
-    <script src="script.js"></script>
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-box"></div>
+            <span class="logo-text">AI TOOLS</span>
+        </div>
+        
+        <nav class="menu">
+            <a href="index.html" class="menu-item"><span>Ana Sayfa</span></a>
+            <a href="compare.html" class="menu-item"><span>Karşılaştır</span></a>
+            <a href="hakkimizda.html" class="menu-item active"><span>Hakkımızda</span></a>
+        </nav>
+        
+        <div class="premium-section"></div>
+    </aside>
+
+    <main class="main-content" style="display: flex; flex-direction: column; align-items: center; padding-top: 80px;">
+        <h1 class="main-title">Biz Kimiz?</h1>
+        
+        <div class="card" style="max-width: 800px; width: 100%; text-align: center; padding: 50px;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">👨‍💻</div>
+            <h2 style="color: #38bdf8; margin-bottom: 20px; font-size: 1.8rem;">Geleceği Şekillendiren Bilgisayar Programcıları</h2>
+            
+            <p style="color: #cbd5e1; font-size: 1.1rem; line-height: 1.8; margin-bottom: 20px;">
+                Hocam, AI Tools projesi, internetin dört bir yanına dağılmış olan yapay zeka araçlarını bir araya getirmek için yaptığımız bir dönem sonu ödevidir.
+            </p>
+            
+            <p style="color: #cbd5e1; font-size: 1.1rem; line-height: 1.8; margin-bottom: 30px;">
+                Bu proje, <strong style="color: #f59e0b;">Kastamonu Üniversitesi Bilgisayar Programcılığı</strong> öğrencileri tarafından geliştirilmiştir. Çok uğraştık, umarım yüksek not alırız :)
+            </p>
+            
+            <a href="index.html" class="compare-btn" style="text-decoration: none; padding: 12px 30px; display: inline-block;">Hadi Projeyi İnceleyelim Kanka</a>
+        </div>
+    </main>
+
 </body>
 </html>

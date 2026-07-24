@@ -1,364 +1,418 @@
-/* --- GENEL AYARLAR --- */
+/*
+ * ============================================================================
+ * Proje Adı: AI Tools (Yapay Zeka Evreni)
+ * Dosya: style.css
+ * Hazırlayan: Bilgisayar Programcılığı Öğrencisi
+ * Açıklama: Sitenin tüm tasarım ve animasyon kodları buradadır kanka.
+ * Not: Flexboxları zor ayarladım, umarım telefonda kaymaz.
+ * ============================================================================
+ */
+
+/* --- GENEL AYARLAR (Sitenin Temel İskelet Ayarları) --- */
 * { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    font-family: 'Inter', sans-serif; 
+    margin: 0; /* Dış boşlukları sıfırlar, böylece tarayıcının varsayılan boşlukları engellenir */
+    padding: 0; /* İç boşlukları sıfırlar */
+    box-sizing: border-box; /* Genişlik hesaplamalarına iç boşlukları dahil eder (taşmaları önler) */
+    font-family: 'Inter', sans-serif; /* Sitenin genel yazı tipini 'Inter' olarak belirler */
 }
 
 body { 
-    background-color: #0a0b14 !important; 
-    color: #ffffff; 
-    overflow-x: hidden; 
+    background-color: #0a0b14 !important; /* Sitenin ana arka plan rengi (koyu lacivert/siyah) */
+    color: #ffffff; /* Sitenin varsayılan metin rengi (beyaz) */
+    overflow-x: hidden; /* Web sitesinde yatay kaydırma çubuğu çıkmasını engeller */
 }
 
-/* --- SIDEBAR (SOL MENÜ) --- */
+/* --- SIDEBAR (SOL MENÜ TASARIMI) --- */
 .sidebar { 
-    width: 260px; 
-    background-color: #0a0b14; 
-    border-right: 1px solid rgba(255, 255, 255, 0.05); 
-    padding: 30px 20px; 
-    display: flex; 
-    flex-direction: column; 
-    position: fixed; 
-    height: 100vh; 
-    z-index: 10; 
+    width: 260px; /* Sol menünün genişliğini sabitler */
+    background-color: #0a0b14; /* Menü arka plan rengi */
+    border-right: 1px solid rgba(255, 255, 255, 0.05); /* Menünün sağ tarafına çok hafif, şeffaf bir çizgi çeker */
+    padding: 30px 20px; /* Menünün içindeki boşluklar (Üst-alt 30px, sağ-sol 20px) */
+    display: flex; /* İçindeki elemanları hizalamak için flexbox kullanır */
+    flex-direction: column; /* Elemanları yukarıdan aşağıya doğru dizer */
+    position: fixed; /* Ekranı aşağı kaydırsanız bile menünün sabit kalmasını sağlar */
+    height: 100vh; /* Menü yüksekliğinin ekran boyutu kadar (Tam ekran) olmasını sağlar */
+    z-index: 10; /* Menünün diğer elementlerin üstünde kalmasını sağlar */
 }
 
-.logo { margin-bottom: 40px; }
-.logo-text { color: #38bdf8; font-weight: 800; font-size: 1.5rem; }
+.logo { margin-bottom: 40px; /* Logonun altından 40px boşluk bırakır */ }
+.logo-text { 
+    color: #38bdf8; /* Logo metni rengi (açık mavi) */
+    font-weight: 800; /* Yazıyı çok kalın yapar */
+    font-size: 1.5rem; /* Yazı büyüklüğünü ayarlar */
+}
 
-.menu { display: flex; flex-direction: column; gap: 10px; }
+.menu { display: flex; flex-direction: column; gap: 10px; /* Menü elemanları arasına 10px boşluk koyar */ }
 .menu-item { 
-    text-decoration: none; 
-    color: #94a3b8; 
-    padding: 12px 15px; 
-    border-radius: 10px; 
-    transition: 0.3s; 
-    font-weight: 600; 
-    display: block;
+    text-decoration: none; /* Linklerin altındaki varsayılan çizgiyi kaldırır */
+    color: #94a3b8; /* Normal durumda menü yazısı rengi (gri tonu) */
+    padding: 12px 15px; /* Menü öğelerine iç boşluk verir */
+    border-radius: 10px; /* Köşeleri yuvarlatır */
+    transition: 0.3s; /* Renk değişimlerinin aniden değil, 0.3 saniyede yumuşak olmasını sağlar */
+    font-weight: 600; /* Yazıyı yarı kalın yapar */
+    display: block; /* Öğenin tüm genişliği kaplamasını sağlar */
 }
 
+/* Fareyle menü elemanının üzerine gelindiğinde (hover) veya aktif olduğunda çalışır */
 .menu-item:hover, .menu-item.active { 
-    background: rgba(56, 189, 248, 0.1); 
-    color: #38bdf8; 
+    background: rgba(56, 189, 248, 0.1); /* Arka plana çok hafif şeffaf mavi verir */
+    color: #38bdf8; /* Yazı rengini açık mavi yapar */
 }
 
-.premium-section { margin-top: auto; padding-bottom: 20px; }
+.premium-section { margin-top: auto; padding-bottom: 20px; /* Premium kutusunu en aşağı iter ve alttan boşluk bırakır */ }
 
-/* --- ANA İÇERİK ALANI --- */
+/* --- ANA İÇERİK ALANI (Sağ Taraftaki Büyük Alan) --- */
 .main-content { 
-    flex: 1; 
-    margin-left: 260px; 
-    padding: 40px 60px; 
-    position: relative; 
+    flex: 1; /* Kalan tüm boş alanı kaplamasını sağlar */
+    margin-left: 260px; /* Sol menü genişliği kadar (260px) soldan boşluk bırakır ki yazılar menünün altında kalmasın */
+    padding: 40px 60px; /* İçeriğin üst/alt 40px, sağ/sol 60px iç boşluğu olur */
+    position: relative; /* İçindeki bazı animasyonların düzgün yerleşmesi için pozisyonu baz alınır */
 }
 
 /* Animasyonun sadece üstte görünmesini ve aşağı doğru şeffaflaşmasını sağlayan kısım */
 #hero-canvas { 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 600px; /* Tüm sayfayı kaplamaması için yüksekliği sınırladık */
-    z-index: -1; 
-    pointer-events: none;
+    position: absolute; /* Ana içerik alanında serbestçe yerleşmesini sağlar */
+    top: 0; left: 0; /* En sol üste sabitler */
+    width: 100%; height: 600px; /* Genişliği tam, yüksekliği 600px ile sınırlar */
+    z-index: -1; /* Animasyonu yazıların/kartların arkasına (en alta) atar */
+    pointer-events: none; /* Mouse tıklamalarının canvas içinden geçip aşağıdaki butonlara işlemesini sağlar */
 
-    /* Bu kısım animasyonun alt kısımdaki kartlara geçerken yumuşakça silinmesini sağlar */
+    /* Bu kısım animasyonun alt kısımdaki kartlara geçerken yumuşakça silinmesini (fade-out) sağlar */
     -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
     mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
 }
 
 .top-header { 
-    display: flex; 
-    justify-content: flex-end; 
-    margin-bottom: 50px; 
-    min-height: 50px;
+    display: flex; /* Sağ üst köşedeki elemanları hizalar */
+    justify-content: flex-end; /* İçeriği en sağa yaslar */
+    margin-bottom: 50px; /* Alttan 50px boşluk bırakır */
+    min-height: 50px; /* Kutunun en az 50px yüksekliğinde olmasını sağlar */
 }
 
-/* --- AUTH & PREMIUM UI --- */
+/* --- AUTH & PREMIUM UI (Giriş & Premium Key Alanı) --- */
 .auth-container {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
+    flex-direction: column; /* İçindeki öğeleri alt alta dizer */
+    align-items: flex-end; /* Tüm öğeleri sağ tarafa hizalar */
+    gap: 12px; /* Öğeler arasında 12px boşluk bırakır */
 }
 
+/* Normal Giriş/Kayıt Butonu Stilleri */
 .auth-btn { 
-    background: rgba(255, 255, 255, 0.05); 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    color: white; 
-    padding: 10px 20px; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    font-weight: 600; 
-    transition: 0.3s;
+    background: rgba(255, 255, 255, 0.05); /* Yarı saydam beyaz arka plan */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Hafif beyaz çerçeve */
+    color: white; padding: 10px 20px; 
+    border-radius: 8px; /* Köşeleri yuvarlatır */
+    cursor: pointer; /* Mouse ile üzerine gelince imlecin el şeklini almasını sağlar */
+    font-weight: 600; transition: 0.3s;
 }
+.auth-btn:hover { background: rgba(255, 255, 255, 0.15); /* Üzerine gelince biraz daha belirginleşir */ }
 
-.auth-btn:hover { background: rgba(255, 255, 255, 0.15); }
-
+/* Key Aktifleştirme Kutusu Stilleri */
 .key-activation-box {
     background: rgba(16, 18, 27, 0.8);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    padding: 8px;
-    border-radius: 12px;
-    display: flex;
-    gap: 8px;
-    backdrop-filter: blur(10px);
-    animation: fadeIn 0.5s ease;
+    border: 1px solid rgba(56, 189, 248, 0.2); /* Mavi ince çerçeve */
+    padding: 8px; border-radius: 12px;
+    display: flex; gap: 8px;
+    backdrop-filter: blur(10px); /* Arka planı hafifçe buzlu/bulanık gösterir (Glassmorphism) */
+    animation: fadeIn 0.5s ease; /* Ekrana yumuşak bir giriş efektiyle gelmesini sağlar */
 }
 
 .key-input {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    outline: none;
+    background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white; padding: 8px 12px; border-radius: 6px;
+    font-size: 0.8rem; outline: none; /* Tıklayınca oluşan varsayılan kalın çerçeveyi kaldırır */
     width: 160px;
 }
 
 .key-btn {
-    background: #38bdf8;
-    color: #000;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: 0.3s;
+    background: #38bdf8; color: #000; border: none;
+    padding: 8px 15px; border-radius: 6px; font-weight: 700;
+    font-size: 0.75rem; cursor: pointer; transition: 0.3s;
 }
-
 .key-btn:hover {
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
-    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); /* Üzerine gelince mavi bir parlama yapar */
+    transform: translateY(-2px); /* Butonu hafifçe yukarı kaldırır */
 }
 
+/* Premium Olduğunu Gösteren Rozet */
 .premium-status-badge {
-    background: linear-gradient(45deg, #f59e0b, #fbbf24);
-    color: #000;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+    background: linear-gradient(45deg, #f59e0b, #fbbf24); /* Altın rengi geçiş (gradient) verir */
+    color: #000; padding: 6px 14px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 800;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); /* Etrafa altın rengi ışık saçar */
     letter-spacing: 0.5px;
 }
 
-/* --- HERO & FİLTRELER --- */
+/* --- HERO & FİLTRELER (Ana Başlık ve Arama Çubuğu) --- */
 .main-title { 
-    font-size: 2.8rem; 
-    font-weight: 800; 
-    text-align: center; 
-    background: linear-gradient(to right, #ffffff, #94a3b8); 
-    -webkit-background-clip: text; 
-    background-clip: text; 
-    -webkit-text-fill-color: transparent; 
+    font-size: 2.8rem; font-weight: 800; text-align: center; /* Yazıyı ortalar */
+    background: linear-gradient(to right, #ffffff, #94a3b8); /* Yazıya beyazdan griye geçişli renk verir */
+    -webkit-background-clip: text; background-clip: text; /* Rengi arka plana değil, yazının kendisine uygular */
+    -webkit-text-fill-color: transparent; /* Geçişli rengin görünmesi için asıl yazı rengini şeffaf yapar */
     margin-bottom: 35px; 
 }
 
 .search-box { 
-    width: 100%; 
-    max-width: 600px; 
-    padding: 16px 25px; 
-    background: #161926; 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 30px; 
-    color: white; 
-    display: block; 
-    margin: 0 auto; 
-    outline: none;
-    transition: 0.3s;
+    width: 100%; max-width: 600px; /* Maksimum genişliği 600px olarak sınırlar */
+    padding: 16px 25px; background: #161926; 
+    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; /* Kutunun kenarlarını iyice oval yapar */
+    color: white; display: block; margin: 0 auto; /* Kutuyu sayfanın tam ortasına hizalar */
+    outline: none; transition: 0.3s;
+}
+.search-box:focus { 
+    border-color: #38bdf8; /* Tıklanıldığında çerçevenin rengini mavi yapar */
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); /* Tıklanıldığında etrafa hafif mavi ışık saçar */
 }
 
-.search-box:focus { border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); }
+.filter-bar { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin: 40px 0 60px 0; max-width: 1000px; margin-left: auto; margin-right: auto; /* Çubuğu ortalar */
+}
 
-/* Filtre çubuğunu buton sağa yaslansın diye güncelledik */
-.filter-bar { display: flex; justify-content: space-between; align-items: center; margin: 40px 0 60px 0; max-width: 1000px; margin-left: auto; margin-right: auto; }
-
+/* Kategori Filtre Butonları */
 .filter-btn { 
-    background: transparent; 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    color: #94a3b8; 
-    padding: 8px 22px; 
-    border-radius: 20px; 
-    cursor: pointer; 
-    font-weight: 600;
-    transition: 0.3s;
+    background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); 
+    color: #94a3b8; padding: 8px 22px; border-radius: 20px; 
+    cursor: pointer; font-weight: 600; transition: 0.3s;
 }
-
 .filter-btn.active, .filter-btn:hover { 
-    background: #38bdf8; 
-    color: #0a0b14; 
-    border-color: #38bdf8; 
+    background: #38bdf8; color: #0a0b14; border-color: #38bdf8; /* Aktif olduğunda mavi olur */
 }
 
-/* YENİ EKLENEN: KARŞILAŞTIR BUTONU STİLİ */
+/* Karşılaştır Butonu Özel Stili */
 .compare-btn {
-    background: linear-gradient(45deg, #f59e0b, #fbbf24);
-    color: #000;
-    border: none;
-    padding: 8px 25px;
-    border-radius: 20px;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
-    transition: 0.3s;
-    letter-spacing: 0.5px;
+    background: linear-gradient(45deg, #f59e0b, #fbbf24); /* Altın rengi arka plan */
+    color: #000; border: none; padding: 8px 25px; border-radius: 20px;
+    font-weight: 800; cursor: pointer;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); transition: 0.3s; letter-spacing: 0.5px;
 }
-
 .compare-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.7);
+    transform: translateY(-2px); /* Tıklanma hissi için yukarı kaydırır */
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.7); /* Işığı artırır */
 }
 
-/* --- MODEL KARTLARI (GRID) --- */
+/* --- MODEL KARTLARI (GRID SİSTEMİ) --- */
 .tools-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-    gap: 25px; 
+    display: grid; /* Kartları yan yana grid (ızgara) sistemiyle dizer */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Her bir kartın en az 300px olmasını sağlar, ekran büyüdükçe yan yana dizer */
+    gap: 25px; /* Kartlar arasında 25px boşluk bırakır */
 }
 
 .card { 
-    background: #161926; 
-    border: 1px solid rgba(255, 255, 255, 0.05); 
-    border-radius: 20px; 
-    padding: 25px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: space-between; 
-    min-height: 260px; 
-    transition: 0.4s ease; 
+    background: #161926; border: 1px solid rgba(255, 255, 255, 0.05); 
+    border-radius: 20px; padding: 25px; 
+    display: flex; flex-direction: column; justify-content: space-between; /* Kart içindeki elemanları dikeyde düzgün dağıtır (buton en alta iner) */
+    min-height: 260px; transition: 0.4s ease; /* Efektlerin yavaş (0.4 sn) gerçekleşmesini sağlar */
+    animation: cardAppear 0.4s ease forwards; /* Sayfa yüklendiğinde kartların aşağıdan yukarı doğru gelmesini sağlar */
 }
 
 .card:hover { 
-    transform: translateY(-10px); 
-    border-color: #38bdf8; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transform: translateY(-10px); /* Kartın üzerine gelindiğinde 10px yukarı zıplatır */
+    border-color: #38bdf8; /* Çerçeveyi mavi yapar */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* Kartın altına gölge düşürerek 3 Boyutlu (havaya kalkmış) hissi verir */
 }
 
+/* İncele Butonu */
 .details-link { 
-    display: block; 
-    width: 100%; 
-    margin-top: 20px; 
-    padding: 12px; 
-    background: rgba(56, 189, 248, 0.05); 
-    color: #38bdf8; 
-    text-align: center; 
-    text-decoration: none; 
-    font-weight: 700; 
-    border: 1px solid rgba(56, 189, 248, 0.2); 
-    border-radius: 12px; 
-    transition: 0.3s;
+    display: block; width: 100%; margin-top: 20px; padding: 12px; 
+    background: rgba(56, 189, 248, 0.05); color: #38bdf8; text-align: center; 
+    text-decoration: none; font-weight: 700; border: 1px solid rgba(56, 189, 248, 0.2); 
+    border-radius: 12px; transition: 0.3s;
 }
+.details-link:hover { background: #38bdf8; color: #000; /* Üzerine gelince içi dolu mavi olur */ }
 
-.details-link:hover { background: #38bdf8; color: #000; }
-
-/* --- MODAL STİLLERİ --- */
+/* --- MODAL (AÇILIR PENCERE) STİLLERİ --- */
 .modal-overlay { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    background: rgba(0,0,0,0.85); 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    z-index: 1000; 
-    backdrop-filter: blur(8px); 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.85); /* Arka planı koyulaştırır */
+    display: flex; justify-content: center; align-items: center; /* Pencereyi ekranın tam ortasına getirir */
+    z-index: 1000; /* Her şeyin üstünde çıkmasını sağlar */
+    backdrop-filter: blur(8px); /* Arkada kalan siteyi bulanıklaştırır */
 }
 
 .auth-card { 
-    background: #161926; 
-    padding: 40px; 
-    border-radius: 24px; 
-    border: 1px solid rgba(56, 189, 248, 0.3); 
-    width: 380px; 
+    background: #161926; padding: 40px; border-radius: 24px; 
+    border: 1px solid rgba(56, 189, 248, 0.3); width: 380px; 
     box-shadow: 0 0 50px rgba(0,0,0,0.6); 
 }
 
 .auth-card h2 { 
-    margin-bottom: 25px; 
-    text-align: center; 
-    color: #38bdf8; 
-    font-size: 1.8rem;
-    letter-spacing: -0.5px;
+    margin-bottom: 25px; text-align: center; color: #38bdf8; font-size: 1.8rem; letter-spacing: -0.5px;
 }
 
 .admin-input { 
-    background: #0a0b14; 
-    border: 1px solid #333; 
-    color: #fff; 
-    padding: 12px; 
-    width: 100%; 
-    border-radius: 8px; 
-    margin-bottom: 15px; 
-    outline: none;
+    background: #0a0b14; border: 1px solid #333; color: #fff; padding: 12px; 
+    width: 100%; border-radius: 8px; margin-bottom: 15px; outline: none;
 }
-
 .admin-input:focus { border-color: #38bdf8; }
 
 /* --- ANİMASYONLAR --- */
 @keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(-10px); } 
-    to { opacity: 1; transform: translateY(0); } 
+    from { opacity: 0; transform: translateY(-10px); } /* Görünmez ve biraz yukarıda başlar */
+    to { opacity: 1; transform: translateY(0); } /* Tam görünür olur ve yerine oturur */
 }
 
-/* --- MOBİL UYUMLULUK --- */
-@media (max-width: 768px) {
-    .sidebar { width: 70px; padding: 20px 10px; }
-    .logo-text, .menu-item span { display: none; }
-    .main-content { margin-left: 70px; padding: 20px; }
-    .main-title { font-size: 1.8rem; }
-}
-/* --- LOGO KUTU ANİMASYONU --- */
-.logo {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 60px;
-    margin-bottom: 40px;
-}
-
-.logo-box {
-    position: absolute;
-    width: 45px;
-    height: 45px;
-    border: 2px solid #38bdf8;
-    border-radius: 8px;
-    animation: rotateBox 4s linear infinite;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-    z-index: 1;
-}
-
-.logo-text {
-    position: relative;
-    z-index: 2;
-    color: #fff;
-    font-weight: 800;
-    font-size: 1.2rem;
-    letter-spacing: 1px;
-    text-shadow: 0 0 10px rgba(0,0,0,1);
+@keyframes cardAppear {
+    from { opacity: 0; transform: translateY(20px); } /* Kartlar sayfa açılışında aşağıdan gelir */
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes rotateBox {
     0% { transform: rotate(0deg); border-color: #38bdf8; }
-    50% { transform: rotate(180deg); border-color: #f59e0b; }
+    50% { transform: rotate(180deg); border-color: #f59e0b; } /* Renk değiştirerek döner */
     100% { transform: rotate(360deg); border-color: #38bdf8; }
 }
 
-/* Kartların geçiş animasyonu */
-.card {
-    animation: cardAppear 0.4s ease forwards;
+/* --- LOGO KUTU ANİMASYONU --- */
+.logo { position: relative; display: flex; align-items: center; justify-content: center; height: 60px; margin-bottom: 40px; }
+
+/* Dönen kare kutu efekti */
+.logo-box {
+    position: absolute; width: 45px; height: 45px; border: 2px solid #38bdf8; border-radius: 8px;
+    animation: rotateBox 4s linear infinite; /* Sonsuza kadar 4 saniyede bir tur döner */
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); z-index: 1;
 }
 
-@keyframes cardAppear {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+.logo-text { position: relative; z-index: 2; color: #fff; font-weight: 800; font-size: 1.2rem; letter-spacing: 1px; text-shadow: 0 0 10px rgba(0,0,0,1); }
+
+
+/* --- MOBİL UYUMLULUK (Responsive Design) --- */
+/* Ekran genişliği 768px'den küçükse (Yani tablet veya telefonsa) buradaki kodlar çalışır */
+@media (max-width: 768px) {
+    .sidebar { width: 70px; padding: 20px 10px; } /* Menüyü daraltır */
+    .logo-text, .menu-item span { display: none; } /* Menüdeki yazıları gizler sadece ikonlar kalır */
+    .main-content { margin-left: 70px; padding: 20px; } /* İçeriği sola kaydırır */
+    .main-title { font-size: 1.8rem; } /* Başlık boyutunu küçültür */
 }
 
-/* Mevcut filter-bar ve diğer stilleriniz aynı kalacak */
+/* --- YENİ ÖZELLİKLER: TEMALAR (Aydınlık ve Cyberpunk Modu) --- */
+/* EĞER HTML BODY ETİKETİNDE data-theme='light' VARSA AŞAĞIDAKİLER ÇALIŞIR */
+body[data-theme='light'] { background-color: #f8fafc !important; color: #0f172a; } /* Arka planı beyaz, yazıları siyah yapar */
+body[data-theme='light'] .sidebar { background-color: #f1f5f9; border-right: 1px solid #e2e8f0; }
+body[data-theme='light'] .card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+body[data-theme='light'] .card h3 { color: #0f172a; }
+body[data-theme='light'] .card p { color: #475569; }
+body[data-theme='light'] .search-box { background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; }
+body[data-theme='light'] .search-box::placeholder { color: #94a3b8; }
+body[data-theme='light'] .filter-btn { color: #475569; border-color: #cbd5e1; }
+body[data-theme='light'] .auth-card { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+body[data-theme='light'] .admin-input { background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; }
+body[data-theme='light'] .main-title { background: linear-gradient(to right, #0f172a, #3b82f6); -webkit-background-clip: text; }
+body[data-theme='light'] .logo-text { text-shadow: none; color: #0f172a; }
+
+/* EĞER HTML BODY ETİKETİNDE data-theme='cyberpunk' VARSA AŞAĞIDAKİLER ÇALIŞIR (Pembe/Neon) */
+body[data-theme='cyberpunk'] { background-color: #0b021b !important; color: #e0f2fe; }
+body[data-theme='cyberpunk'] .sidebar { background-color: #12042b; border-right: 1px solid #d946ef; }
+body[data-theme='cyberpunk'] .card { background: #1f093f; border: 1px solid #d946ef; box-shadow: 0 0 15px rgba(217, 70, 239, 0.2); }
+body[data-theme='cyberpunk'] .card:hover { border-color: #06b6d4; box-shadow: 0 0 25px rgba(6, 182, 212, 0.5); }
+body[data-theme='cyberpunk'] .search-box { background: #12042b; border: 1px solid #d946ef; color: #e0f2fe; }
+body[data-theme='cyberpunk'] .filter-btn { color: #e0f2fe; border-color: #d946ef; }
+body[data-theme='cyberpunk'] .filter-btn.active { background: #d946ef; color: #fff; border-color: #d946ef; box-shadow: 0 0 10px #d946ef; }
+body[data-theme='cyberpunk'] .main-title { background: linear-gradient(to right, #d946ef, #06b6d4); -webkit-background-clip: text; }
+body[data-theme='cyberpunk'] .logo-box { border-color: #d946ef; box-shadow: 0 0 15px #d946ef; }
+
+/* --- TEMA SEÇİCİ VE YENİ BUTONLAR --- */
+.action-btn {
+    background: transparent; border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer;
+    font-weight: 600; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+}
+.action-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+.theme-select {
+    background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white; padding: 8px 12px; border-radius: 6px; outline: none;
+    font-family: inherit; cursor: pointer;
+}
+
+/* --- POPÜLER ARAÇLAR ÖZEL STİLLERİ --- */
+/* Default (Gece Modu) - Altın rengi vurgular */
+.popular-card { border: 1px solid rgba(245, 158, 11, 0.3); background: linear-gradient(145deg, #1e293b, #0f172a); }
+
+/* Aydınlık Mod */
+body[data-theme='light'] .popular-card { background: linear-gradient(145deg, #fef3c7, #fffbeb); border: 1px solid #fcd34d; }
+body[data-theme='light'] .popular-card:hover { border-color: #f59e0b; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2); }
+
+/* Cyberpunk Mod */
+body[data-theme='cyberpunk'] .popular-card { background: linear-gradient(145deg, #1f093f, #0b021b); border: 1px solid #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+body[data-theme='cyberpunk'] .popular-card:hover { box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
+
+/* --- GLOBAL THEME OVERRIDES --- */
+[data-theme="light"], [data-theme="light"] body, [data-theme="light"] .sidebar, [data-theme="light"] .main-content {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+[data-theme="light"] .card, [data-theme="light"] .auth-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+}
+[data-theme="light"] .card h3, [data-theme="light"] .main-title, [data-theme="light"] h2 {
+    color: #0f172a !important;
+}
+[data-theme="light"] .card p {
+    color: #64748b !important;
+}
+[data-theme="light"] .search-box, [data-theme="light"] .theme-select, [data-theme="light"] .admin-input {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+[data-theme="light"] .sidebar {
+    border-right: 1px solid #e2e8f0 !important;
+}
+[data-theme="light"] .menu-item:hover, [data-theme="light"] .menu-item.active {
+    background-color: #f1f5f9 !important;
+    color: #2563eb !important;
+}
+[data-theme="light"] .logo-text {
+    color: #0f172a !important;
+    text-shadow: none !important;
+}
+
+[data-theme="cyberpunk"], [data-theme="cyberpunk"] body, [data-theme="cyberpunk"] .sidebar, [data-theme="cyberpunk"] .main-content {
+    background-color: #050510 !important;
+    color: #00ffcc !important;
+}
+[data-theme="cyberpunk"] .card, [data-theme="cyberpunk"] .auth-card {
+    background: rgba(5, 5, 16, 0.8) !important;
+    border: 1px solid #ff00ff !important;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.2) !important;
+}
+[data-theme="cyberpunk"] .card:hover {
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.6) !important;
+    transform: translateY(-5px);
+}
+[data-theme="cyberpunk"] .card h3, [data-theme="cyberpunk"] .main-title, [data-theme="cyberpunk"] h2 {
+    color: #ff00ff !important;
+    text-shadow: 0 0 10px #ff00ff !important;
+}
+[data-theme="cyberpunk"] .card p {
+    color: #00e5ff !important;
+}
+[data-theme="cyberpunk"] .search-box, [data-theme="cyberpunk"] .theme-select, [data-theme="cyberpunk"] .admin-input {
+    background-color: #050510 !important;
+    border: 1px solid #00ffcc !important;
+    color: #00ffcc !important;
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.2) !important;
+}
+[data-theme="cyberpunk"] .logo-text {
+    color: #ff00ff !important;
+    text-shadow: 0 0 15px #ff00ff !important;
+}
+[data-theme="cyberpunk"] .key-btn, [data-theme="cyberpunk"] .compare-btn {
+    background: linear-gradient(90deg, #ff00ff, #00ffcc) !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5) !important;
+    border: none !important;
+}
+[data-theme="cyberpunk"] .sidebar {
+    border-right: 1px solid #ff00ff !important;
+    box-shadow: 5px 0 15px rgba(255, 0, 255, 0.1) !important;
+}
+[data-theme="cyberpunk"] .menu-item:hover, [data-theme="cyberpunk"] .menu-item.active {
+    background-color: rgba(255, 0, 255, 0.1) !important;
+    color: #00ffcc !important;
+    border-left: 3px solid #00ffcc !important;
+}

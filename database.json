@@ -2,29 +2,67 @@
   "aiTools": [],
   "users": [
     {
-      "id": "1773670807499",
+      "id": "1777012192037",
+      "username": "x",
+      "password": "xx",
+      "role": "developer",
+      "email": "asdasdd"
+    },
+    {
+      "id": "1778223328333",
+      "username": "a",
+      "password": "aa",
+      "role": "user"
+    },
+    {
+      "id": "1778238481883",
       "username": "aa",
-      "password": "aa"
+      "password": "ww",
+      "role": "user"
+    },
+    {
+      "id": "1778246764882",
+      "username": "W",
+      "password": "WW",
+      "role": "user"
     }
   ],
   "keys": [
     {
-      "id": "1773670830301",
-      "code": "AI-L5UC77I1K",
-      "type": "1_Saat",
-      "durationMs": 3600000,
+      "id": "1777029959209",
+      "code": "AI-ECSRD3CDY",
+      "type": "1_Yıl",
+      "durationMs": 31536000000,
       "isUsed": true,
-      "usedBy": "1773670807499",
-      "expiryDate": 1773674436463
+      "usedBy": "1777012192037",
+      "expiryDate": 1808565975597
     },
     {
-      "id": "1773705534173",
-      "code": "AI-NLTMD9KEY",
+      "id": "1778223351525",
+      "code": "ADM-UKIFZGVQJ",
+      "type": "1_Yıl",
+      "durationMs": 31536000000,
+      "isUsed": true,
+      "usedBy": "1778223328333",
+      "expiryDate": 1809759351525
+    },
+    {
+      "id": "1778246898729",
+      "code": "AI-7IBYYJH0Y",
       "type": "7_Gün",
       "durationMs": 604800000,
       "isUsed": false,
       "usedBy": null,
       "expiryDate": null
+    },
+    {
+      "id": "1778246933231",
+      "code": "ADM-6FGKMAMEG",
+      "type": "1_Yıl",
+      "durationMs": 31536000000,
+      "isUsed": true,
+      "usedBy": "1778246764882",
+      "expiryDate": 1809782933231
     }
   ]
 }

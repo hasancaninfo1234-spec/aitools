@@ -1,55 +1,95 @@
+<!-- 
+  Hazırlayan: Bilgisayar Programcılığı Öğrencisi
+  Proje: AI Tools (Yapay Zeka Evreni)
+  Açıklama: Bu sayfa projenin ana sayfasıdır. Tasarımı hocanın istediği gibi dark tema yaptım.
+-->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Universe - Premium Araçlar</title>
+    <title>AI Tools - Proje Ödevi Ana Sayfa</title>
+    <!-- İnternetten bulduğum font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Benim CSS dosyam -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <!-- Sol menü (Hocam burası fixed) -->
     <aside class="sidebar">
         <div class="logo">
             <div class="logo-box"></div>
-            <span class="logo-text">AI UNIVERSE</span>
+            <span class="logo-text">AI TOOLS</span>
         </div>
         
         <nav class="menu">
-            <a href="#" class="menu-item active"><span>Ana Sayfa</span></a>
-            <a href="#" class="menu-item"><span>Kategoriler</span></a>
-            <a href="#" class="menu-item"><span>Favoriler</span></a>
+            <a href="index.html" class="menu-item active"><span>Ana Sayfa</span></a>
+            <a href="compare.html" class="menu-item"><span>Karşılaştır</span></a>
+            <a href="hakkimizda.html" class="menu-item"><span>Hakkımızda</span></a>
         </nav>
         
         <div class="premium-section"></div>
     </aside>
 
+    <!-- Orta kısım içerik -->
     <main class="main-content">
+        <!-- JS ile çizdiğim hareketli arka plan (vize ödevi için puan getirir umarım) -->
         <canvas id="hero-canvas"></canvas>
 
-        <header class="top-header">
+        <header class="top-header" style="justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 15px;">
+                <div id="dev-action-container"></div>
+                <!-- Tema değiştirme kutusu -->
+                <select id="theme-selector" class="theme-select">
+                    <option value="dark">Gece Modu</option>
+                    <option value="light">Aydınlık Mod</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                </select>
+            </div>
             <div id="auth-ui" class="auth-container">
                 <button class="auth-btn" onclick="openAuthModal()">🔑 Giriş Yap</button>
             </div>
         </header>
 
         <h1 class="main-title">Yapay Zeka Evrenini Keşfet</h1>
-        <input type="text" id="search-input" class="search-box" placeholder="Model, araç veya kategori ara...">
+        <!-- Arama yeri -->
+        <input type="text" id="search-input" class="search-box" placeholder="Model, araç veya kategori ara kanka...">
 
+        <!-- Popüler araçlar kısmı (JS ile doluyor) -->
+        <div id="popular-section" style="margin-bottom: 30px; padding-top: 15px; display: none;">
+            <h2 style="color: #f59e0b; margin-bottom: 15px; font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">🔥 En Popüler AI Araçları</h2>
+            <div id="popular-tools-container" class="tools-grid"></div>
+            <hr style="border: 0; height: 1px; background: rgba(255,255,255,0.05); margin-top: 30px;">
+        </div>
+
+        <!-- Filtreleme butonları -->
         <div class="filter-bar">
-            <div class="filter-group" style="display: flex; gap: 12px;">
+            <div class="filter-group" style="display: flex; gap: 12px; align-items: center;">
                 <button class="filter-btn active" data-category="Tümü">Tümü</button>
                 <button class="filter-btn" data-category="Görsel">Görsel</button>
                 <button class="filter-btn" data-category="Metin">Metin</button>
                 <button class="filter-btn" data-category="Kod">Kod</button>
                 <button class="filter-btn" data-category="Ses/Video">Ses/Video</button>
+                
+                <span style="color: #64748b; margin: 0 10px;">|</span>
+                
+                <!-- Fiyat seçimi -->
+                <select id="pricing-filter" class="theme-select" style="padding: 6px 12px; font-size: 0.9rem;">
+                    <option value="Tümü">Tüm Fiyatlar</option>
+                    <option value="Ücretsiz">Ücretsiz</option>
+                    <option value="Freemium">Freemium</option>
+                    <option value="Ücretli">Ücretli</option>
+                </select>
             </div>
             <button class="compare-btn">✨ Karşılaştır</button>
         </div>
 
+        <!-- Kartların basılacağı div -->
         <div id="tools-container" class="tools-grid"></div>
     </main>
 
+    <!-- Giriş Yap Modalı (Pop-up) -->
     <div id="auth-modal" class="modal-overlay" style="display: none;">
         <div class="auth-card">
             <h2 id="modal-title">Giriş Yap</h2>
@@ -58,11 +98,91 @@
             <button id="auth-submit-btn" class="key-btn" style="width: 100%; padding: 12px; margin-bottom: 10px; font-size: 1rem;">GİRİŞ YAP</button>
             <button class="auth-btn" style="width: 100%;" onclick="closeAuthModal()">İptal</button>
             <div style="text-align: center; margin-top: 15px;">
-                <a href="#" id="toggle-auth" style="color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Hesabın yok mu? Kayıt Ol</a>
+                <!-- Kayıt olmak için buraya tıkla -->
+                <a href="#" id="toggle-auth" style="color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Hesabın yok mu? Kayıt Ol kanka</a>
             </div>
         </div>
     </div>
 
+    <!-- Geliştirici Ol Modal (Hoca ekstra puan versin diye ekledim) -->
+    <div id="dev-request-modal" class="modal-overlay" style="display: none;">
+        <div class="auth-card" style="width: 400px;">
+            <h2>Geliştirici Hesabı Başvurusu</h2>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; text-align: center;">Kendi yapay zeka araçlarınızı sisteme ekleyebilmek için başvuru yapın.</p>
+            <input type="email" id="dev-email" class="admin-input" placeholder="E-posta Adresiniz" required autocomplete="off">
+            <button onclick="submitDevRequest()" class="key-btn" style="width: 100%; padding: 12px; margin-bottom: 10px; font-size: 1rem;">BAŞVUR</button>
+            <button class="auth-btn" style="width: 100%;" onclick="closeDevRequestModal()">İptal</button>
+        </div>
+    </div>
+
+    <!-- Araç Ekle Modal -->
+    <div id="submit-tool-modal" class="modal-overlay" style="display: none;">
+        <div class="auth-card" style="width: 450px;">
+            <h2>Yapay Zeka Aracı Öner</h2>
+            <input type="text" id="st-name" class="admin-input" placeholder="Araç Adı (Örn: ChatGPT)" required autocomplete="off">
+            <select id="st-category" class="admin-input">
+                <option value="Metin">Metin</option>
+                <option value="Görsel">Görsel</option>
+                <option value="Kod">Kod</option>
+                <option value="Ses/Video">Ses/Video</option>
+                <option value="Diğer">Diğer</option>
+            </select>
+            <input type="url" id="st-url" class="admin-input" placeholder="Web Sitesi URL (ZORUNLU)" required autocomplete="off">
+            <textarea id="st-desc" class="admin-input" placeholder="Kısaca ne işe yarar?" required rows="3" style="resize: vertical;"></textarea>
+            <button onclick="submitNewTool()" class="key-btn" style="width: 100%; padding: 12px; margin-bottom: 10px; font-size: 1rem;">GÖNDER</button>
+            <button class="auth-btn" style="width: 100%;" onclick="closeSubmitToolModal()">İptal</button>
+        </div>
+    </div>
+
+    <!-- AI Advisor Chatbot (Nova) - API'ye bağlıyor -->
+    <div id="ai-advisor" class="ai-advisor" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+        <button id="advisor-toggle" style="background: #38bdf8; color: #0f172a; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; box-shadow: 0 4px 15px rgba(56,189,248,0.4); transition: transform 0.3s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">🤖</button>
+        
+        <div id="advisor-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 320px; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-direction: column;">
+            <div style="background: rgba(56, 189, 248, 0.2); padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;" id="advisor-header">
+                <h4 id="advisor-title" style="margin: 0; color: #fff; font-size: 1rem; display: flex; align-items: center; gap: 8px;">✨ Nova Asistan</h4>
+                <button id="advisor-close" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.2rem;">&times;</button>
+            </div>
+            
+            <div id="advisor-messages" style="height: 300px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                <div id="advisor-intro" style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%;">
+                    Selam kanka! Ne tarz bir AI arıyorsun? (Örn: Bana kod yazan AI bul)
+                </div>
+            </div>
+            
+            <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; gap: 8px;">
+                <input type="text" id="advisor-input" placeholder="Bana sorun..." style="flex: 1; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 8px 15px; color: #fff; font-size: 0.9rem; outline: none;">
+                <button id="advisor-send" style="background: #38bdf8; color: #0f172a; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRO Tanıtım Popup -->
+    <div id="pro-promo-modal" class="modal-overlay" style="display: none; z-index: 10000; padding: 20px;">
+        <div class="auth-card" style="width: 450px; background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.2); text-align: center; position: relative;">
+            <button onclick="closeProPromo()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            
+            <div style="font-size: 3rem; margin-bottom: 10px;">👑</div>
+            <h2 style="color: #f59e0b; margin-bottom: 5px; font-size: 1.8rem;">AI Tools PRO</h2>
+            <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 25px;">Premium alıp tam erişim sağlayın.</p>
+            
+            <ul style="list-style: none; padding: 0; margin: 0 0 25px 0; text-align: left; color: #e2e8f0; font-size: 0.95rem;">
+                <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 5px; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">🤖</span>
+                    <div><strong>Nova PRO:</strong> Limitsiz sorgu hakkı falan.</div>
+                </li>
+                <li style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 5px; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">✨</span>
+                    <div><strong>Karşılaştırma:</strong> Bir sürü aracı karşılaştırın.</div>
+                </li>
+            </ul>
+            
+            <button onclick="actionProPromo()" class="key-btn" style="width: 100%; padding: 14px; font-size: 1.1rem; background: linear-gradient(90deg, #f59e0b, #ea580c); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">KEY GİR VE PRO OL</button>
+            <button onclick="closeProPromo()" style="background: none; border: none; color: #94a3b8; margin-top: 15px; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">Belki Daha Sonra Kanka</button>
+        </div>
+    </div>
+
+    <!-- Benim JS dosyamı bağladığım yer -->
     <script src="script.js"></script>
 </body>
 </html>
