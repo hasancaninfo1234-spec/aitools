@@ -17,11 +17,22 @@ let butunAraclar = []; // Apiden gelen verileri burada tutucaz
 // Sayfa yüklendiğinde çalışacak ana fonksiyon
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Sayfa yüklendi, fonksiyonlar başlatılıyor...");
+    
+    // 1. SPLASH SCREEN KONTROLÜ
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 500);
+        }, 1500);
+    }
+
     canvasAnimasyonunuBaslat(); // Arka plan animasyonu
     kullaniciDurumunuKontrolEt(); // Giriş yapmış mı?
     modelleriGetir(); // Veritabanından araçları çek
     filtreleriAyarla(); // Arama ve buton filtreleri
     mobilMenuyuAyarla(); // Mobil yan menü aç/kapat işlemleri
+    aiAdvisorAyarla(); // Nova Asistan Formları
 
     // TEMA KONTROLÜ (Hocam burası karanlık/aydınlık tema için)
     const temaSecici = document.getElementById('theme-selector');
@@ -191,6 +202,9 @@ function aracFiltrleVeEkranaBas(arananKelime, kategori, fiyat = "Tümü", sirala
         let kategoriUyarMi = false;
         if (kategori === "Tümü") {
             kategoriUyarMi = true;
+        } else if (kategori === "Favoriler") {
+            const favs = JSON.parse(localStorage.getItem('favs') || '[]');
+            kategoriUyarMi = favs.includes(arac.id.toString());
         } else if (kategoriSozlugu[kategori]) {
             const aracKat = arac.category ? arac.category.toLowerCase() : "";
             kategoriUyarMi = kategoriSozlugu[kategori].some(anahtarKelime => aracKat.includes(anahtarKelime));
@@ -226,19 +240,56 @@ function ekranaAraclariBas(araclarListe) {
     const kutu = document.getElementById('tools-container');
     if (!kutu) return;
     if(araclarListe.length === 0) {
-        kutu.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #94a3b8;">Aradığınız kriterlere uygun araç bulunamadı.</p>`;
+        kutu.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-size: 1.1rem;">Aradığınız kriterlere uygun araç bulunamadı.</p>`;
         return;
     }
-    kutu.innerHTML = araclarListe.map(arac => `
-        <div class="card">
+    
+    const favs = JSON.parse(localStorage.getItem('favs') || '[]');
+
+    kutu.innerHTML = araclarListe.map(arac => {
+        const isFav = favs.includes(arac.id.toString());
+        return `
+        <div class="card" style="position: relative;">
+            <div class="fav-btn-icon ${isFav ? 'favorited' : ''}" onclick="toggleFavorite(event, '${arac.id}')">
+                ${isFav ? '❤️' : '🤍'}
+            </div>
             <div>
-                <span style="color:#38bdf8; font-size:0.7rem; font-weight:800; text-transform:uppercase;">${arac.category}</span>
-                <h3 style="margin:10px 0; font-size:1.4rem;">${arac.name}</h3>
-                <p style="color:#94a3b8; font-size:0.9rem; line-height:1.5;">${arac.description}</p>
+                <span style="color:var(--primary-color); font-size:0.7rem; font-weight:800; text-transform:uppercase;">${arac.category}</span>
+                <h3 style="margin:10px 0; font-size:1.4rem; color: var(--text-color);">${arac.name}</h3>
+                <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">${arac.description}</p>
             </div>
             <a href="details.html?id=${arac.id}" class="details-link">DETAYLARI GÖR</a>
         </div>
-    `).join('');
+    `}).join('');
+}
+
+function toggleFavorite(event, id) {
+    event.preventDefault(); 
+    event.stopPropagation();
+    let favs = JSON.parse(localStorage.getItem('favs') || '[]');
+    if(favs.includes(id.toString())) {
+        favs = favs.filter(fId => fId !== id.toString());
+    } else {
+        favs.push(id.toString());
+    }
+    localStorage.setItem('favs', JSON.stringify(favs));
+    
+    // Eğer o an favoriler sekmesindeyse, yeniden filtrele ki giden gitsin
+    const aktifKategori = document.querySelector('.filter-btn.active').dataset.category;
+    if(aktifKategori === 'Favoriler') {
+        const aramaKutusu = document.getElementById('search-input');
+        aracFiltrleVeEkranaBas(aramaKutusu.value, "Favoriler");
+    } else {
+        // Değilse sadece butonu güncelle
+        const btn = event.currentTarget;
+        if(favs.includes(id.toString())) {
+            btn.classList.add('favorited');
+            btn.innerHTML = '❤️';
+        } else {
+            btn.classList.remove('favorited');
+            btn.innerHTML = '🤍';
+        }
+    }
 }
 
 // VERİTABANINDAN (API'DEN) VERİLERİ ÇEKİYORUZ
@@ -334,7 +385,76 @@ function sayiAnimasyonu(element, hedefSayi, sure) {
     }, sureAdimi);
 }
 
-function populerAraclariBas(araclar) {
+// AI ADVISOR TAVSİYE FONKSİYONLARI
+function aiAdvisorAyarla() {
+    const options = document.querySelectorAll('.advisor-option-btn');
+    const msgContainer = document.getElementById('advisor-messages');
+    
+    options.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const kategori = e.target.dataset.ask;
+            
+            // Kullanıcı mesajı ekle
+            msgContainer.innerHTML += `
+                <div style="background: rgba(56, 189, 248, 0.2); padding: 10px 15px; border-radius: 15px 15px 0 15px; color: #fff; font-size: 0.9rem; max-width: 85%; align-self: flex-end; margin-top: 10px;">
+                    ${e.target.innerText}
+                </div>
+            `;
+            
+            // Seçenekleri gizle
+            document.getElementById('advisor-options').style.display = 'none';
+            
+            // Yazıyor efekti
+            const yaziyorId = 'typing-' + Date.now();
+            msgContainer.innerHTML += `
+                <div id="${yaziyorId}" style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #94a3b8; font-size: 0.9rem; max-width: 85%; margin-top: 10px;">
+                    Düşünüyor...
+                </div>
+            `;
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            // En iyi aracı bul
+            setTimeout(() => {
+                document.getElementById(yaziyorId).remove();
+                
+                // Sözlüğe göre filtrele
+                const kategoriSozlugu = {
+                    "Görsel": ["görsel", "images", "3d", "image", "design", "art", "photo"],
+                    "Metin": ["metin", "text", "language", "writing", "content", "email", "blog"],
+                    "Kod": ["kod", "coding", "developer", "sql", "code", "github"],
+                    "Ses/Video": ["ses/video", "video", "music", "audio", "voice", "speech", "podcast", "youtube"]
+                };
+                
+                let uygunAraclar = butunAraclar.filter(arac => {
+                    if (kategoriSozlugu[kategori]) {
+                        const aracKat = arac.category ? arac.category.toLowerCase() : "";
+                        return kategoriSozlugu[kategori].some(kelime => aracKat.includes(kelime));
+                    }
+                    return false;
+                });
+                
+                let cevapMesaji = "";
+                if(uygunAraclar.length > 0) {
+                    // Rastgele ama tutarlı olarak ilkini seçiyoruz, en iyisi olarak
+                    const enIyi = uygunAraclar[0];
+                    cevapMesaji = `Sana kesinlikle <b>${enIyi.name}</b> aracını öneririm! Çok yeteneklidir.<br><br>
+                    <a href="details.html?id=${enIyi.id}" style="color: #38bdf8; text-decoration: none; font-weight: bold; background: rgba(56,189,248,0.1); padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 5px;">Hemen İncele ↗</a>`;
+                } else {
+                    cevapMesaji = "Bu kategoride şu an veritabanımızda araç yok maalesef.";
+                }
+
+                msgContainer.innerHTML += `
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%; margin-top: 10px;">
+                        ${cevapMesaji}
+                    </div>
+                `;
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+            }, 1200);
+        });
+    });
+}
+
+function spotlightGuncelle(araclar) {
     const populerKutu = document.getElementById('popular-tools-container');
     const populerBolum = document.getElementById('popular-section');
     if (!populerKutu || !populerBolum) return;
@@ -364,6 +484,8 @@ function populerAraclariBas(araclar) {
 
     if (enIyiAraclar.length > 0) {
         populerBolum.style.display = 'block';
+        const favs = JSON.parse(localStorage.getItem('favs') || '[]');
+        
         populerKutu.innerHTML = enIyiAraclar.map(arac => {
             let yildizHtml = "";
             if (arac.reviews && arac.reviews.length > 0) {
@@ -371,18 +493,24 @@ function populerAraclariBas(araclar) {
                 yildizHtml = `<div style="color: #fbbf24; font-size: 0.8rem; margin-top: 5px;">⭐ ${ortalama.toFixed(1)} (${arac.reviews.length} Yorum)</div>`;
             }
 
+            const isFav = favs.includes(arac.id.toString());
+
             return `
             <div class="card popular-card" style="position: relative; overflow: hidden;">
                 <div style="position: absolute; top: -15px; right: -25px; background: #f59e0b; color: #000; font-weight: bold; padding: 20px 30px 5px 30px; transform: rotate(45deg); font-size: 0.7rem; z-index: 10;">POPÜLER</div>
+                <div class="fav-btn-icon ${isFav ? 'favorited' : ''}" onclick="toggleFavorite(event, '${arac.id}')" style="top: 15px; right: 50px;">
+                    ${isFav ? '❤️' : '🤍'}
+                </div>
                 <div>
                     <span style="color:#f59e0b; font-size:0.7rem; font-weight:800; text-transform:uppercase;">${arac.category || 'AI'}</span>
-                    <h3 style="margin:10px 0; font-size:1.4rem;">${arac.name}</h3>
-                    <p style="color:#cbd5e1; font-size:0.9rem; line-height:1.5;">${arac.description ? arac.description.substring(0, 80) + '...' : ''}</p>
+                    <h3 style="margin:10px 0; font-size:1.4rem; color: var(--text-color);">${arac.name}</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">${arac.description ? arac.description.substring(0, 80) + '...' : ''}</p>
                     ${yildizHtml}
                 </div>
-                <a href="details.html?id=${arac.id}" class="details-link" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); margin-top: 15px;">DETAYLARI GÖR</a>
+                <a href="details.html?id=${arac.id}" class="details-link" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3);">DETAYLARI GÖR</a>
             </div>
-        `}).join('');
+            `;
+        }).join('');
     } else {
         populerBolum.style.display = 'none';
     }

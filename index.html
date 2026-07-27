@@ -73,6 +73,15 @@
 
 </head>
 <body>
+    <!-- 1. SPLASH SCREEN -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo"></div>
+            <h1 class="splash-text">AI Tools <span style="color: #38bdf8;">Evreni</span></h1>
+            <p class="splash-sub">Hasan Can Yanıkoğlu Sunar...</p>
+        </div>
+    </div>
+
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
     <!-- Sol menü (Hocam burası fixed) -->
@@ -160,6 +169,7 @@
                 <button class="filter-btn" data-category="Metin">Metin</button>
                 <button class="filter-btn" data-category="Kod">Kod</button>
                 <button class="filter-btn" data-category="Ses/Video">Ses/Video</button>
+                <button class="filter-btn fav-filter" data-category="Favoriler">❤️ Favorilerim</button>
                 
                 <span style="color: #64748b; margin: 0 10px;">|</span>
                 
@@ -241,7 +251,14 @@
             
             <div id="advisor-messages" style="height: 300px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
                 <div id="advisor-intro" style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%;">
-                    Selam kanka! Ne tarz bir AI arıyorsun? (Örn: Bana kod yazan AI bul)
+                    Selam kanka! Ne tarz bir yapay zeka arıyorsun? Sana en iyi aracı önerebilirim.
+                </div>
+                <!-- Tavsiye Formları -->
+                <div id="advisor-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                    <button class="advisor-option-btn" data-ask="Metin">📝 Metin Yazmak İstiyorum</button>
+                    <button class="advisor-option-btn" data-ask="Görsel">🎨 Görsel Çizmek İstiyorum</button>
+                    <button class="advisor-option-btn" data-ask="Kod">💻 Kod Yazmak İstiyorum</button>
+                    <button class="advisor-option-btn" data-ask="Ses/Video">🎬 Ses/Video Üretmek İstiyorum</button>
                 </div>
             </div>
             

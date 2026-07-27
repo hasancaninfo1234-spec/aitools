@@ -8,31 +8,60 @@
  * ============================================================================
  */
 
-/* --- GENEL AYARLAR (Sitenin Temel İskelet Ayarları) --- */
+/* --- GENEL AYARLAR VE TEMA DEĞİŞKENLERİ --- */
+:root {
+    /* Varsayılan Dark Tema */
+    --bg-color: #0a0b14;
+    --sidebar-bg: #0a0b14;
+    --card-bg: #161926;
+    --text-color: #ffffff;
+    --text-muted: #94a3b8;
+    --border-color: rgba(255, 255, 255, 0.05);
+    --input-bg: #161926;
+    --primary-color: #38bdf8;
+    --hover-bg: rgba(56, 189, 248, 0.1);
+    --card-border: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] {
+    --bg-color: #f8fafc;
+    --sidebar-bg: #ffffff;
+    --card-bg: #ffffff;
+    --text-color: #0f172a;
+    --text-muted: #475569;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --input-bg: #f1f5f9;
+    --primary-color: #0284c7;
+    --hover-bg: rgba(2, 132, 199, 0.1);
+    --card-border: rgba(0, 0, 0, 0.1);
+}
+
 * { 
-    margin: 0; /* Dış boşlukları sıfırlar, böylece tarayıcının varsayılan boşlukları engellenir */
-    padding: 0; /* İç boşlukları sıfırlar */
-    box-sizing: border-box; /* Genişlik hesaplamalarına iç boşlukları dahil eder (taşmaları önler) */
-    font-family: 'Inter', sans-serif; /* Sitenin genel yazı tipini 'Inter' olarak belirler */
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Inter', sans-serif; 
 }
 
 body { 
-    background-color: #0a0b14 !important; /* Sitenin ana arka plan rengi (koyu lacivert/siyah) */
-    color: #ffffff; /* Sitenin varsayılan metin rengi (beyaz) */
-    overflow-x: hidden; /* Web sitesinde yatay kaydırma çubuğu çıkmasını engeller */
+    background-color: var(--bg-color) !important; 
+    color: var(--text-color); 
+    overflow-x: hidden; 
+    transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 /* --- SIDEBAR (SOL MENÜ TASARIMI) --- */
 .sidebar { 
-    width: 260px; /* Sol menünün genişliğini sabitler */
-    background-color: #0a0b14; /* Menü arka plan rengi */
-    border-right: 1px solid rgba(255, 255, 255, 0.05); /* Menünün sağ tarafına çok hafif, şeffaf bir çizgi çeker */
-    padding: 30px 20px; /* Menünün içindeki boşluklar (Üst-alt 30px, sağ-sol 20px) */
-    display: flex; /* İçindeki elemanları hizalamak için flexbox kullanır */
-    flex-direction: column; /* Elemanları yukarıdan aşağıya doğru dizer */
-    position: fixed; /* Ekranı aşağı kaydırsanız bile menünün sabit kalmasını sağlar */
-    height: 100vh; /* Menü yüksekliğinin ekran boyutu kadar (Tam ekran) olmasını sağlar */
-    z-index: 10; /* Menünün diğer elementlerin üstünde kalmasını sağlar */
+    width: 260px; 
+    background-color: var(--sidebar-bg); 
+    border-right: 1px solid var(--border-color); 
+    padding: 30px 20px; 
+    display: flex; 
+    flex-direction: column; 
+    position: fixed; 
+    height: 100vh; 
+    z-index: 10; 
+    transition: background-color 0.4s ease, border-color 0.4s ease;
 }
 
 .logo { margin-bottom: 40px; /* Logonun altından 40px boşluk bırakır */ }
@@ -154,10 +183,10 @@ body {
 }
 
 .search-box { 
-    width: 100%; max-width: 600px; /* Maksimum genişliği 600px olarak sınırlar */
-    padding: 16px 25px; background: #161926; 
-    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; /* Kutunun kenarlarını iyice oval yapar */
-    color: white; display: block; margin: 0 auto; /* Kutuyu sayfanın tam ortasına hizalar */
+    width: 100%; max-width: 600px; 
+    padding: 16px 25px; background: var(--input-bg); 
+    border: 1px solid var(--border-color); border-radius: 30px; 
+    color: var(--text-color); display: block; margin: 0 auto; 
     outline: none; transition: 0.3s;
 }
 .search-box:focus { 
@@ -172,8 +201,8 @@ body {
 
 /* Kategori Filtre Butonları */
 .filter-btn { 
-    background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); 
-    color: #94a3b8; padding: 8px 22px; border-radius: 20px; 
+    background: transparent; border: 1px solid var(--border-color); 
+    color: var(--text-muted); padding: 8px 22px; border-radius: 20px; 
     cursor: pointer; font-weight: 600; transition: 0.3s;
 }
 .filter-btn.active, .filter-btn:hover { 
@@ -198,6 +227,45 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Her bir kartın en az 300px olmasını sağlar, ekran büyüdükçe yan yana dizer */
     gap: 25px; /* Kartlar arasında 25px boşluk bırakır */
 }
+
+/* Yükleme Ekranı (Splash Screen) */
+.splash-screen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #0a0b14; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.5s ease-out, visibility 0.5s;
+}
+.splash-content { text-align: center; animation: splashPulse 1.5s infinite; }
+.splash-logo { width: 80px; height: 80px; background: #38bdf8; border-radius: 20px; margin: 0 auto 20px; animation: spin 2s linear infinite; }
+.splash-text { font-size: 2.5rem; color: white; margin-bottom: 10px; }
+.splash-sub { color: #94a3b8; font-size: 1.1rem; }
+
+@keyframes splashPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Favori İkonu */
+.fav-btn-icon {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+    color: #94a3b8; width: 35px; height: 35px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.3s; font-size: 1.2rem;
+    z-index: 5;
+}
+.fav-btn-icon:hover { transform: scale(1.1); background: rgba(0,0,0,0.6); }
+.fav-btn-icon.favorited { color: #ef4444; border-color: #ef4444; }
+
+/* Tavsiye Butonları */
+.advisor-option-btn {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(56,189,248,0.3);
+    color: #e2e8f0; padding: 10px; border-radius: 8px; cursor: pointer;
+    text-align: left; transition: 0.2s; font-size: 0.85rem; font-weight: 600;
+}
+.advisor-option-btn:hover { background: rgba(56,189,248,0.15); transform: translateX(5px); }
 
 .card { 
     background: rgba(22, 25, 38, 0.6); /* Yarı saydam arka plan */
