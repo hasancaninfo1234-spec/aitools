@@ -581,14 +581,43 @@ async function kullaniciDurumunuKontrolEt() {
         `;
         return;
     }
+
+    // Eşleşmiş onaylı geliştirici durumunu kontrol et
+    const approvedDevs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
+    const isApproved = approvedDevs.some(d => 
+        (d.email && aktifKullanici.email && d.email.toLowerCase() === aktifKullanici.email.toLowerCase()) ||
+        (d.username && d.username.toLowerCase() === aktifKullanici.username.toLowerCase())
+    );
+
+    if (isApproved && !aktifKullanici.isDev) {
+        aktifKullanici.isDev = true;
+        aktifKullanici.showDevCongratulation = true;
+        localStorage.setItem('user', JSON.stringify(aktifKullanici));
+    }
+
+    // Tebrikler modalı kontrolü
+    if (aktifKullanici.showDevCongratulation) {
+        const devModal = document.getElementById('dev-congrats-modal');
+        if (devModal) devModal.style.display = 'flex';
+    }
     
     kullaniciArayuzu.innerHTML = `
         <div style="display:flex; align-items:center; gap:10px;">
-            <span style="color:#fff; font-size:0.9rem;">Selam, <b>${aktifKullanici.username}</b></span>
+            <span style="color:#fff; font-size:0.9rem;">Selam, <b>${aktifKullanici.username}</b> ${aktifKullanici.isDev ? '<span style="color:#c084fc; font-size:0.75rem; font-weight:700; background:rgba(192,132,252,0.15); padding:2px 8px; border-radius:10px; border:1px solid rgba(192,132,252,0.3);">💻 DEV</span>' : ''}</span>
             <a href="profile.html" class="auth-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">👤 Profilim</a>
             <button class="auth-btn" onclick="cikisYap()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); padding: 10px 15px;">Çıkış</button>
         </div>
     `;
+}
+
+function dismissDevCongrats() {
+    if (aktifKullanici) {
+        aktifKullanici.showDevCongratulation = false;
+        localStorage.setItem('user', JSON.stringify(aktifKullanici));
+    }
+    const modal = document.getElementById('dev-congrats-modal');
+    if(modal) modal.style.display = 'none';
+    openSubmitToolModal();
 }
 
 function profilTikla() {
@@ -633,16 +662,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Bota mesaj gönderme fonksiyonu
+    // Bota mesaj gönderme fonksiyonu (NOVA AKILLI YANITLAR)
     async function mesajGonder() {
         if(!mesajKutusu) return;
         const kullaniciMesaji = mesajKutusu.value.trim();
-        if(!kullaniciMesaji) {
-            console.log("Boş mesaj gönderilmez aga");
-            return;
-        }
+        if(!kullaniciMesaji) return;
 
-        // Kullanıcının mesajını ekrana basıyoruz
         mesajlarEkrani.innerHTML += `<div style="background: rgba(56,189,248,0.1); padding: 10px 15px; border-radius: 15px 15px 0 15px; color: #fff; font-size: 0.9rem; max-width: 85%; align-self: flex-end; margin-left: auto;">${kullaniciMesaji}</div>`;
         mesajKutusu.value = '';
         mesajlarEkrani.scrollTop = mesajlarEkrani.scrollHeight;
@@ -651,30 +676,71 @@ document.addEventListener('DOMContentLoaded', () => {
         mesajlarEkrani.innerHTML += `<div id="${yukleniyorId}" style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #94a3b8; font-size: 0.9rem; max-width: 85%;">Nova Düşünüyor...</div>`;
         mesajlarEkrani.scrollTop = mesajlarEkrani.scrollHeight;
 
+        const lowerMsg = kullaniciMesaji.toLowerCase();
+        let akilliCevap = null;
+
+        // GELİŞTİRİCİ SORGULARI
+        if (lowerMsg.includes('geliştirici') || lowerMsg.includes('gelistirici')) {
+            if (lowerMsg.includes('nasıl') || lowerMsg.includes('olunur') || lowerMsg.includes('olma')) {
+                akilliCevap = "💻 **Geliştirici Nasıl Olunur?**\nÜst barda yer alan **'💻 Geliştirici Ol'** butonuna tıklayarak e-posta adresiniz ile başvuru yapabilirsiniz. Yönetici başvurunuzu onayladığında hesabınız geliştirici yetkisine kavuşur ve araç ekleyebilirsiniz!";
+            } else if (lowerMsg.includes('durum') || lowerMsg.includes('onay') || lowerMsg.includes('başvuru')) {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) {
+                    akilliCevap = "Başvurunuzu sorgulamak için lütfen önce giriş yapın kanka!";
+                } else if (user.isDev) {
+                    akilliCevap = `🎉 Tebrikler **${user.username}**! Geliştirici başvurunuz onaylanmış. Üst bardaki **'➕ Araç Ekle'** butonunu kullanarak yeni araçlar yayınlayabilirsiniz!`;
+                } else {
+                    const pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+                    const isPending = pendingDevs.some(d => (user.email && d.email === user.email) || d.username === user.username);
+                    if (isPending) {
+                        akilliCevap = `⏳ Sayın **${user.username}**, geliştirici başvurunuz şu anda yönetim panelinde inceleme aşamasındadır. En kısa sürede onaylanacaktır!`;
+                    } else {
+                        akilliCevap = `Henüz aktif bir geliştirici başvurunuz bulunmuyor. Üst bardaki **'💻 Geliştirici Ol'** butonundan e-posta adresinizle hemen başvurabilirsiniz.`;
+                    }
+                }
+            } else {
+                akilliCevap = "💻 **Geliştirici Modu:** Kendi yapay zeka araçlarınızı platformumuzda yayınlamanıza olanak tanır. Üst bardaki **'💻 Geliştirici Ol'** butonundan başvurabilirsiniz!";
+            }
+        } 
+        // ARAÇ EKLEME SORGULARI
+        else if (lowerMsg.includes('araç ekle') || lowerMsg.includes('arac ekle') || lowerMsg.includes('model ekle')) {
+            akilliCevap = "➕ **Araç Ekleme:** Sadece onaylı Geliştiriciler araç ekleyebilir. Geliştiriciyseniz üst bardaki **'➕ Araç Ekle'** butonuna tıklayarak yeni yapay zeka araçları önerebilirsiniz!";
+        }
+        // PREMIUM & KEY SORGULARI
+        else if (lowerMsg.includes('premium') || lowerMsg.includes('key')) {
+            akilliCevap = "👑 **Premium Üyelik:** Profil sayfanızdaki **'🔑 Premium Key Aktifleştir'** alanına lisans kodunuzu girerek tüm gelişmiş AI araçlarına erişim sağlayabilirsiniz!";
+        }
+
         try {
-            // Sunucuya soruyu yolluyoruz
             const cevap = await fetch(`${API_BASE}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: kullaniciMesaji, toolsContext: butunAraclar })
-            });
-            const gelenVeri = await cevap.json();
-            
+            }).catch(() => null);
+
+            let botCevabi = akilliCevap;
+            if (cevap && cevap.ok) {
+                const gelenVeri = await cevap.json();
+                botCevabi = gelenVeri.response || akilliCevap;
+            }
+
+            if (!botCevabi) {
+                botCevabi = "Size nasıl yardımcı olabilirim? Geliştirici başvuruları, araç ekleme, Premium key aktifleştirme veya yapay zeka araçları hakkında dilediğinizi sorabilirsiniz!";
+            }
+
             const yukleniyorDivi = document.getElementById(yukleniyorId);
-            if(yukleniyorDivi) yukleniyorDivi.remove(); // Loading yazısını sil
+            if(yukleniyorDivi) yukleniyorDivi.remove();
             
-            let botCevabi = gelenVeri.response || "Hocam API yanıt vermedi, anlamadım dedi.";
-            
-            // Botun cevabını ekrana basıyoruz
-            mesajlarEkrani.innerHTML += `<div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%;">${botCevabi}</div>`;
+            mesajlarEkrani.innerHTML += `<div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%; white-space: pre-wrap;">${botCevabi}</div>`;
             
         } catch (hata) {
             const yukleniyorDivi = document.getElementById(yukleniyorId);
             if(yukleniyorDivi) yukleniyorDivi.remove();
-            mesajlarEkrani.innerHTML += `<div style="color: #ef4444; font-size: 0.9rem;">Sunucuya ulaşılamıyor, interneti kontrol et kanka!</div>`;
-            console.error("Chat hatası:", hata);
+            
+            const fallbackMsg = akilliCevap || "Size nasıl yardımcı olabilirim? Geliştirici başvuruları, araç ekleme veya yapay zeka araçları hakkında sorular sorabilirsiniz!";
+            mesajlarEkrani.innerHTML += `<div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%; white-space: pre-wrap;">${fallbackMsg}</div>`;
         }
-        mesajlarEkrani.scrollTop = mesajlarEkrani.scrollHeight; // Scrollu en alta indir
+        mesajlarEkrani.scrollTop = mesajlarEkrani.scrollHeight;
     }
 
     if(gonderButonu) {
@@ -683,7 +749,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if(mesajKutusu) {
         mesajKutusu.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') mesajGonder(); // Entera basınca da göndersin diye
+            if(e.key === 'Enter') mesajGonder();
         });
     }
 });
