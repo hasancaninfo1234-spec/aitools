@@ -12,6 +12,8 @@
     <!-- İnternetten bulduğum font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <!-- Benim CSS dosyam -->
+    <!-- INTRO.JS (Rehber Turu İçin) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/introjs.min.css">
     <link rel="stylesheet" href="style.css">
    <!-- SEO -->
     <title>AI Tools | En İyi Ücretsiz Yapay Zeka Araçları, ChatGPT Alternatifleri ve AI Asistanları</title>
@@ -78,7 +80,7 @@
         <div class="splash-content">
             <div class="splash-logo"></div>
             <h1 class="splash-text">AI Tools <span style="color: #38bdf8;">Evreni</span></h1>
-            <p class="splash-sub">Hasan Can Yanıkoğlu Sunar...</p>
+            <p class="splash-sub">Geleceği Keşfedin...</p>
         </div>
     </div>
 
@@ -111,35 +113,45 @@
                 <button id="mobile-menu-toggle" class="mobile-nav-toggle" aria-label="Menüyü Aç">☰</button>
                 <div id="dev-action-container"></div>
                 <!-- Tema değiştirme kutusu -->
-                <select id="theme-selector" class="theme-select">
+                <select id="theme-selector" class="theme-select" data-intro="Gece, Aydınlık veya Cyberpunk! Temanı buradan seçebilirsin." data-step="4">
                     <option value="dark">Gece Modu</option>
                     <option value="light">Aydınlık Mod</option>
                     <option value="cyberpunk">Cyberpunk</option>
                 </select>
             </div>
             <div id="auth-ui" class="auth-container">
-                <button class="auth-btn" onclick="openAuthModal()">🔑 Giriş Yap</button>
+                <button class="auth-btn" id="login-or-profile-btn" onclick="openAuthModal()">🔑 Giriş Yap</button>
             </div>
         </header>
 
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-number" id="stat-tools">0</div>
-                <div class="stat-label">Yapay Zeka Aracı</div>
+        <div class="stats-bar glass-stats" data-intro="Buradan sistemdeki yapay zeka sayısını ve istatistikleri görebilirsin!" data-step="3">
+            <div class="stat-item glass-item">
+                <div class="stat-icon">🤖</div>
+                <div class="stat-info">
+                    <div class="stat-number" id="stat-tools">0</div>
+                    <div class="stat-label">Yapay Zeka Aracı</div>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number" id="stat-cats">0</div>
-                <div class="stat-label">Kategori</div>
+            <div class="stat-item glass-item">
+                <div class="stat-icon">📁</div>
+                <div class="stat-info">
+                    <div class="stat-number" id="stat-cats">0</div>
+                    <div class="stat-label">Kategori</div>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number" id="stat-reviews">0</div>
-                <div class="stat-label">Değerlendirme</div>
+            <div class="stat-item glass-item">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-info">
+                    <div class="stat-number" id="stat-reviews">0</div>
+                    <div class="stat-label">Değerlendirme</div>
+                </div>
             </div>
         </div>
 
         <h1 class="main-title">Yapay Zeka Evrenini Keşfet</h1>
-        <!-- Arama yeri -->
-        <input type="text" id="search-input" class="search-box" style="margin-bottom: 40px;" placeholder="Model, araç veya kategori ara kanka...">
+        <div class="search-container" data-intro="Ne tarz bir yapay zeka arıyorsan buraya yaz! Örn: 'Video' veya 'Kod'" data-step="1">
+            <input type="text" id="search-input" class="search-box" placeholder="🔍 Kod yazan, resim çizen yapay zeka ara...">
+        </div>
 
         <!-- Günün Aracı -->
         <div id="spotlight-container" class="spotlight-container">
@@ -240,7 +252,7 @@
     </div>
 
     <!-- AI Advisor Chatbot (Nova) - API'ye bağlıyor -->
-    <div id="ai-advisor" class="ai-advisor" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+    <div id="ai-advisor" class="ai-advisor" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" data-intro="Yardıma mı ihtiyacın var? Nova asistan sana en iyi aracı bulmak için burada!" data-step="2">
         <button id="advisor-toggle" style="background: #38bdf8; color: #0f172a; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; box-shadow: 0 4px 15px rgba(56,189,248,0.4); transition: transform 0.3s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">🤖</button>
         
         <div id="advisor-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 320px; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-direction: column;">
@@ -295,6 +307,26 @@
     </div>
 
     <!-- Benim JS dosyamı bağladığım yer -->
+    <!-- PROFIL MODAL -->
+    <div id="profile-modal" class="modal-overlay">
+        <div class="modal-box" style="text-align: center;">
+            <h2 id="profile-username" style="color: #38bdf8; margin-bottom: 20px;">Profilim</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Şifreni değiştirebilir veya çıkış yapabilirsin.</p>
+            
+            <form id="profile-form" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="password" id="new-password" placeholder="Yeni Şifre" class="auth-input" required>
+                <button type="submit" class="compare-btn" style="width: 100%; border-radius: 8px;">Şifremi Güncelle</button>
+            </form>
+            
+            <button onclick="cikisYap()" class="filter-btn" style="width: 100%; border-radius: 8px; margin-top: 15px; color: #ef4444; border-color: #ef4444;">Çıkış Yap</button>
+            <p id="profile-msg" style="margin-top:15px; font-size:0.9rem;"></p>
+            
+            <button class="modal-close" onclick="closeProfileModal()" style="margin-top: 20px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 15px; border-radius: 5px; cursor: pointer;">Kapat</button>
+        </div>
+    </div>
+
+    <!-- INTRO.JS SCRIPT -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

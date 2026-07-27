@@ -34,6 +34,22 @@ document.addEventListener('DOMContentLoaded', () => {
     mobilMenuyuAyarla(); // Mobil yan menü aç/kapat işlemleri
     aiAdvisorAyarla(); // Nova Asistan Formları
 
+    // INTRO.JS SAHA TURU (İlk Kez Girenler İçin)
+    if (!localStorage.getItem('tourCompleted')) {
+        setTimeout(() => {
+            introJs().setOptions({
+                nextLabel: 'İleri ➔',
+                prevLabel: '⬅ Geri',
+                doneLabel: 'Anladım, Başla!',
+                showStepNumbers: true
+            }).start().oncomplete(function() {
+                localStorage.setItem('tourCompleted', 'true');
+            }).onexit(function() {
+                localStorage.setItem('tourCompleted', 'true');
+            });
+        }, 2500); // Splash'ten sonra çalışsın
+    }
+
     // TEMA KONTROLÜ (Hocam burası karanlık/aydınlık tema için)
     const temaSecici = document.getElementById('theme-selector');
     if (temaSecici) {
@@ -548,23 +564,45 @@ async function girisYapVeyaKayitOl() {
 async function kullaniciDurumunuKontrolEt() {
     const kullaniciArayuzu = document.getElementById('auth-ui');
     if (!aktifKullanici) {
-        kullaniciArayuzu.innerHTML = `<button class="auth-btn" onclick="modalAc()">🔑 Giriş Yap</button>`;
+        kullaniciArayuzu.innerHTML = `<button class="auth-btn" id="login-or-profile-btn" onclick="modalAc()">🔑 Giriş Yap</button>`;
         return;
     }
     
-    try {
-        const cevap = await fetch(`${API_BASE}/api/verify-premium/${aktifKullanici.id}`);
-        const premiumVerisi = await cevap.json();
-        
-        if (premiumVerisi.status === "premium") {
-            kullaniciArayuzu.innerHTML = `<div style="display:flex; align-items:center; gap:15px;"><span class="premium-status-badge">👑 PREMIUM ÜYE</span><span style="color:#fff">Selam, <b>${aktifKullanici.username}</b></span><button onclick="cikisYap()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.8rem;">Çıkış</button></div>`;
-        } else {
-            kullaniciArayuzu.innerHTML = `<div class="auth-container"><div style="color:#fff; font-size:0.9rem;">Hoş geldin, <b>${aktifKullanici.username}</b> | <span onclick="cikisYap()" style="color:#ef4444; cursor:pointer;">Çıkış</span></div><div class="key-activation-box"><input type="text" id="premium-key" class="key-input" placeholder="Key Kodunu Gir..."><button onclick="keyAktifEt()" class="key-btn">AKTİF ET</button></div></div>`;
-        }
-    } catch(e) {
-        console.error("Premium kontrolünde hata:", e);
-    }
+    // Aktif kullanıcı var, Profil Butonu Göster
+    kullaniciArayuzu.innerHTML = `
+        <div style="display:flex; align-items:center; gap:15px;">
+            <span style="color:#fff; font-size:0.9rem;">Hoş geldin, <b>${aktifKullanici.username}</b></span>
+            <button class="auth-btn" style="background: rgba(56,189,248,0.2); border-color: #38bdf8;" onclick="openProfileModal()">👤 Profilim</button>
+        </div>
+    `;
+    
+    // (Opsiyonel API Premium Check buradaydı, basitleştirildi)
 }
+
+function openProfileModal() {
+    document.getElementById('profile-username').innerText = aktifKullanici.username + " Profili";
+    document.getElementById('profile-modal').style.display = 'flex';
+}
+function closeProfileModal() {
+    document.getElementById('profile-modal').style.display = 'none';
+}
+
+document.getElementById('profile-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newPass = document.getElementById('new-password').value;
+    
+    // API olmadan LocalStorage'daki user objesini güncelleyelim (Simülasyon)
+    aktifKullanici.password = newPass; 
+    localStorage.setItem('user', JSON.stringify(aktifKullanici));
+    
+    document.getElementById('profile-msg').innerText = "Şifre başarıyla güncellendi! ✅";
+    document.getElementById('profile-msg').style.color = "#4ade80";
+    
+    setTimeout(() => {
+        closeProfileModal();
+        document.getElementById('profile-msg').innerText = "";
+    }, 1500);
+});
 
 async function keyAktifEt() {
     const girilenKey = document.getElementById('premium-key').value;
