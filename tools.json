@@ -1,5 +1,33 @@
 [
   {
+    "id": "chatgpt_1",
+    "name": "ChatGPT",
+    "category": "Metin Üretimi",
+    "description": "OpenAI tarafından geliştirilen gelişmiş dil modeli.",
+    "longDescription": "ChatGPT, OpenAI tarafından geliştirilen ve dünya çapında en çok kullanılan yapay zeka tabanlı sohbet robotudur.\n\n✨ Öne Çıkan Özellikler:\n• Gelişmiş dil anlama ve doğal dilde metin üretimi.\n• Kod yazma, hata ayıklama ve kod analizi konularında yüksek performans.\n• GPT-4 ve GPT-4o ile multimodal (görsel, ses, veri) yetenekleri.",
+    "specs": [
+      "Gelişmiş Doğal Dil İşleme",
+      "Multimodal Destek (Görsel ve Ses)",
+      "Geniş Bağlam Penceresi",
+      "Kodlama ve Analitik Düşünme"
+    ],
+    "url": "https://chatgpt.com/"
+  },
+  {
+    "id": "gemini_1",
+    "name": "Google Gemini",
+    "category": "Metin Üretimi",
+    "description": "Google'ın en yetenekli ve genel amaçlı yapay zeka modeli.",
+    "longDescription": "Google Gemini, Google tarafından sıfırdan multimodal olarak inşa edilmiş, metin, kod, ses ve video anlayabilen yeni nesil yapay zeka modelidir.\n\n✨ Öne Çıkan Özellikler:\n• Google ekosistemi ile sorunsuz entegrasyon (Docs, Gmail, Drive vb.).\n• Çoklu modaliteleri aynı anda anlama (Video, Ses, Metin).\n• Gelişmiş akıl yürütme ve devasa mantıksal problem çözme penceresi.",
+    "specs": [
+      "Doğuştan Multimodal Mimari",
+      "Genişletilmiş Bağlam Kapasitesi (1M+ Token)",
+      "Google Workspace Entegrasyonu",
+      "Hızlı Yanıt ve Gerçek Zamanlı Veri Erişimi"
+    ],
+    "url": "https://gemini.google.com/"
+  },
+  {
     "id": 2,
     "name": "Midjourney",
     "category": "Görsel",
