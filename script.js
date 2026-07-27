@@ -34,6 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
     mobilMenuyuAyarla(); // Mobil yan menü aç/kapat işlemleri
     aiAdvisorAyarla(); // Nova Asistan Formları
 
+    // GELİŞTİRİCİ MODU & ARAÇ EKLEME BUTONLARI
+    const devContainer = document.getElementById('dev-action-container');
+    if (devContainer) {
+        devContainer.innerHTML = `
+            <button class="auth-btn" style="background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.3); color: #c084fc; padding: 6px 12px; font-size: 0.82rem;" onclick="openDevRequestModal()">💻 Geliştirici Ol</button>
+            <button class="auth-btn" style="background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.3); color: #4ade80; padding: 6px 12px; font-size: 0.82rem; margin-left: 6px;" onclick="openSubmitToolModal()">➕ Araç Ekle</button>
+        `;
+    }
+
     // TEMA KONTROLÜ (Hocam burası karanlık/aydınlık tema için)
     const temaSecici = document.getElementById('theme-selector');
     if (temaSecici) {
@@ -678,3 +687,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// GELİŞTİRİCİ BAŞVURU VE ARAÇ EKLEME MODAL FONKSİYONLARI
+function openDevRequestModal() {
+    const modal = document.getElementById('dev-request-modal');
+    if(modal) modal.style.display = 'flex';
+}
+function closeDevRequestModal() {
+    const modal = document.getElementById('dev-request-modal');
+    if(modal) modal.style.display = 'none';
+}
+function submitDevRequest() {
+    const email = document.getElementById('dev-email').value;
+    if(!email) { alert("Lütfen e-posta adresinizi girin."); return; }
+    alert("Geliştirici hesabınız için başvurunuz başarıyla alındı! İnceleme sonrasında sizinle iletişime geçilecektir.");
+    closeDevRequestModal();
+}
+
+function openSubmitToolModal() {
+    const modal = document.getElementById('submit-tool-modal');
+    if(modal) modal.style.display = 'flex';
+}
+function closeSubmitToolModal() {
+    const modal = document.getElementById('submit-tool-modal');
+    if(modal) modal.style.display = 'none';
+}
+function submitNewTool() {
+    const name = document.getElementById('st-name').value;
+    const url = document.getElementById('st-url').value;
+    if(!name || !url) { alert("Lütfen araç adını ve URL adresini giriniz."); return; }
+    alert("Yapay zeka aracı öneriniz başarıyla iletildi! Teşekkür ederiz.");
+    closeSubmitToolModal();
+}

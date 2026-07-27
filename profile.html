@@ -382,33 +382,38 @@
 
         // --- 2. PREMIUM KONTROL VE İPTAL ETME ---
         async function premiumKontrol() {
-            let isPremium = profAktifKullanici.isPremium || false;
+            // Eğer kullanıcı iptal etmişse false kalır, yoksa localStorage'daki değere bakılır
+            let isPremium = profAktifKullanici.isPremium === true;
 
-            try {
-                const res = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
-                if (res && res.ok) {
-                    const data = await res.json();
-                    if (data.status === "premium") isPremium = true;
-                }
-            } catch {}
+            // Sadece iptal edilmemişse API kontrolü yap
+            if (isPremium && !profAktifKullanici.cancelledPremium) {
+                try {
+                    const res = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
+                    if (res && res.ok) {
+                        const data = await res.json();
+                        if (data.status === "premium") isPremium = true;
+                    }
+                } catch {}
+            }
 
             const badge = document.getElementById('prof-badge');
             const keyArea = document.getElementById('key-activation-area');
             const activeArea = document.getElementById('premium-active-area');
 
-            if (isPremium) {
+            if (isPremium && !profAktifKullanici.cancelledPremium) {
                 badge.innerText = '👑 Premium Üye';
                 badge.className = 'profile-badge premium';
-                keyArea.style.display = 'none';
                 activeArea.style.display = 'block';
                 document.getElementById('stat-status-lbl').innerText = '👑 PRO';
             } else {
                 badge.innerText = '⚡ Standart Üye';
                 badge.className = 'profile-badge';
-                keyArea.style.display = 'block';
                 activeArea.style.display = 'none';
                 document.getElementById('stat-status-lbl').innerText = 'Aktif';
             }
+
+            // Key girme kutusu her durumda açık kalır!
+            keyArea.style.display = 'block';
         }
 
         async function keyAktifEtProfil() {
@@ -425,17 +430,21 @@
                 const data = await res.json();
                 if (data.success) {
                     profAktifKullanici.isPremium = true;
+                    profAktifKullanici.cancelledPremium = false;
                     localStorage.setItem('user', JSON.stringify(profAktifKullanici));
                     showMsg(msg, "Tebrikler! Premium aktif edildi 👑", true);
+                    document.getElementById('premium-key').value = '';
                     premiumKontrol();
                 } else {
-                    showMsg(msg, data.message || "Geçersiz key kanka!", false);
+                    showMsg(msg, data.message || "Geçersiz key!", false);
                 }
             } catch {
                 if (key.length > 3) {
                     profAktifKullanici.isPremium = true;
+                    profAktifKullanici.cancelledPremium = false;
                     localStorage.setItem('user', JSON.stringify(profAktifKullanici));
-                    showMsg(msg, "Premium aktif edildi 👑", true);
+                    showMsg(msg, "Tebrikler! Premium aktif edildi 👑", true);
+                    document.getElementById('premium-key').value = '';
                     premiumKontrol();
                 } else {
                     showMsg(msg, "Geçersiz key kodu!", false);
@@ -446,13 +455,16 @@
         function premiumIptalEt() {
             if (confirm("Premium üyeliğinizi iptal etmek istediğinize emin misiniz?")) {
                 profAktifKullanici.isPremium = false;
+                profAktifKullanici.cancelledPremium = true;
                 localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+                
                 const cancelMsg = document.getElementById('premium-cancel-msg');
-                showMsg(cancelMsg, "Premium üyeliğiniz iptal edildi.", false);
+                showMsg(cancelMsg, "Premium üyeliğiniz başarıyla iptal edildi! ⚡", false);
+                
                 setTimeout(() => {
                     cancelMsg.style.display = 'none';
                     premiumKontrol();
-                }, 1500);
+                }, 1000);
             }
         }
 
