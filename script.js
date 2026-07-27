@@ -34,22 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
     mobilMenuyuAyarla(); // Mobil yan menü aç/kapat işlemleri
     aiAdvisorAyarla(); // Nova Asistan Formları
 
-    // INTRO.JS SAHA TURU (İlk Kez Girenler İçin)
-    if (!localStorage.getItem('tourCompleted')) {
-        setTimeout(() => {
-            introJs().setOptions({
-                nextLabel: 'İleri ➔',
-                prevLabel: '⬅ Geri',
-                doneLabel: 'Anladım, Başla!',
-                showStepNumbers: true
-            }).start().oncomplete(function() {
-                localStorage.setItem('tourCompleted', 'true');
-            }).onexit(function() {
-                localStorage.setItem('tourCompleted', 'true');
-            });
-        }, 2500); // Splash'ten sonra çalışsın
-    }
-
     // TEMA KONTROLÜ (Hocam burası karanlık/aydınlık tema için)
     const temaSecici = document.getElementById('theme-selector');
     if (temaSecici) {
@@ -579,18 +563,31 @@ async function girisYapVeyaKayitOl() {
 
 async function kullaniciDurumunuKontrolEt() {
     const kullaniciArayuzu = document.getElementById('auth-ui');
+    if(!kullaniciArayuzu) return;
+
     if (!aktifKullanici) {
-        kullaniciArayuzu.innerHTML = `<button class="auth-btn" id="login-or-profile-btn" onclick="modalAc()">🔑 Giriş Yap</button>`;
+        kullaniciArayuzu.innerHTML = `
+            <button class="auth-btn" id="header-profile-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8;" onclick="profilTikla()">👤 Profilim</button>
+            <button class="auth-btn" id="login-or-profile-btn" onclick="modalAc()">🔑 Giriş Yap</button>
+        `;
         return;
     }
     
-    // Aktif kullanıcı var, Profil Butonu Göster
     kullaniciArayuzu.innerHTML = `
-        <div style="display:flex; align-items:center; gap:15px;">
-            <span style="color:#fff; font-size:0.9rem;">Hoş geldin, <b>${aktifKullanici.username}</b></span>
-            <button class="auth-btn" style="background: rgba(56,189,248,0.2); border-color: #38bdf8;" onclick="window.location.href='profile.html'">👤 Profilim</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="color:#fff; font-size:0.9rem; margin-right: 5px;">Selam, <b>${aktifKullanici.username}</b></span>
+            <button class="auth-btn" id="header-profile-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8;" onclick="profilTikla()">👤 Profilim</button>
+            <button class="auth-btn" onclick="cikisYap()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); padding: 10px 15px;">Çıkış</button>
         </div>
     `;
+}
+
+function profilTikla() {
+    if (aktifKullanici) {
+        window.location.href = 'profile.html';
+    } else {
+        modalAc();
+    }
 }
 
 function modalAc() { document.getElementById('auth-modal').style.display = 'flex'; }

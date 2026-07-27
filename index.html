@@ -113,18 +113,19 @@
                 <button id="mobile-menu-toggle" class="mobile-nav-toggle" aria-label="Menüyü Aç">☰</button>
                 <div id="dev-action-container"></div>
                 <!-- Tema değiştirme kutusu -->
-                <select id="theme-selector" class="theme-select" data-intro="Gece, Aydınlık veya Cyberpunk! Temanı buradan seçebilirsin." data-step="4">
+                <select id="theme-selector" class="theme-select">
                     <option value="dark">Gece Modu</option>
                     <option value="light">Aydınlık Mod</option>
                     <option value="cyberpunk">Cyberpunk</option>
                 </select>
             </div>
-            <div id="auth-ui" class="auth-container">
-                <button class="auth-btn" id="login-or-profile-btn" onclick="openAuthModal()">🔑 Giriş Yap</button>
+            <div id="auth-ui" class="auth-container" style="flex-direction: row; align-items: center; gap: 10px;">
+                <button class="auth-btn" id="header-profile-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8;" onclick="profilTikla()">👤 Profilim</button>
+                <button class="auth-btn" id="login-or-profile-btn" onclick="modalAc()">🔑 Giriş Yap</button>
             </div>
         </header>
 
-        <div class="stats-bar glass-stats" data-intro="Buradan sistemdeki yapay zeka sayısını ve istatistikleri görebilirsin!" data-step="3">
+        <div class="stats-bar glass-stats">
             <div class="stat-item glass-item">
                 <div class="stat-icon">🤖</div>
                 <div class="stat-info">
@@ -149,8 +150,8 @@
         </div>
 
         <h1 class="main-title">Yapay Zeka Evrenini Keşfet</h1>
-        <div class="search-container" data-intro="Ne tarz bir yapay zeka arıyorsan buraya yaz! Örn: 'Video' veya 'Kod'" data-step="1">
-            <input type="text" id="search-input" class="search-box" placeholder="🔍 Kod yazan, resim çizen yapay zeka ara...">
+        <div class="search-container">
+            <input type="text" id="search-input" class="search-box" autocomplete="off" placeholder="🔍 Kod yazan, resim çizen yapay zeka ara...">
         </div>
 
         <!-- Günün Aracı -->
@@ -252,7 +253,7 @@
     </div>
 
     <!-- AI Advisor Chatbot (Nova) - API'ye bağlıyor -->
-    <div id="ai-advisor" class="ai-advisor" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;" data-intro="Yardıma mı ihtiyacın var? Nova asistan sana en iyi aracı bulmak için burada!" data-step="2">
+    <div id="ai-advisor" class="ai-advisor" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
         <button id="advisor-toggle" style="background: #38bdf8; color: #0f172a; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; box-shadow: 0 4px 15px rgba(56,189,248,0.4); transition: transform 0.3s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">🤖</button>
         
         <div id="advisor-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 320px; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-direction: column;">
@@ -307,8 +308,6 @@
     </div>
 
     <!-- Benim JS dosyamı bağladığım yer -->
-    <!-- INTRO.JS SCRIPT -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.2.0/intro.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

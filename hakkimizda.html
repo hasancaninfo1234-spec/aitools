@@ -369,9 +369,9 @@
                     <option value="cyberpunk">⚡ Cyberpunk</option>
                 </select>
             </div>
-            
-            <div class="auth-container">
-                <button class="auth-btn">Giriş Yap / Kayıt Ol</button>
+            <div id="auth-ui" class="auth-container" style="flex-direction: row; align-items: center; gap: 10px;">
+                <button class="auth-btn" id="header-profile-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8;" onclick="profilTikla()">👤 Profilim</button>
+                <button class="auth-btn" id="login-or-profile-btn" onclick="modalAc()">🔑 Giriş Yap</button>
             </div>
         </header>
 
