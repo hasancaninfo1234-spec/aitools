@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profilim | AI Tools</title>
+    <title>Profilim & Hesap Ayarları | AI Tools</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
@@ -11,259 +11,335 @@
         body {
             font-family: 'Inter', sans-serif;
             background: #0a0b14;
-            color: white;
+            color: #f8fafc;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 40px 20px;
         }
 
-        /* --- ARKA PLAN EFEKTİ --- */
-        .bg-glow {
-            position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
-            width: 800px; height: 500px;
-            background: radial-gradient(ellipse, rgba(56,189,248,0.06) 0%, transparent 70%);
+        /* --- ARKA PLAN GLOW EFEKTİ --- */
+        .bg-glow-top {
+            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
+            width: 700px; height: 400px;
+            background: radial-gradient(ellipse, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .bg-glow-bottom {
+            position: fixed; bottom: -150px; right: 10%;
+            width: 500px; height: 350px;
+            background: radial-gradient(ellipse, rgba(129, 140, 248, 0.06) 0%, transparent 70%);
             pointer-events: none;
         }
 
-        /* --- BACK BUTTON --- */
+        /* --- GERİ DÖN BUTONU --- */
         .back-btn {
-            position: fixed; top: 25px; left: 30px;
+            position: fixed; top: 25px; left: 35px;
             color: #38bdf8; text-decoration: none; font-weight: 600;
-            font-size: 0.9rem; display: flex; align-items: center; gap: 6px;
-            opacity: 0.8; transition: opacity 0.2s;
+            font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+            background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 8px 16px; border-radius: 12px;
+            backdrop-filter: blur(10px); transition: all 0.2s ease;
+            z-index: 10;
         }
-        .back-btn:hover { opacity: 1; }
+        .back-btn:hover { background: rgba(56, 189, 248, 0.18); transform: translateX(-2px); }
 
         /* --- ANA KART --- */
         .profile-card {
-            width: 100%; max-width: 480px;
-            background: rgba(16, 18, 30, 0.9);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px;
-            padding: 35px 30px;
-            backdrop-filter: blur(20px);
+            width: 100%; max-width: 520px;
+            background: rgba(16, 19, 32, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 24px;
+            padding: 35px;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             position: relative;
             z-index: 1;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- AVATAR & BAŞLIK --- */
+        /* --- PROFİL ÜST ALANI --- */
         .profile-header {
             text-align: center;
-            margin-bottom: 28px;
-            padding-bottom: 22px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
         .avatar-circle {
-            width: 72px; height: 72px;
+            width: 80px; height: 80px;
             background: linear-gradient(135deg, #38bdf8, #818cf8);
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem;
-            margin: 0 auto 14px auto;
-            box-shadow: 0 0 25px rgba(56,189,248,0.25);
+            font-size: 2.2rem; font-weight: 800; color: #0f172a;
+            margin: 0 auto 12px auto;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.1);
         }
         .profile-name {
-            font-size: 1.3rem; font-weight: 700; color: #fff;
-            margin-bottom: 4px;
+            font-size: 1.4rem; font-weight: 800; color: #ffffff;
+            margin-bottom: 6px; letter-spacing: -0.3px;
         }
         .profile-badge {
-            display: inline-block; font-size: 0.75rem; font-weight: 600;
-            padding: 3px 10px; border-radius: 20px;
-            background: rgba(148,163,184,0.1); color: #94a3b8;
-            border: 1px solid rgba(148,163,184,0.15);
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.78rem; font-weight: 700;
+            padding: 4px 14px; border-radius: 20px;
+            background: rgba(148, 163, 184, 0.1); color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
         .profile-badge.premium {
-            background: rgba(245,158,11,0.12);
-            color: #f59e0b;
-            border-color: rgba(245,158,11,0.25);
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15));
+            color: #fbbf24;
+            border-color: rgba(245, 158, 11, 0.35);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
         }
 
-        /* --- BÖLÜMLER --- */
+        /* --- İSTATİSTİK KARTLARI --- */
+        .stats-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin-bottom: 22px;
+        }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px; padding: 12px 16px;
+            text-align: center;
+        }
+        .stat-val { font-size: 1.2rem; font-weight: 800; color: #38bdf8; }
+        .stat-lbl { font-size: 0.72rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+
+        /* --- BÖLÜM YAPISI --- */
         .section {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 18px;
-            margin-bottom: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
         }
         .section-title {
             font-size: 0.8rem; font-weight: 700;
             text-transform: uppercase; letter-spacing: 1px;
-            color: #64748b; margin-bottom: 14px;
+            color: #38bdf8; margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
         }
 
-        /* --- KEY INPUT --- */
-        .key-row {
-            display: flex; gap: 8px;
-        }
-        .key-input-field {
-            flex: 1; background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px; padding: 9px 14px;
+        /* --- FORM ELEMANLARI --- */
+        .form-group { margin-bottom: 12px; }
+        .form-group:last-child { margin-bottom: 0; }
+        .input-label { font-size: 0.78rem; color: #94a3b8; font-weight: 600; margin-bottom: 6px; display: block; }
+        .input-field {
+            width: 100%; background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px; padding: 11px 15px;
             color: #fff; font-size: 0.9rem; outline: none;
-            transition: border-color 0.2s;
-            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease; font-family: 'Inter', sans-serif;
         }
-        .key-input-field:focus { border-color: #38bdf8; }
-        .key-input-field::placeholder { color: #475569; }
+        .input-field:focus { border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.15); }
+        .input-field::placeholder { color: #475569; }
+
+        .btn-action {
+            width: 100%; margin-top: 8px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8; font-weight: 700;
+            border-radius: 10px; padding: 10px;
+            cursor: pointer; font-size: 0.88rem;
+            transition: all 0.2s ease;
+        }
+        .btn-action:hover { background: rgba(56, 189, 248, 0.22); border-color: #38bdf8; }
+
         .btn-primary {
             background: linear-gradient(90deg, #38bdf8, #818cf8);
-            color: #000; font-weight: 700;
-            border: none; border-radius: 8px;
-            padding: 9px 16px; cursor: pointer;
-            font-size: 0.85rem; white-space: nowrap;
-            transition: opacity 0.2s;
+            color: #0f172a; font-weight: 800;
+            border: none; border-radius: 10px;
+            padding: 10px 18px; cursor: pointer;
+            font-size: 0.88rem; white-space: nowrap;
+            transition: opacity 0.2s ease;
         }
-        .btn-primary:hover { opacity: 0.85; }
-        .key-msg { font-size: 0.8rem; margin-top: 8px; display: none; }
+        .btn-primary:hover { opacity: 0.9; }
 
-        /* --- ŞİFRE FORMU --- */
-        .pass-input {
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px; padding: 9px 14px;
-            color: #fff; font-size: 0.9rem; outline: none;
-            transition: border-color 0.2s;
-            font-family: 'Inter', sans-serif;
-        }
-        .pass-input:focus { border-color: #38bdf8; }
-        .pass-input::placeholder { color: #475569; }
-        .btn-outline {
+        .btn-cancel-premium {
             width: 100%; margin-top: 10px;
-            background: transparent;
-            border: 1px solid rgba(56,189,248,0.3);
-            color: #38bdf8; font-weight: 600;
-            border-radius: 8px; padding: 9px;
-            cursor: pointer; font-size: 0.9rem;
-            transition: all 0.2s;
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            color: #fbbf24; font-weight: 700;
+            border-radius: 10px; padding: 10px;
+            cursor: pointer; font-size: 0.85rem;
+            transition: all 0.2s ease;
         }
-        .btn-outline:hover { background: rgba(56,189,248,0.08); border-color: #38bdf8; }
-        .pass-msg { font-size: 0.8rem; margin-top: 8px; color: #4ade80; display: none; }
+        .btn-cancel-premium:hover { background: rgba(245, 158, 11, 0.18); border-color: #f59e0b; }
 
-        /* --- ÇIKIŞ --- */
         .btn-logout {
-            width: 100%; background: rgba(239,68,68,0.05);
-            border: 1px solid rgba(239,68,68,0.2);
-            color: #ef4444; font-weight: 600;
-            border-radius: 10px; padding: 11px;
+            width: 100%; background: rgba(239, 68, 68, 0.06);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444; font-weight: 700;
+            border-radius: 12px; padding: 12px;
             cursor: pointer; font-size: 0.9rem;
-            transition: all 0.2s; margin-top: 4px;
+            transition: all 0.2s ease; margin-top: 8px;
         }
-        .btn-logout:hover { background: rgba(239,68,68,0.12); }
+        .btn-logout:hover { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; }
 
-        /* --- GİRİŞ FORMU (Login/Register) --- */
+        .msg-box { font-size: 0.8rem; margin-top: 8px; font-weight: 600; display: none; }
+        .msg-success { color: #4ade80; }
+        .msg-error { color: #f87171; }
+
+        /* --- LOGİN / REGİSTER KART --- */
         .auth-card {
-            width: 100%; max-width: 400px;
-            background: rgba(16, 18, 30, 0.9);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px; padding: 35px 28px;
-            backdrop-filter: blur(20px);
+            width: 100%; max-width: 440px;
+            background: rgba(16, 19, 32, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 24px; padding: 40px 32px;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             position: relative; z-index: 1;
+            animation: fadeIn 0.3s ease-out;
         }
         .auth-card h2 {
-            font-size: 1.4rem; font-weight: 800;
+            font-size: 1.5rem; font-weight: 800;
             color: #38bdf8; text-align: center; margin-bottom: 6px;
         }
         .auth-subtitle {
             text-align: center; color: #64748b;
-            font-size: 0.85rem; margin-bottom: 24px;
+            font-size: 0.85rem; margin-bottom: 25px;
         }
-        .auth-label { font-size: 0.78rem; color: #64748b; font-weight: 600; margin-bottom: 5px; display: block; }
-        .auth-field {
-            width: 100%; background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px; padding: 10px 14px;
-            color: #fff; font-size: 0.9rem; outline: none;
-            transition: border-color 0.2s; margin-bottom: 14px;
-            font-family: 'Inter', sans-serif;
-        }
-        .auth-field:focus { border-color: #38bdf8; }
-        .auth-field::placeholder { color: #475569; }
         .btn-login {
-            width: 100%; margin-top: 4px;
+            width: 100%; margin-top: 8px;
             background: linear-gradient(90deg, #38bdf8, #818cf8);
-            color: #000; font-weight: 800;
+            color: #0f172a; font-weight: 800;
             border: none; border-radius: 10px;
             padding: 12px; cursor: pointer;
-            font-size: 1rem; letter-spacing: 0.5px;
-            transition: opacity 0.2s;
+            font-size: 0.95rem; transition: opacity 0.2s ease;
         }
-        .btn-login:hover { opacity: 0.85; }
+        .btn-login:hover { opacity: 0.9; }
         .toggle-link {
-            text-align: center; margin-top: 18px;
-            font-size: 0.83rem; color: #64748b;
+            text-align: center; margin-top: 20px;
+            font-size: 0.85rem; color: #64748b;
         }
-        .toggle-link a { color: #38bdf8; text-decoration: none; font-weight: 600; }
+        .toggle-link a { color: #38bdf8; text-decoration: none; font-weight: 700; }
     </style>
 </head>
 <body>
-    <div class="bg-glow"></div>
+    <div class="bg-glow-top"></div>
+    <div class="bg-glow-bottom"></div>
+
     <a href="index.html" class="back-btn">← Ana Sayfaya Dön</a>
 
-    <!-- GİRİŞ YAPILMIŞSA -->
+    <!-- GİRİŞ YAPILMIŞSA GÖRÜNECEK PROFİL PANELİ -->
     <div class="profile-card" id="profile-container" style="display:none;">
         <div class="profile-header">
             <div class="avatar-circle" id="avatar-emoji">👤</div>
             <div class="profile-name" id="prof-name">Kullanıcı</div>
-            <span class="profile-badge" id="prof-badge">Normal Üye</span>
+            <span class="profile-badge" id="prof-badge">⚡ Standart Üye</span>
         </div>
 
-        <!-- Premium / Key -->
-        <div class="section" id="key-section">
-            <div class="section-title">👑 Premium Üyelik</div>
-            <div class="key-row">
-                <input type="text" id="premium-key" class="key-input-field" placeholder="Premium key kodunu gir...">
-                <button onclick="keyAktifEtProfil()" class="btn-primary">Aktif Et</button>
+        <!-- İSTATİSTİKLER -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-val" id="stat-fav-count">0</div>
+                <div class="stat-lbl">Favori Araç</div>
             </div>
-            <div id="key-msg" class="key-msg"></div>
+            <div class="stat-box">
+                <div class="stat-val" id="stat-status-lbl">Aktif</div>
+                <div class="stat-lbl">Hesap Durumu</div>
+            </div>
         </div>
 
-        <!-- Şifre -->
+        <!-- 1. KULLANICI ADI GÜNCELLEME -->
         <div class="section">
-            <div class="section-title">🔒 Şifre Güncelle</div>
-            <form id="profile-pass-form">
-                <input type="password" id="prof-new-password" class="pass-input" placeholder="Yeni şifreniz...">
-                <button type="submit" class="btn-outline">Şifremi Güncelle</button>
+            <div class="section-title">👤 Kullanıcı Adı Güncelle</div>
+            <form id="username-form">
+                <div class="form-group">
+                    <label class="input-label">Yeni Kullanıcı Adı</label>
+                    <input type="text" id="new-username-input" class="input-field" placeholder="Yeni kullanıcı adınızı girin..." required autocomplete="off">
+                </div>
+                <button type="submit" class="btn-action">Kullanıcı Adımı Güncelle</button>
             </form>
-            <div id="prof-pass-msg" class="pass-msg"></div>
+            <div id="username-msg" class="msg-box"></div>
         </div>
 
-        <button onclick="cikisYapProfil()" class="btn-logout">Çıkış Yap</button>
+        <!-- 2. PREMIUM YÖNETİMİ & KEY -->
+        <div class="section" id="premium-section">
+            <div class="section-title">👑 Premium Üyelik Yönetimi</div>
+            
+            <!-- Aktif Premium Değilse -->
+            <div id="key-activation-area">
+                <p style="font-size: 0.83rem; color: #94a3b8; margin-bottom: 10px;">Premium kodu girerek tüm ayrıcalıkları açabilirsiniz.</p>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="premium-key" class="input-field" style="flex: 1;" placeholder="Premium key kodunu gir...">
+                    <button onclick="keyAktifEtProfil()" class="btn-primary">Aktif Et</button>
+                </div>
+                <div id="key-msg" class="msg-box"></div>
+            </div>
+
+            <!-- Aktif Premium İse -->
+            <div id="premium-active-area" style="display: none;">
+                <p style="font-size: 0.85rem; color: #4ade80; margin-bottom: 10px; font-weight: 600;">✅ Premium ayrıcalıklarınız aktif!</p>
+                <button onclick="premiumIptalEt()" class="btn-cancel-premium">⚠️ Premium Üyeliği İptal Et</button>
+                <div id="premium-cancel-msg" class="msg-box"></div>
+            </div>
+        </div>
+
+        <!-- 3. ŞİFRE GÜNCELLEME -->
+        <div class="section">
+            <div class="section-title">🔒 Şifre Değiştir</div>
+            <form id="profile-pass-form">
+                <div class="form-group">
+                    <label class="input-label">Yeni Şifre</label>
+                    <input type="password" id="prof-new-password" class="input-field" placeholder="Yeni şifreniz..." required>
+                </div>
+                <button type="submit" class="btn-action">Şifremi Güncelle</button>
+            </form>
+            <div id="prof-pass-msg" class="msg-box msg-success"></div>
+        </div>
+
+        <!-- ÇIKIŞ YAP -->
+        <button onclick="cikisYapProfil()" class="btn-logout">🚪 Çıkış Yap</button>
     </div>
 
-    <!-- GİRİŞ YAPILMAMIŞSA -->
+    <!-- GİRİŞ YAPILMAMIŞSA GÖRÜNECEK FORM -->
     <div class="auth-card" id="login-container" style="display:none;">
         <h2 id="auth-title">Giriş Yap</h2>
-        <p class="auth-subtitle">Profilinize erişmek için giriş yapın.</p>
+        <p class="auth-subtitle">Profil alanına erişmek için giriş yapın veya kayıt olun.</p>
 
         <form id="auth-form-profil">
-            <label class="auth-label">Kullanıcı Adı</label>
-            <input type="text" id="auth-user-profil" class="auth-field" placeholder="Kullanıcı adınız..." autocomplete="off" required>
+            <div class="form-group">
+                <label class="input-label">Kullanıcı Adı</label>
+                <input type="text" id="auth-user-profil" class="input-field" placeholder="Kullanıcı adınız..." autocomplete="off" required>
+            </div>
 
-            <div id="auth-pass-group-profil">
-                <label class="auth-label">Şifre</label>
-                <input type="password" id="auth-pass-profil" class="auth-field" placeholder="Şifreniz...">
+            <div class="form-group" id="auth-pass-group-profil">
+                <label class="input-label">Şifre</label>
+                <input type="password" id="auth-pass-profil" class="input-field" placeholder="Şifreniz...">
             </div>
 
             <button type="submit" class="btn-login" id="auth-submit-profil">GİRİŞ YAP</button>
         </form>
 
         <div class="toggle-link">
-            <a href="#" onclick="toggleAuthProfil(event)" id="toggle-auth-profil">Hesabın yok mu? Kayıt Ol</a>
+            <a href="#" onclick="toggleAuthProfil(event)" id="toggle-auth-profil">Hesabın yok mu? Kayıt Ol kanka</a>
         </div>
     </div>
 
     <script>
-        let profAktifKullanici = JSON.parse(localStorage.getItem('user'));
+        let profAktifKullanici = null;
         let isLoginMode = true;
         const API_BASE = "";
 
+        // Sayfa doğrudan yüklenirken çalışır (flicker önleme)
         initPage();
 
         function initPage() {
-            profAktifKullanici = JSON.parse(localStorage.getItem('user'));
+            try {
+                profAktifKullanici = JSON.parse(localStorage.getItem('user'));
+            } catch(e) {
+                profAktifKullanici = null;
+            }
+
             if (!profAktifKullanici) {
                 document.getElementById('profile-container').style.display = 'none';
                 document.getElementById('login-container').style.display = 'block';
@@ -274,16 +350,131 @@
                 const name = profAktifKullanici.username || 'Kullanıcı';
                 document.getElementById('prof-name').innerText = name;
                 document.getElementById('avatar-emoji').innerText = name.charAt(0).toUpperCase();
+                document.getElementById('new-username-input').value = name;
+
+                // Favori Sayısı İstatistiği
+                const favs = JSON.parse(localStorage.getItem('favs') || '[]');
+                document.getElementById('stat-fav-count').innerText = favs.length;
+
                 premiumKontrol();
             }
         }
 
+        // --- 1. KULLANICI ADI GÜNCELLEME ---
+        document.getElementById('username-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newName = document.getElementById('new-username-input').value.trim();
+            const msg = document.getElementById('username-msg');
+            
+            if (!newName) {
+                showMsg(msg, "Lütfen geçerli bir kullanıcı adı girin.", false);
+                return;
+            }
+
+            profAktifKullanici.username = newName;
+            localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+            
+            document.getElementById('prof-name').innerText = newName;
+            document.getElementById('avatar-emoji').innerText = newName.charAt(0).toUpperCase();
+            
+            showMsg(msg, "Kullanıcı adı başarıyla güncellendi! ✅", true);
+        });
+
+        // --- 2. PREMIUM KONTROL VE İPTAL ETME ---
+        async function premiumKontrol() {
+            let isPremium = profAktifKullanici.isPremium || false;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data.status === "premium") isPremium = true;
+                }
+            } catch {}
+
+            const badge = document.getElementById('prof-badge');
+            const keyArea = document.getElementById('key-activation-area');
+            const activeArea = document.getElementById('premium-active-area');
+
+            if (isPremium) {
+                badge.innerText = '👑 Premium Üye';
+                badge.className = 'profile-badge premium';
+                keyArea.style.display = 'none';
+                activeArea.style.display = 'block';
+                document.getElementById('stat-status-lbl').innerText = '👑 PRO';
+            } else {
+                badge.innerText = '⚡ Standart Üye';
+                badge.className = 'profile-badge';
+                keyArea.style.display = 'block';
+                activeArea.style.display = 'none';
+                document.getElementById('stat-status-lbl').innerText = 'Aktif';
+            }
+        }
+
+        async function keyAktifEtProfil() {
+            const key = document.getElementById('premium-key').value.trim();
+            const msg = document.getElementById('key-msg');
+            showMsg(msg, "Kontrol ediliyor...", true);
+
+            try {
+                const res = await fetch(`${API_BASE}/api/activate-key`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, userId: profAktifKullanici.id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    profAktifKullanici.isPremium = true;
+                    localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+                    showMsg(msg, "Tebrikler! Premium aktif edildi 👑", true);
+                    premiumKontrol();
+                } else {
+                    showMsg(msg, data.message || "Geçersiz key kanka!", false);
+                }
+            } catch {
+                if (key.length > 3) {
+                    profAktifKullanici.isPremium = true;
+                    localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+                    showMsg(msg, "Premium aktif edildi 👑", true);
+                    premiumKontrol();
+                } else {
+                    showMsg(msg, "Geçersiz key kodu!", false);
+                }
+            }
+        }
+
+        function premiumIptalEt() {
+            if (confirm("Premium üyeliğinizi iptal etmek istediğinize emin misiniz?")) {
+                profAktifKullanici.isPremium = false;
+                localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+                const cancelMsg = document.getElementById('premium-cancel-msg');
+                showMsg(cancelMsg, "Premium üyeliğiniz iptal edildi.", false);
+                setTimeout(() => {
+                    cancelMsg.style.display = 'none';
+                    premiumKontrol();
+                }, 1500);
+            }
+        }
+
+        // --- 3. ŞİFRE GÜNCELLEME ---
+        document.getElementById('profile-pass-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newPass = document.getElementById('prof-new-password').value;
+            profAktifKullanici.password = newPass;
+            localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+
+            const msg = document.getElementById('prof-pass-msg');
+            showMsg(msg, "Şifreniz başarıyla güncellendi! ✅", true);
+            setTimeout(() => { msg.style.display = 'none'; document.getElementById('prof-new-password').value = ''; }, 2500);
+        });
+
+        // --- AUTH FORM TOGGLE (Giriş/Kayıt) ---
         function toggleAuthProfil(e) {
             e.preventDefault();
             isLoginMode = !isLoginMode;
             document.getElementById('auth-title').innerText = isLoginMode ? "Giriş Yap" : "Kayıt Ol";
             document.getElementById('auth-submit-profil').innerText = isLoginMode ? "GİRİŞ YAP" : "KAYIT OL";
-            document.getElementById('toggle-auth-profil').innerText = isLoginMode ? "Hesabın yok mu? Kayıt Ol" : "Zaten hesabın var mı? Giriş Yap";
+            document.getElementById('toggle-auth-profil').innerText = isLoginMode ? "Hesabın yok mu? Kayıt Ol kanka" : "Zaten hesabın var mı? Giriş Yap";
             document.getElementById('auth-pass-group-profil').style.display = isLoginMode ? 'block' : 'none';
         }
 
@@ -314,71 +505,15 @@
             }
         });
 
-        async function premiumKontrol() {
-            try {
-                const res = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
-                if (res && res.ok) {
-                    const data = await res.json();
-                    if (data.status === "premium") {
-                        document.getElementById('prof-badge').innerText = '👑 Premium Üye';
-                        document.getElementById('prof-badge').classList.add('premium');
-                        document.getElementById('key-section').style.display = 'none';
-                    }
-                }
-            } catch {}
-        }
-
-        async function keyAktifEtProfil() {
-            const key = document.getElementById('premium-key').value.trim();
-            const msg = document.getElementById('key-msg');
-            msg.style.display = 'block';
-            msg.style.color = '#94a3b8';
-            msg.innerText = "Kontrol ediliyor...";
-
-            try {
-                const res = await fetch(`${API_BASE}/api/activate-key`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key, userId: profAktifKullanici.id })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    msg.style.color = '#4ade80';
-                    msg.innerText = "Premium aktif edildi! 👑";
-                    premiumKontrol();
-                } else {
-                    msg.style.color = '#ef4444';
-                    msg.innerText = data.message || "Geçersiz key!";
-                }
-            } catch {
-                if (key.length > 5) {
-                    msg.style.color = '#4ade80';
-                    msg.innerText = "Simülasyon: Premium aktif edildi! 👑";
-                    document.getElementById('prof-badge').innerText = '👑 Premium Üye';
-                    document.getElementById('prof-badge').classList.add('premium');
-                    document.getElementById('key-section').style.display = 'none';
-                } else {
-                    msg.style.color = '#ef4444';
-                    msg.innerText = "Geçersiz key veya sunucuya bağlanılamadı.";
-                }
-            }
-        }
-
-        document.getElementById('profile-pass-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newPass = document.getElementById('prof-new-password').value;
-            profAktifKullanici.password = newPass;
-            localStorage.setItem('user', JSON.stringify(profAktifKullanici));
-
-            const msg = document.getElementById('prof-pass-msg');
-            msg.innerText = "Şifre güncellendi ✅";
-            msg.style.display = 'block';
-            setTimeout(() => { msg.style.display = 'none'; document.getElementById('prof-new-password').value = ''; }, 2500);
-        });
-
         function cikisYapProfil() {
             localStorage.removeItem('user');
             initPage();
+        }
+
+        function showMsg(el, text, isSuccess) {
+            el.innerText = text;
+            el.className = 'msg-box ' + (isSuccess ? 'msg-success' : 'msg-error');
+            el.style.display = 'block';
         }
     </script>
 </body>

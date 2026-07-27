@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    const girisButonu = document.querySelector('.auth-btn');
+    const girisButonu = document.querySelector('#login-or-profile-btn');
     if(girisButonu) girisButonu.onclick = modalAc;
 
     document.getElementById('toggle-auth').onclick = (e) => {
