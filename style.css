@@ -200,17 +200,20 @@ body {
 }
 
 .card { 
-    background: #161926; border: 1px solid rgba(255, 255, 255, 0.05); 
+    background: rgba(22, 25, 38, 0.6); /* Yarı saydam arka plan */
+    backdrop-filter: blur(12px); /* Cam efekti */
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1); 
     border-radius: 20px; padding: 25px; 
-    display: flex; flex-direction: column; justify-content: space-between; /* Kart içindeki elemanları dikeyde düzgün dağıtır (buton en alta iner) */
-    min-height: 260px; transition: 0.4s ease; /* Efektlerin yavaş (0.4 sn) gerçekleşmesini sağlar */
-    animation: cardAppear 0.4s ease forwards; /* Sayfa yüklendiğinde kartların aşağıdan yukarı doğru gelmesini sağlar */
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-height: 260px; transition: 0.4s ease;
+    animation: cardAppear 0.4s ease forwards;
 }
 
 .card:hover { 
-    transform: translateY(-10px); /* Kartın üzerine gelindiğinde 10px yukarı zıplatır */
-    border-color: #38bdf8; /* Çerçeveyi mavi yapar */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* Kartın altına gölge düşürerek 3 Boyutlu (havaya kalkmış) hissi verir */
+    transform: translateY(-10px);
+    border-color: #38bdf8; 
+    box-shadow: 0 10px 40px rgba(56, 189, 248, 0.2), inset 0 0 15px rgba(56, 189, 248, 0.1); /* Neon glow eklendi */
 }
 
 /* İncele Butonu */
@@ -566,4 +569,72 @@ body[data-theme='cyberpunk'] .popular-card:hover { box-shadow: 0 0 25px rgba(245
     background-color: rgba(255, 0, 255, 0.1) !important;
     color: #00ffcc !important;
     border-left: 3px solid #00ffcc !important;
+}
+
+/* --- YENİ UI: İSTATİSTİK ÇUBUĞU (STATS BAR) --- */
+.stats-bar {
+    display: flex; justify-content: center; gap: 40px; margin-bottom: 30px;
+    background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px;
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05);
+}
+.stat-item {
+    text-align: center;
+}
+.stat-number {
+    font-size: 2.2rem; font-weight: 900; color: #38bdf8;
+    text-shadow: 0 0 15px rgba(56,189,248,0.4);
+}
+.stat-label {
+    font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+}
+@media (max-width: 768px) {
+    .stats-bar { flex-direction: column; gap: 20px; padding: 15px; margin-bottom: 20px; }
+}
+
+/* --- YENİ UI: GÜNÜN ARACI (SPOTLIGHT) --- */
+.spotlight-container {
+    max-width: 800px; margin: 0 auto 50px auto; display: none; /* JS ile açılacak */
+}
+.spotlight-card {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(139, 92, 246, 0.1));
+    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 24px; padding: 40px;
+    box-shadow: 0 10px 50px rgba(56, 189, 248, 0.15), inset 0 0 20px rgba(56, 189, 248, 0.05);
+    display: flex; align-items: center; justify-content: space-between;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    position: relative; overflow: hidden;
+}
+.spotlight-card::before {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.4s; pointer-events: none;
+}
+.spotlight-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 15px 60px rgba(139, 92, 246, 0.3), inset 0 0 30px rgba(56, 189, 248, 0.1);
+    border-color: #8b5cf6;
+}
+.spotlight-card:hover::before { opacity: 1; }
+.spotlight-badge {
+    position: absolute; top: 0; right: 40px; background: #f59e0b; color: #000;
+    padding: 8px 20px; font-weight: 900; font-size: 0.8rem; letter-spacing: 1px;
+    border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
+    box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+}
+.spotlight-content { flex: 1; padding-right: 30px; }
+.spotlight-title { font-size: 2.5rem; color: #fff; margin-bottom: 15px; font-weight: 800; }
+.spotlight-desc { color: #cbd5e1; font-size: 1.1rem; line-height: 1.6; margin-bottom: 25px; }
+.spotlight-action {
+    background: linear-gradient(90deg, #38bdf8, #8b5cf6);
+    color: #fff; padding: 12px 30px; border-radius: 30px; text-decoration: none;
+    font-weight: bold; display: inline-block; box-shadow: 0 5px 20px rgba(56, 189, 248, 0.4);
+    transition: 0.3s;
+}
+.spotlight-action:hover { box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6); transform: translateY(-2px); }
+@media (max-width: 768px) {
+    .spotlight-card { flex-direction: column; padding: 30px 20px; text-align: center; }
+    .spotlight-content { padding-right: 0; }
+    .spotlight-badge { right: 50%; transform: translateX(50%); border-radius: 0 0 12px 12px; }
+    .spotlight-title { font-size: 1.8rem; margin-top: 20px; }
 }

@@ -138,6 +138,69 @@
         .compare-header-nav {
             padding: 30px 50px;
         }
+        
+        /* Nova Score Styles */
+        .nova-score-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(139, 92, 246, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .nova-score-container::after {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .nova-score-title {
+            color: #a78bfa;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nova-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: conic-gradient(#8b5cf6 var(--percentage), #1e2235 0);
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.2);
+            z-index: 1;
+            transition: --percentage 1s ease-in-out;
+        }
+        .nova-circle::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            background: #1e2235;
+            border-radius: 50%;
+        }
+        .nova-percentage {
+            position: relative;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+            z-index: 2;
+        }
+
 
         @media (max-width: 768px) {
             .compare-header-nav { padding: 20px 15px; }
@@ -161,8 +224,21 @@
     </div>
 
     <div class="compare-container" style="flex: 1; display:flex; flex-direction:column; align-items: stretch;">
-        <h1 style="text-align: center; margin-bottom: 40px; font-size: 2.8rem; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Araç Karşılaştırma Laboratuvarı</h1>
+        <h1 style="text-align: center; margin-bottom: 20px; font-size: 2.8rem; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Araç Karşılaştırma Laboratuvarı</h1>
         
+        <div class="category-selector-row" style="text-align: center; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <label for="nova-category" style="color: #a78bfa; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.3rem;">✨</span> Nova Analiz Kriteri
+            </label>
+            <select id="nova-category" class="tool-select" style="width: 300px; padding: 12px 20px; border-color: rgba(139, 92, 246, 0.4); background: rgba(139, 92, 246, 0.05);">
+                <option value="general">Genel Performans</option>
+                <option value="text">Metin Üretimi</option>
+                <option value="image">Görsel Çizim</option>
+                <option value="code">Kodlama & Mantık</option>
+                <option value="speed">Hız ve Optimizasyon</option>
+            </select>
+        </div>
+
         <div class="selector-row">
             <select id="tool1-select" class="tool-select">
                 <option value="">1. Aracı Seçin</option>
@@ -221,6 +297,7 @@
                 
                 document.getElementById('tool1-select').addEventListener('change', updateComparison);
                 document.getElementById('tool2-select').addEventListener('change', updateComparison);
+                document.getElementById('nova-category').addEventListener('change', updateComparison);
 
             } catch(e) {
                 console.error("Araçlar yüklenemedi:", e);
@@ -245,7 +322,47 @@
             });
         }
 
-        function renderToolCard(tool) {
+        function generateNovaScore(tool, category) {
+            let baseScore = 50;
+            const tCat = (tool.category || "").toLowerCase();
+            const tDesc = (tool.description || "").toLowerCase();
+            const tName = (tool.name || "").toLowerCase();
+            
+            // Kategoriye göre temel puanı belirle
+            if (category === 'general') {
+                baseScore = 75; 
+            } else if (category === 'image' && (tCat.includes('görsel') || tCat.includes('image') || tCat.includes('video') || tCat.includes('product') || tCat.includes('filmmaking'))) {
+                baseScore = 90;
+            } else if (category === 'text' && (tCat.includes('metin') || tCat.includes('chat') || tCat.includes('text') || tCat.includes('yazı'))) {
+                baseScore = 90;
+            } else if (category === 'code' && (tCat.includes('kod') || tCat.includes('code') || tCat.includes('dev') || tName.includes('copilot'))) {
+                baseScore = 92;
+            } else if (category === 'speed') {
+                baseScore = 80;
+            } else {
+                // Eğer aracın kategorisi ile seçilen kriter uyuşmuyorsa (örn: görsel aracından metin beklenmesi)
+                baseScore = 35;
+            }
+
+            // Araca özel tutarlı bir sapma oluştur (pseudo-random)
+            const str = tool.name + category;
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash << 5) - hash + str.charCodeAt(i);
+                hash |= 0; 
+            }
+            
+            // -8 ile +8 arası varyasyon
+            const variation = (Math.abs(hash) % 17) - 8;
+            
+            let finalScore = baseScore + variation;
+            if (finalScore > 99) finalScore = 99;
+            if (finalScore < 5) finalScore = 5;
+            
+            return finalScore;
+        }
+
+        function renderToolCard(tool, category) {
             const specsHtml = tool.specs && tool.specs.length > 0 
                 ? tool.specs.map(s => `<li>${s}</li>`).join('') 
                 : "<li>Özellik belirtilmemiş</li>";
@@ -260,6 +377,15 @@
                     </div>
                 </div>
                 
+                <div class="nova-score-container">
+                    <div class="nova-score-title">
+                        <span>✨</span> Nova Puanı
+                    </div>
+                    <div class="nova-circle" style="--percentage: ${generateNovaScore(tool, category)}%">
+                        <div class="nova-percentage">${generateNovaScore(tool, category)}%</div>
+                    </div>
+                </div>
+
                 <div style="margin: 30px 0; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
                     <h3 style="color:white; margin-bottom:20px; font-size:1.1rem; display: flex; align-items: center; gap:10px;">
                         <span style="color:#f59e0b; font-size: 1.3rem;">⚡</span> Öne Çıkan Özellikler
@@ -285,6 +411,7 @@
         function updateComparison() {
             const id1 = document.getElementById('tool1-select').value;
             const id2 = document.getElementById('tool2-select').value;
+            const category = document.getElementById('nova-category').value;
             
             const grid = document.getElementById('comparison-grid');
             const emptyState = document.getElementById('empty-state');
@@ -297,7 +424,7 @@
                 
                 if (id1) {
                     const tool1 = tools.find(t => t.id == id1);
-                    card1.innerHTML = renderToolCard(tool1);
+                    card1.innerHTML = renderToolCard(tool1, category);
                     card1.style.opacity = '1';
                 } else {
                     card1.style.opacity = '0';
@@ -305,7 +432,7 @@
 
                 if (id2) {
                     const tool2 = tools.find(t => t.id == id2);
-                    card2.innerHTML = renderToolCard(tool2);
+                    card2.innerHTML = renderToolCard(tool2, category);
                     card2.style.opacity = '1';
                 } else {
                     card2.style.opacity = '0';

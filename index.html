@@ -113,9 +113,37 @@ content="https://aitools-voet.onrender.com/logo.png">
             </div>
         </header>
 
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number" id="stat-tools">0</div>
+                <div class="stat-label">Yapay Zeka Aracı</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="stat-cats">0</div>
+                <div class="stat-label">Kategori</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="stat-reviews">0</div>
+                <div class="stat-label">Değerlendirme</div>
+            </div>
+        </div>
+
         <h1 class="main-title">Yapay Zeka Evrenini Keşfet</h1>
         <!-- Arama yeri -->
-        <input type="text" id="search-input" class="search-box" placeholder="Model, araç veya kategori ara kanka...">
+        <input type="text" id="search-input" class="search-box" style="margin-bottom: 40px;" placeholder="Model, araç veya kategori ara kanka...">
+
+        <!-- Günün Aracı -->
+        <div id="spotlight-container" class="spotlight-container">
+            <div class="spotlight-card">
+                <div class="spotlight-badge">🔥 GÜNÜN YILDIZI</div>
+                <div class="spotlight-content">
+                    <div style="color:#38bdf8; font-weight:bold; text-transform:uppercase; margin-bottom:5px; font-size:0.9rem; letter-spacing: 1px;" id="spotlight-cat">KATEGORİ</div>
+                    <h2 class="spotlight-title" id="spotlight-title">Yükleniyor...</h2>
+                    <p class="spotlight-desc" id="spotlight-desc">Yapay zeka aracı seçiliyor...</p>
+                    <a href="#" class="spotlight-action" id="spotlight-link">Hemen İncele ↗</a>
+                </div>
+            </div>
+        </div>
 
         <!-- Popüler araçlar kısmı (JS ile doluyor) -->
         <div id="popular-section" style="margin-bottom: 30px; padding-top: 15px; display: none;">

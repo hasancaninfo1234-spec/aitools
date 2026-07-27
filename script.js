@@ -255,6 +255,7 @@ async function modelleriGetir() {
         if (cevap && cevap.ok) {
             butunAraclar = await cevap.json();
             console.log(butunAraclar.length + " tane araç geldi kanka.");
+            uiEfektleriniBaslat(butunAraclar);
             ekranaAraclariBas(butunAraclar);
             populerAraclariBas(butunAraclar);
         } else {
@@ -263,6 +264,74 @@ async function modelleriGetir() {
     } catch (hata) { 
         console.error("Hocam api çöktü galiba, modeller yüklenemedi:", hata); 
     }
+}
+
+function uiEfektleriniBaslat(araclar) {
+    // 1. İstatistik Çubuğu
+    const statTools = document.getElementById('stat-tools');
+    const statCats = document.getElementById('stat-cats');
+    const statReviews = document.getElementById('stat-reviews');
+
+    if (statTools && statCats && statReviews && araclar.length > 0) {
+        const categories = new Set(araclar.map(a => a.category).filter(c => c));
+        let reviewCount = 0;
+        araclar.forEach(a => { if (a.reviews) reviewCount += a.reviews.length; });
+
+        sayiAnimasyonu(statTools, araclar.length, 1500);
+        sayiAnimasyonu(statCats, categories.size, 1500);
+        sayiAnimasyonu(statReviews, reviewCount > 0 ? reviewCount : 150, 1500); 
+    }
+
+    // 2. Günün Aracı (Spotlight)
+    const spotlightContainer = document.getElementById('spotlight-container');
+    if (spotlightContainer && araclar.length > 0) {
+        let puanliAraclar = araclar.filter(a => a.reviews && a.reviews.length > 0);
+        let secilenArac;
+        
+        if (puanliAraclar.length > 0) {
+            secilenArac = puanliAraclar[Math.floor(Math.random() * puanliAraclar.length)];
+        } else {
+            const unluAraclar = ["ChatGPT", "Midjourney", "Claude", "GitHub Copilot", "DALL-E"];
+            const yedekler = araclar.filter(a => unluAraclar.some(u => a.name.toLowerCase().includes(u.toLowerCase())));
+            secilenArac = yedekler.length > 0 ? yedekler[Math.floor(Math.random() * yedekler.length)] : araclar[0];
+        }
+
+        if (secilenArac) {
+            document.getElementById('spotlight-cat').innerText = secilenArac.category || 'AI';
+            document.getElementById('spotlight-title').innerText = secilenArac.name;
+            document.getElementById('spotlight-desc').innerText = secilenArac.description || '';
+            document.getElementById('spotlight-link').href = `details.html?id=${secilenArac.id}`;
+            spotlightContainer.style.display = 'block';
+            
+            const aramaKutusu = document.getElementById('search-input');
+            if (aramaKutusu) {
+                aramaKutusu.addEventListener('input', (e) => {
+                    if (e.target.value.trim().length > 0) {
+                        spotlightContainer.style.display = 'none';
+                    } else {
+                        spotlightContainer.style.display = 'block';
+                    }
+                });
+            }
+        }
+    }
+}
+
+function sayiAnimasyonu(element, hedefSayi, sure) {
+    let baslangic = 0;
+    const adimSayisi = 30;
+    const sureAdimi = sure / adimSayisi;
+    const artis = hedefSayi / adimSayisi;
+    
+    let timer = setInterval(() => {
+        baslangic += artis;
+        if (baslangic >= hedefSayi) {
+            clearInterval(timer);
+            element.innerText = hedefSayi + "+";
+        } else {
+            element.innerText = Math.floor(baslangic);
+        }
+    }, sureAdimi);
 }
 
 function populerAraclariBas(araclar) {
