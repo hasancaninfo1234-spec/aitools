@@ -63,7 +63,7 @@ const specTemplates = {
     "images": ["Dinamik Piksel İşleme", "Renk ve Çevre Optimizasyonu", "Detaylı Render Mimarisi", "Hızlı Çıktı Motoru"],
     "text": ["Gelişmiş Doğal Dil İşleme (NLP)", "Dil Bilgisi ve Mantık Analizi", "Bağlamsal Doğruluk Tespiti", "Yüksek Çözünürlüklü SEO Uyumu"],
     "kod": ["Bağlam Odaklı Kod Tamamlama", "Otonom Hata Ayıklama (Debugging)", "Farklı Dillerle Tam Uyumluluk", "Özelleştirilebilir Altyapı"],
-    "video": ["Yüksek FPS Kayıpsız Dışa Aktarım", "Yapay Zeka Destekli Sahne Kesimi", "Hızlı Bulut Render İşlemi", "Dinamik Efekt ve Ses FiltresiGalerisi"],
+    "video": ["Yüksek FPS Kayıpsız Dışa Aktarım", "Yapay Zeka Destekli Sahne Kesimi", "Hızlı Bulut Render İşlemi", "Dinamik Efekt ve Ses Filtresi Galerisi"],
     "genel": ["Bulut Tabanlı Çalışma Alanı", "Yüksek API Güvenlik Standartları", "Çoklu Platform (Cihaz) Desteği", "Öğrenen Akıllı Algoritma Mimarisi"]
 };
 
