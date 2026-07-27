@@ -602,12 +602,110 @@ async function kullaniciDurumunuKontrolEt() {
     }
     
     kullaniciArayuzu.innerHTML = `
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
             <span style="color:#fff; font-size:0.9rem;">Selam, <b>${aktifKullanici.username}</b> ${aktifKullanici.isDev ? '<span style="color:#c084fc; font-size:0.75rem; font-weight:700; background:rgba(192,132,252,0.15); padding:2px 8px; border-radius:10px; border:1px solid rgba(192,132,252,0.3);">💻 DEV</span>' : ''}</span>
+            <button class="auth-btn" onclick="openInboxModal()" style="position: relative; background: rgba(192,132,252,0.1); border-color: rgba(192,132,252,0.4); color: #c084fc; display: inline-flex; align-items: center; gap: 5px;">
+                🔔 Gelen Kutusu <span id="inbox-badge" style="background:#ef4444; color:#fff; font-size:0.7rem; font-weight:800; padding:1px 6px; border-radius:10px; display:none;">0</span>
+            </button>
             <a href="profile.html" class="auth-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">👤 Profilim</a>
-            <button class="auth-btn" onclick="cikisYap()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); padding: 10px 15px;">Çıkış</button>
+            <button class="auth-btn" onclick="cikisYap()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); padding: 9px 13px;">Çıkış</button>
         </div>
     `;
+
+    setTimeout(updateInboxBadge, 100);
+}
+
+// GELEN KUTUSU (INBOX) YÖNETİMİ
+function getActiveUserNotifications() {
+    const allNotifs = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    if (!aktifKullanici) return [];
+    return allNotifs.filter(n => 
+        n.targetUser === 'all' || 
+        n.targetUser === aktifKullanici.username || 
+        (aktifKullanici.email && n.targetUser === aktifKullanici.email)
+    );
+}
+
+function updateInboxBadge() {
+    const notifs = getActiveUserNotifications();
+    const unreadCount = notifs.filter(n => !n.isRead).length;
+    const badge = document.getElementById('inbox-badge');
+    if (badge) {
+        if (unreadCount > 0) {
+            badge.innerText = unreadCount;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function openInboxModal() {
+    const modal = document.getElementById('inbox-modal');
+    if (!modal) return;
+    renderInboxList();
+    modal.style.display = 'flex';
+}
+
+function closeInboxModal() {
+    const modal = document.getElementById('inbox-modal');
+    if (modal) modal.style.display = 'none';
+    updateInboxBadge();
+}
+
+function renderInboxList() {
+    const listEl = document.getElementById('inbox-list');
+    if (!listEl) return;
+    const notifs = getActiveUserNotifications();
+
+    if (notifs.length === 0) {
+        listEl.innerHTML = `
+            <div style="text-align:center; padding:30px 10px; color:#64748b;">
+                <div style="font-size:2rem; margin-bottom:8px;">📭</div>
+                Gelen kutunuzda henüz bildirim bulunmuyor.
+            </div>
+        `;
+        return;
+    }
+
+    listEl.innerHTML = notifs.map(n => `
+        <div style="background: ${n.isRead ? 'rgba(255,255,255,0.02)' : 'rgba(192,132,252,0.08)'}; border: 1px solid ${n.isRead ? 'rgba(255,255,255,0.05)' : 'rgba(192,132,252,0.25)'}; padding: 12px 15px; border-radius: 12px; position: relative;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                <strong style="font-size: 0.9rem; color: #fff; display: flex; align-items: center; gap: 6px;">${n.icon} ${n.title}</strong>
+                <span style="font-size: 0.72rem; color: #64748b;">${n.date}</span>
+            </div>
+            <p style="font-size: 0.83rem; color: #cbd5e1; line-height: 1.4; margin: 0;">${n.message}</p>
+        </div>
+    `).join('');
+}
+
+function markAllNotificationsRead() {
+    let allNotifs = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    if (aktifKullanici) {
+        allNotifs = allNotifs.map(n => {
+            if (n.targetUser === 'all' || n.targetUser === aktifKullanici.username || (aktifKullanici.email && n.targetUser === aktifKullanici.email)) {
+                return { ...n, isRead: true };
+            }
+            return n;
+        });
+        localStorage.setItem('userNotifications', JSON.stringify(allNotifs));
+    }
+    renderInboxList();
+    updateInboxBadge();
+}
+
+function clearNotifications() {
+    let allNotifs = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    if (aktifKullanici) {
+        allNotifs = allNotifs.filter(n => 
+            n.targetUser !== 'all' && 
+            n.targetUser !== aktifKullanici.username && 
+            (!aktifKullanici.email || n.targetUser !== aktifKullanici.email)
+        );
+        localStorage.setItem('userNotifications', JSON.stringify(allNotifs));
+    }
+    renderInboxList();
+    updateInboxBadge();
 }
 
 function dismissDevCongrats() {

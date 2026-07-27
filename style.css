@@ -672,52 +672,52 @@ body[data-theme='cyberpunk'] .popular-card:hover { box-shadow: 0 0 25px rgba(245
     .glass-item { min-width: 100%; justify-content: center; }
 }
 
-/* --- YENİ UI: GÜNÜN ARACI (SPOTLIGHT) --- */
+/* --- YENİ UI: GÜNÜN ARACI (SPOTLIGHT - KÜÇÜK VE İNCE) --- */
 .spotlight-container {
-    max-width: 800px; margin: 0 auto 50px auto; display: none; /* JS ile açılacak */
+    max-width: 580px; margin: 0 auto 30px auto; display: none; /* JS ile açılacak */
 }
 .spotlight-card {
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(139, 92, 246, 0.1));
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(139, 92, 246, 0.08));
     backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(56, 189, 248, 0.4);
-    border-radius: 24px; padding: 40px;
-    box-shadow: 0 10px 50px rgba(56, 189, 248, 0.15), inset 0 0 20px rgba(56, 189, 248, 0.05);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 16px; padding: 16px 24px;
+    box-shadow: 0 6px 30px rgba(56, 189, 248, 0.1);
     display: flex; align-items: center; justify-content: space-between;
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative; overflow: hidden;
 }
 .spotlight-card::before {
     content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-    opacity: 0; transition: opacity 0.4s; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
 }
 .spotlight-card:hover {
-    transform: scale(1.02);
-    box-shadow: 0 15px 60px rgba(139, 92, 246, 0.3), inset 0 0 30px rgba(56, 189, 248, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(139, 92, 246, 0.25);
     border-color: #8b5cf6;
 }
 .spotlight-card:hover::before { opacity: 1; }
 .spotlight-badge {
-    position: absolute; top: 0; right: 40px; background: #f59e0b; color: #000;
-    padding: 8px 20px; font-weight: 900; font-size: 0.8rem; letter-spacing: 1px;
-    border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
-    box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+    position: absolute; top: 0; right: 24px; background: #f59e0b; color: #000;
+    padding: 3px 12px; font-weight: 900; font-size: 0.68rem; letter-spacing: 0.5px;
+    border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
 }
-.spotlight-content { flex: 1; padding-right: 30px; }
-.spotlight-title { font-size: 2.5rem; color: #fff; margin-bottom: 15px; font-weight: 800; }
-.spotlight-desc { color: #cbd5e1; font-size: 1.1rem; line-height: 1.6; margin-bottom: 25px; }
+.spotlight-content { flex: 1; padding-right: 15px; }
+.spotlight-title { font-size: 1.25rem; color: #fff; margin-bottom: 4px; font-weight: 800; letter-spacing: -0.3px; }
+.spotlight-desc { color: #cbd5e1; font-size: 0.84rem; line-height: 1.4; margin-bottom: 0; }
 .spotlight-action {
     background: linear-gradient(90deg, #38bdf8, #8b5cf6);
-    color: #fff; padding: 12px 30px; border-radius: 30px; text-decoration: none;
-    font-weight: bold; display: inline-block; box-shadow: 0 5px 20px rgba(56, 189, 248, 0.4);
-    transition: 0.3s;
+    color: #fff; padding: 7px 18px; border-radius: 20px; text-decoration: none;
+    font-weight: 700; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); transition: 0.3s; white-space: nowrap;
 }
-.spotlight-action:hover { box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6); transform: translateY(-2px); }
+.spotlight-action:hover { box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5); transform: translateY(-1px); }
 @media (max-width: 768px) {
-    .spotlight-card { flex-direction: column; padding: 30px 20px; text-align: center; }
+    .spotlight-card { flex-direction: column; padding: 20px 16px; text-align: center; gap: 12px; }
     .spotlight-content { padding-right: 0; }
-    .spotlight-badge { right: 50%; transform: translateX(50%); border-radius: 0 0 12px 12px; }
-    .spotlight-title { font-size: 1.8rem; margin-top: 20px; }
+    .spotlight-badge { right: 50%; transform: translateX(50%); border-radius: 0 0 10px 10px; }
+    .spotlight-title { font-size: 1.2rem; margin-top: 10px; }
 }
 
 /* --- INTRO.JS GÖRÜNÜM DÜZELTMELERİ --- */

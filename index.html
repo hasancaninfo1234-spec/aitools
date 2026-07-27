@@ -267,6 +267,25 @@
         </div>
     </div>
 
+    <!-- GELEN KUTUSU (INBOX MODAL) -->
+    <div id="inbox-modal" class="modal-overlay" style="display: none;">
+        <div class="auth-card" style="width: 480px; max-width: 92vw; padding: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h2 style="font-size: 1.3rem; margin: 0; display: flex; align-items: center; gap: 8px; color: #c084fc;">📥 Gelen Kutusu</h2>
+                <button onclick="closeInboxModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer;">✕</button>
+            </div>
+            
+            <div id="inbox-list" style="max-height: 360px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; padding-right: 4px;">
+                <!-- Bildirimler JavaScript ile buraya eklenecek -->
+            </div>
+
+            <div style="display: flex; justify-content: space-between; gap: 10px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px;">
+                <button onclick="markAllNotificationsRead()" class="auth-btn" style="flex: 1; font-size: 0.82rem; background: rgba(56,189,248,0.1); color: #38bdf8; border-color: rgba(56,189,248,0.3);">Tümünü Okundu Yap</button>
+                <button onclick="clearNotifications()" class="delete-btn" style="font-size: 0.82rem;">Temizle</button>
+            </div>
+        </div>
+    </div>
+
     <!-- AI Advisor Chatbot (Nova) - API'ye bağlıyor -->
     <div id="ai-advisor" class="ai-advisor" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
         <button id="advisor-toggle" style="background: #38bdf8; color: #0f172a; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; box-shadow: 0 4px 15px rgba(56,189,248,0.4); transition: transform 0.3s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">🤖</button>

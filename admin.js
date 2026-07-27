@@ -254,7 +254,7 @@ async function loadKeys() {
             <td>${k.type}</td>
             <td><span style="color:${k.isUsed ? '#f87171' : '#4ade80'}; font-weight:700;">${k.isUsed ? 'Kullanıldı' : 'Aktif'}</span></td>
             <td><strong style="color: #38bdf8">${k.isUsed ? k.username : '-'}</strong></td>
-            <td><button class="delete-btn" onclick="deleteKey('${k.id}')">SİL</button></td>
+            <td><button class="delete-btn" onclick="deleteKey('${k.code}', '${k.id || ''}')">SİL</button></td>
         </tr>
     `).join('');
 }
@@ -318,13 +318,35 @@ async function deleteModel(id) {
     loadStats();
 }
 
-async function deleteKey(id) {
-    if(!confirm("Bu keyi silmek istediğinize emin misiniz?")) return;
+async function deleteKey(code, id) {
+    if(!confirm(`'${code}' kodlu keyi silmek istediğinize emin misiniz?`)) return;
+
+    fetch(`${API_BASE}/keys/${id || code}`, { method: 'DELETE' }).catch(() => null);
+
     let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
-    localKeys = localKeys.filter(k => String(k.id) !== String(id));
+    localKeys = localKeys.filter(k => 
+        String(k.code) !== String(code) && 
+        (!id || String(k.id) !== String(id))
+    );
     localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
+
     loadKeys();
     loadStats();
+    alert("Key başarıyla silindi! ✅");
+}
+
+function addNotification(targetUser, icon, title, message) {
+    let notifs = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    notifs.unshift({
+        id: 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+        targetUser: targetUser || 'all',
+        icon: icon || '🔔',
+        title: title,
+        message: message,
+        date: new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        isRead: false
+    });
+    localStorage.setItem('userNotifications', JSON.stringify(notifs));
 }
 
 // --- ARAÇ İNCELEME MODALI ---
@@ -359,24 +381,44 @@ async function confirmApproveTool() {
         let customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
         customTools.push(toolToApprove);
         localStorage.setItem('customTools', JSON.stringify(customTools));
+
+        // Bildirim Gönder
+        addNotification(
+            toolToApprove.submittedBy,
+            '✅',
+            'Araç Öneriniz Onaylandı!',
+            `'${toolToApprove.name}' isimli yapay zeka aracı öneriniz onaylandı ve sitede yayınlandı! Katkınız için teşekkür ederiz.`
+        );
     }
 
     closeReviewModal();
     loadPendingTools();
     loadModels();
     loadStats();
-    alert("Araç önerisi onaylandı ve sisteme eklendi! ✅");
+    alert("Araç önerisi onaylandı ve bildirim gönderildi! ✅");
 }
 
 async function confirmRejectTool() {
     const id = document.getElementById('review-id').value;
     if(!confirm("Bu araç önerisini reddetmek istediğinize emin misiniz?")) return;
 
+    let pendingTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
+    const toolToReject = pendingTools.find(t => String(t.id) === String(id));
+
     fetch(`${API_BASE}/pending-tools/${id}`, { method: 'DELETE' }).catch(() => null);
 
-    let pendingTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
     pendingTools = pendingTools.filter(t => String(t.id) !== String(id));
     localStorage.setItem('pendingTools', JSON.stringify(pendingTools));
+
+    if (toolToReject) {
+        // Bildirim Gönder
+        addNotification(
+            toolToReject.submittedBy,
+            '❌',
+            'Araç Öneriniz Kabul Edilmedi',
+            `'${toolToReject.name}' isimli yapay zeka aracı öneriniz yapılan inceleme sonucunda kabul edilmemiştir.`
+        );
+    }
 
     closeReviewModal();
     loadPendingTools();
@@ -395,42 +437,54 @@ async function approveDev(id) {
     localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
 
     if (devToApprove) {
-        // Approved Devs listesine ekle
         let devs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
         devs.push(devToApprove);
         localStorage.setItem('approvedDevs', JSON.stringify(devs));
 
-        // Kullanıcının E-postası veya Kullanıcı Adı ile doğrudan hesabı eşleştir
         let curUser = JSON.parse(localStorage.getItem('user'));
         if (curUser) {
-            const isEmailMatch = curUser.email && devToApprove.email && (curUser.email.toLowerCase() === devToApprove.email.toLowerCase());
-            const isUserMatch = curUser.username && devToApprove.username && (curUser.username.toLowerCase() === devToApprove.username.toLowerCase());
-            
-            // Eğer e-posta veya kullanıcı adı eşleşiyorsa kullanıcıyı Geliştirici yap & Tebrikler bayrağı koy!
-            if (isEmailMatch || isUserMatch || true) { // Her durumda kullanıcıya yetki tanımla
-                curUser.isDev = true;
-                curUser.email = devToApprove.email || curUser.email;
-                curUser.showDevCongratulation = true; // Sitede tebrikler modalını tetikler!
-                localStorage.setItem('user', JSON.stringify(curUser));
-            }
+            curUser.isDev = true;
+            curUser.email = devToApprove.email || curUser.email;
+            curUser.showDevCongratulation = true;
+            localStorage.setItem('user', JSON.stringify(curUser));
         }
+
+        // Bildirim Gönder
+        addNotification(
+            devToApprove.username,
+            '🎉',
+            'Geliştirici Başvurunuz Onaylandı!',
+            'Tebrikler! Yönetim ekibimiz geliştirici başvurunuzu onayladı. Artık platforma yeni yapay zeka araçları ekleyebilirsiniz.'
+        );
     }
 
     loadPendingDevs();
     loadDevelopers();
     loadUsers();
     loadStats();
-    alert("Geliştirici başvurusu başarıyla onaylandı! E-posta adresi kullanıcı hesabıyla eşleştirildi. 💻🎉");
+    alert("Geliştirici başvurusu onaylandı ve bildirim gönderildi! 💻🎉");
 }
 
 async function rejectDev(id) {
     if(!confirm("Bu başvuruyu reddetmek istediğinize emin misiniz?")) return;
 
+    let pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+    const devToReject = pendingDevs.find(d => String(d.id) === String(id));
+
     fetch(`${API_BASE}/reject-developer/${id}`, { method: 'DELETE' }).catch(() => null);
 
-    let pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
     pendingDevs = pendingDevs.filter(d => String(d.id) !== String(id));
     localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
+
+    if (devToReject) {
+        // Bildirim Gönder
+        addNotification(
+            devToReject.username,
+            '❌',
+            'Geliştirici Başvurunuz Onaylanmadı',
+            'Geliştirici hesabınız için yaptığınız başvuru yapılan inceleme sonucunda maalesef kabul edilmemiştir.'
+        );
+    }
 
     loadPendingDevs();
     loadStats();
