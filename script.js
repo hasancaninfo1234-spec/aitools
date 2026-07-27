@@ -698,13 +698,46 @@ function closeDevRequestModal() {
     if(modal) modal.style.display = 'none';
 }
 function submitDevRequest() {
-    const email = document.getElementById('dev-email').value;
+    const emailInput = document.getElementById('dev-email');
+    const email = emailInput ? emailInput.value.trim() : '';
     if(!email) { alert("Lütfen e-posta adresinizi girin."); return; }
-    alert("Geliştirici hesabınız için başvurunuz başarıyla alındı! İnceleme sonrasında sizinle iletişime geçilecektir.");
+
+    const user = JSON.parse(localStorage.getItem('user')) || { username: 'Anonim' };
+    const devRequest = {
+        id: Date.now().toString(),
+        userId: user.id || Date.now().toString(),
+        username: user.username || 'Kullanıcı',
+        email: email,
+        date: new Date().toLocaleDateString('tr-TR')
+    };
+
+    fetch('/api/dev-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(devRequest)
+    }).catch(() => null);
+
+    const pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+    pendingDevs.push(devRequest);
+    localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
+
+    alert("Geliştirici başvurunuz başarıyla yöneticiye iletildi! Onaylandıktan sonra araç ekleyebilirsiniz.");
     closeDevRequestModal();
+    if(emailInput) emailInput.value = '';
 }
 
 function openSubmitToolModal() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+        alert("Araç ekleyebilmek için önce giriş yapmalısınız.");
+        modalAc();
+        return;
+    }
+    if (!user.isDev) {
+        alert("⚠️ Yalnızca onaylı Geliştiriciler yeni araç ekleyebilir!\n\nLütfen önce '💻 Geliştirici Ol' butonuna tıklayarak başvuru yapın.");
+        openDevRequestModal();
+        return;
+    }
     const modal = document.getElementById('submit-tool-modal');
     if(modal) modal.style.display = 'flex';
 }
@@ -713,9 +746,44 @@ function closeSubmitToolModal() {
     if(modal) modal.style.display = 'none';
 }
 function submitNewTool() {
-    const name = document.getElementById('st-name').value;
-    const url = document.getElementById('st-url').value;
-    if(!name || !url) { alert("Lütfen araç adını ve URL adresini giriniz."); return; }
-    alert("Yapay zeka aracı öneriniz başarıyla iletildi! Teşekkür ederiz.");
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.isDev) {
+        alert("⚠️ Yalnızca onaylı Geliştiriciler yeni araç ekleyebilir!");
+        closeSubmitToolModal();
+        openDevRequestModal();
+        return;
+    }
+
+    const name = document.getElementById('st-name').value.trim();
+    const cat = document.getElementById('st-category').value;
+    const url = document.getElementById('st-url').value.trim();
+    const desc = document.getElementById('st-desc').value.trim();
+
+    if(!name || !url || !desc) { alert("Lütfen tüm zorunlu alanları doldurun."); return; }
+
+    const newTool = {
+        id: Date.now().toString(),
+        name: name,
+        category: cat,
+        url: url,
+        description: desc,
+        submittedBy: user.username,
+        date: new Date().toLocaleDateString('tr-TR')
+    };
+
+    fetch('/api/pending-tools', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTool)
+    }).catch(() => null);
+
+    const pendingTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
+    pendingTools.push(newTool);
+    localStorage.setItem('pendingTools', JSON.stringify(pendingTools));
+
+    alert("Araç öneriniz başarıyla yöneticiye gönderildi! İnceleme sonrasında onaylanacaktır.");
     closeSubmitToolModal();
+    document.getElementById('st-name').value = '';
+    document.getElementById('st-url').value = '';
+    document.getElementById('st-desc').value = '';
 }

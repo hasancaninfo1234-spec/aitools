@@ -10,60 +10,109 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDevelopers();
     loadUsers();
     
-    document.getElementById('add-form').onsubmit = async (e) => {
-        e.preventDefault();
-        const tool = {
-            name: document.getElementById('add-name').value,
-            category: document.getElementById('add-cat').value,
-            description: document.getElementById('add-desc').value,
-            specs: document.getElementById('add-specs').value,
-            about: document.getElementById('add-about').value
-        };
-        await fetch(`${API_BASE}/tools`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(tool)
-        });
-        loadModels();
-        e.target.reset();
-    };
+    const addForm = document.getElementById('add-form');
+    if(addForm) {
+        addForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const tool = {
+                id: Date.now().toString(),
+                name: document.getElementById('add-name').value,
+                category: document.getElementById('add-cat').value,
+                description: document.getElementById('add-desc').value,
+                specs: document.getElementById('add-specs').value,
+                about: document.getElementById('add-about').value
+            };
+            fetch(`${API_BASE}/tools`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(tool)
+            }).catch(() => null);
 
-    document.getElementById('gen-key-btn').onclick = async () => {
-        const type = document.getElementById('key-duration').value;
-        const code = "AI-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-        await fetch(`${API_BASE}/keys`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ code, type })
-        });
-        loadKeys();
-    };
+            let customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
+            customTools.push(tool);
+            localStorage.setItem('customTools', JSON.stringify(customTools));
+
+            alert("Model eklendi!");
+            loadModels();
+            loadStats();
+            e.target.reset();
+        };
+    }
+
+    const genKeyBtn = document.getElementById('gen-key-btn');
+    if(genKeyBtn) {
+        genKeyBtn.onclick = async () => {
+            const typeSelect = document.getElementById('key-duration');
+            const type = typeSelect ? typeSelect.value : '1_Yıl';
+            const code = "AI-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            fetch(`${API_BASE}/keys`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ code, type })
+            }).catch(() => null);
+
+            let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+            localKeys.push({ id: Date.now().toString(), code, type, isUsed: false, username: '-' });
+            localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
+
+            alert(`Yeni Key Üretildi: ${code}`);
+            loadKeys();
+            loadStats();
+        };
+    }
 });
 
 async function loadStats() {
+    let pendingToolsCount = 0;
+    let pendingDevsCount = 0;
+
     try {
-        const res = await fetch(`${API_BASE}/stats`);
-        const stats = await res.json();
-        document.getElementById('stat-users').innerText = stats.totalUsers;
-        document.getElementById('stat-premium').innerText = stats.premiumUsers;
-        document.getElementById('stat-tools').innerText = stats.totalTools;
-        document.getElementById('stat-keys').innerText = stats.unusedKeys;
-        if(document.getElementById('stat-pending')) {
-            document.getElementById('stat-pending').innerText = stats.pendingTools || 0;
+        const pendingTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
+        const pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+        pendingToolsCount = pendingTools.length;
+        pendingDevsCount = pendingDevs.length;
+
+        const res = await fetch(`${API_BASE}/stats`).catch(() => null);
+        if (res && res.ok) {
+            const stats = await res.json();
+            if(document.getElementById('stat-users')) document.getElementById('stat-users').innerText = stats.totalUsers;
+            if(document.getElementById('stat-premium')) document.getElementById('stat-premium').innerText = stats.premiumUsers;
+            if(document.getElementById('stat-tools')) document.getElementById('stat-tools').innerText = stats.totalTools;
+            if(document.getElementById('stat-keys')) document.getElementById('stat-keys').innerText = stats.unusedKeys;
+            if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = stats.pendingTools || pendingToolsCount;
+            if(document.getElementById('stat-devs')) document.getElementById('stat-devs').innerText = stats.pendingDevs || pendingDevsCount;
+            return;
         }
-        if(document.getElementById('stat-devs')) {
-            document.getElementById('stat-devs').innerText = stats.pendingDevs || 0;
-        }
-    } catch (e) {
-        console.error("İstatistikler alınamadı", e);
-    }
+    } catch(e) {}
+
+    if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = pendingToolsCount;
+    if(document.getElementById('stat-devs')) document.getElementById('stat-devs').innerText = pendingDevsCount;
 }
 
 async function loadModels() {
-    const res = await fetch(`${API_BASE}/tools`);
-    const tools = await res.json();
+    let tools = [];
+    try {
+        const res = await fetch(`${API_BASE}/tools`).catch(() => null);
+        if(res && res.ok) {
+            tools = await res.json();
+        } else {
+            tools = JSON.parse(localStorage.getItem('customTools') || '[]');
+        }
+    } catch(e) {
+        tools = JSON.parse(localStorage.getItem('customTools') || '[]');
+    }
+
     window.currentTools = tools; 
-    document.getElementById('models-tbody').innerHTML = tools.map(t => `
+    const tbody = document.getElementById('models-tbody');
+    if(!tbody) return;
+
+    if(tools.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b; padding:15px;">Model bulunamadı.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = tools.map(t => `
         <tr>
             <td>${t.name}</td>
             <td>${t.category}</td>
@@ -76,10 +125,28 @@ async function loadModels() {
 }
 
 async function loadPendingTools() {
-    const res = await fetch(`${API_BASE}/pending-tools`);
-    const tools = await res.json();
+    let tools = [];
+    try {
+        const res = await fetch(`${API_BASE}/pending-tools`).catch(() => null);
+        if (res && res.ok) {
+            tools = await res.json();
+        } else {
+            tools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
+        }
+    } catch(e) {
+        tools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
+    }
+
     window.currentPendingTools = tools;
-    document.getElementById('pending-tools-tbody').innerHTML = tools.map(t => `
+    const tbody = document.getElementById('pending-tools-tbody');
+    if (!tbody) return;
+
+    if (tools.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Bekleyen araç önerisi yok.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = tools.map(t => `
         <tr>
             <td>${t.name}</td>
             <td>${t.category}</td>
@@ -92,9 +159,27 @@ async function loadPendingTools() {
 }
 
 async function loadPendingDevs() {
-    const res = await fetch(`${API_BASE}/pending-developers`);
-    const devs = await res.json();
-    document.getElementById('pending-devs-tbody').innerHTML = devs.map(d => `
+    let devs = [];
+    try {
+        const res = await fetch(`${API_BASE}/pending-developers`).catch(() => null);
+        if (res && res.ok) {
+            devs = await res.json();
+        } else {
+            devs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+        }
+    } catch(e) {
+        devs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+    }
+
+    const tbody = document.getElementById('pending-devs-tbody');
+    if (!tbody) return;
+
+    if (devs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b; padding:15px;">Bekleyen geliştirici başvurusu yok.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = devs.map(d => `
         <tr>
             <td>${d.username}</td>
             <td>${d.email}</td>
@@ -107,9 +192,27 @@ async function loadPendingDevs() {
 }
 
 async function loadDevelopers() {
-    const res = await fetch(`${API_BASE}/developers`);
-    const devs = await res.json();
-    document.getElementById('developers-tbody').innerHTML = devs.map(d => `
+    let devs = [];
+    try {
+        const res = await fetch(`${API_BASE}/developers`).catch(() => null);
+        if (res && res.ok) {
+            devs = await res.json();
+        } else {
+            devs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
+        }
+    } catch(e) {
+        devs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
+    }
+
+    const tbody = document.getElementById('developers-tbody');
+    if (!tbody) return;
+
+    if (devs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b; padding:15px;">Mevcut geliştirici bulunmuyor.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = devs.map(d => `
         <tr>
             <td>${d.username}</td>
             <td>${d.email}</td>
@@ -121,9 +224,27 @@ async function loadDevelopers() {
 }
 
 async function loadKeys() {
-    const res = await fetch(`${API_BASE}/keys`);
-    const keys = await res.json();
-    document.getElementById('keys-tbody').innerHTML = keys.map(k => `
+    let keys = [];
+    try {
+        const res = await fetch(`${API_BASE}/keys`).catch(() => null);
+        if (res && res.ok) {
+            keys = await res.json();
+        } else {
+            keys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+        }
+    } catch(e) {
+        keys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+    }
+
+    const tbody = document.getElementById('keys-tbody');
+    if (!tbody) return;
+
+    if (keys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:15px;">Üretilmiş key bulunmuyor.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = keys.map(k => `
         <tr>
             <td><code>${k.code}</code></td>
             <td>${k.type}</td>
@@ -135,32 +256,42 @@ async function loadKeys() {
 }
 
 async function loadUsers() {
-    const res = await fetch(`${API_BASE}/users`);
-    const users = await res.json();
-    document.getElementById('users-tbody').innerHTML = users.map(u => {
+    let users = [];
+    try {
+        const res = await fetch(`${API_BASE}/users`).catch(() => null);
+        if (res && res.ok) {
+            users = await res.json();
+        } else {
+            const curUser = JSON.parse(localStorage.getItem('user'));
+            if(curUser) users = [curUser];
+        }
+    } catch(e) {
+        const curUser = JSON.parse(localStorage.getItem('user'));
+        if(curUser) users = [curUser];
+    }
+
+    const tbody = document.getElementById('users-tbody');
+    if (!tbody) return;
+
+    if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Kayıtlı kullanıcı bulunmuyor.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = users.map(u => {
         let actionBtn = '';
         if (u.isPremium) {
-            const expDate = new Date(u.premiumExpiry).toLocaleDateString();
-            actionBtn = `<button class="delete-btn" onclick="revokePremium('${u.id}')">PREMİUM İPTAL (${expDate})</button>`;
+            actionBtn = `<button class="delete-btn" onclick="revokePremium('${u.id}')">PREMİUM İPTAL</button>`;
         } else {
-            actionBtn = `
-                <select id="duration-${u.id}" class="admin-input" style="width:auto; padding:4px; margin:0; display:inline-block;">
-                    <option value="1_Saat">1 Saat</option>
-                    <option value="7_Gün">7 Gün</option>
-                    <option value="1_Ay">1 Ay</option>
-                    <option value="1_Yıl" selected>1 Yıl</option>
-                </select>
-                <button class="edit-btn" style="background:#f59e0b; color:#000;" onclick="grantPremium('${u.id}')">PREMİUM YAP</button>
-            `;
+            actionBtn = `<button class="edit-btn" style="background:#f59e0b; color:#000;" onclick="grantPremium('${u.id}')">PREMİUM YAP</button>`;
         }
         return `
             <tr>
                 <td>${u.username}</td>
-                <td>${u.role}</td>
+                <td>${u.isDev ? 'Geliştirici' : 'Kullanıcı'}</td>
                 <td><strong style="color:${u.isPremium ? '#f59e0b' : '#94a3b8'}">${u.isPremium ? 'Aktif' : 'Yok'}</strong></td>
                 <td>
                     ${actionBtn}
-                    <button class="delete-btn" style="background:#ef4444;" onclick="deleteUser('${u.id}')">SİL</button>
                 </td>
             </tr>
         `;
@@ -168,16 +299,21 @@ async function loadUsers() {
 }
 
 async function deleteModel(id) {
-    if(confirm("Bu modeli silmek istediğinize emin misiniz?")) {
-        await fetch(`${API_BASE}/tools/${id}`, { method: 'DELETE' });
-        loadModels();
-        loadStats();
-    }
+    if(!confirm("Bu modeli silmek istediğinize emin misiniz?")) return;
+    
+    fetch(`${API_BASE}/tools/${id}`, { method: 'DELETE' }).catch(() => null);
+    
+    let customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
+    customTools = customTools.filter(t => String(t.id) !== String(id));
+    localStorage.setItem('customTools', JSON.stringify(customTools));
+
+    loadModels();
+    loadStats();
 }
 
 // --- ARAÇ İNCELEME MODALI ---
 function openReviewModal(id) {
-    const tool = window.currentPendingTools.find(t => String(t.id) === String(id));
+    const tool = (window.currentPendingTools || []).find(t => String(t.id) === String(id));
     if(!tool) return;
     
     document.getElementById('review-id').value = tool.id;
@@ -196,101 +332,105 @@ function closeReviewModal() {
 
 async function confirmApproveTool() {
     const id = document.getElementById('review-id').value;
-    await fetch(`${API_BASE}/approve-tool/${id}`, { method: 'POST' });
+    fetch(`${API_BASE}/approve-tool/${id}`, { method: 'POST' }).catch(() => null);
+
+    let pendingTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
+    const toolToApprove = pendingTools.find(t => String(t.id) === String(id));
+    pendingTools = pendingTools.filter(t => String(t.id) !== String(id));
+    localStorage.setItem('pendingTools', JSON.stringify(pendingTools));
+
+    if (toolToApprove) {
+        let customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
+        customTools.push(toolToApprove);
+        localStorage.setItem('customTools', JSON.stringify(customTools));
+    }
+
     closeReviewModal();
     loadPendingTools();
     loadModels();
     loadStats();
+    alert("Araç önerisi onaylandı ve sisteme eklendi! ✅");
 }
 
 async function confirmRejectTool() {
     const id = document.getElementById('review-id').value;
-    if(confirm("Bu araç önerisini reddetmek istediğinize emin misiniz?")) {
-        await fetch(`${API_BASE}/pending-tools/${id}`, { method: 'DELETE' });
-        closeReviewModal();
-        loadPendingTools();
-        loadStats();
-    }
+    if(!confirm("Bu araç önerisini reddetmek istediğinize emin misiniz?")) return;
+
+    fetch(`${API_BASE}/pending-tools/${id}`, { method: 'DELETE' }).catch(() => null);
+
+    let pendingTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
+    pendingTools = pendingTools.filter(t => String(t.id) !== String(id));
+    localStorage.setItem('pendingTools', JSON.stringify(pendingTools));
+
+    closeReviewModal();
+    loadPendingTools();
+    loadStats();
 }
 
 // --- GELİŞTİRİCİ ONAY/RET ---
 async function approveDev(id) {
-    if(confirm("Bu kullanıcıyı Geliştirici yapmak istiyor musunuz?")) {
-        await fetch(`${API_BASE}/approve-developer/${id}`, { method: 'POST' });
-        loadPendingDevs();
-        loadDevelopers();
-        loadStats();
+    if(!confirm("Bu kullanıcıyı Geliştirici yapmak istiyor musunuz?")) return;
+
+    fetch(`${API_BASE}/approve-developer/${id}`, { method: 'POST' }).catch(() => null);
+
+    let pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+    const devToApprove = pendingDevs.find(d => String(d.id) === String(id));
+    pendingDevs = pendingDevs.filter(d => String(d.id) !== String(id));
+    localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
+
+    if (devToApprove) {
+        let devs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
+        devs.push(devToApprove);
+        localStorage.setItem('approvedDevs', JSON.stringify(devs));
+
+        // Eğer mevcut kullanıcı ise isDev yetkisini ver
+        let curUser = JSON.parse(localStorage.getItem('user'));
+        if (curUser) {
+            curUser.isDev = true;
+            localStorage.setItem('user', JSON.stringify(curUser));
+        }
     }
+
+    loadPendingDevs();
+    loadDevelopers();
+    loadStats();
+    alert("Geliştirici başvurusu onaylandı! Artık araç ekleyebilir. 💻✅");
 }
 
 async function rejectDev(id) {
-    if(confirm("Bu başvuruyu reddetmek istediğinize emin misiniz?")) {
-        await fetch(`${API_BASE}/reject-developer/${id}`, { method: 'DELETE' });
-        loadPendingDevs();
-        loadStats();
-    }
+    if(!confirm("Bu başvuruyu reddetmek istediğinize emin misiniz?")) return;
+
+    fetch(`${API_BASE}/reject-developer/${id}`, { method: 'DELETE' }).catch(() => null);
+
+    let pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+    pendingDevs = pendingDevs.filter(d => String(d.id) !== String(id));
+    localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
+
+    loadPendingDevs();
+    loadStats();
 }
 
 async function revokeDev(id) {
-    if(confirm("Bu kullanıcının Geliştirici yetkisini almak istediğinize emin misiniz?")) {
-        await fetch(`${API_BASE}/revoke-developer/${id}`, { method: 'DELETE' });
-        loadDevelopers();
-        loadStats();
-    }
-}
+    if(!confirm("Bu kullanıcının Geliştirici yetkisini almak istediğinize emin misiniz?")) return;
 
-async function deleteKey(id) {
-    if(confirm("Bu keyi sildiğinizde kullanıcının yetkisi anında gider. Onaylıyor musunuz?")) {
-        await fetch(`${API_BASE}/keys/${id}`, { method: 'DELETE' });
-        loadKeys();
-        loadStats();
-        loadUsers();
-    }
-}
+    fetch(`${API_BASE}/revoke-developer/${id}`, { method: 'DELETE' }).catch(() => null);
 
-// --- PREMİUM YÖNETİMİ ---
-async function grantPremium(id) {
-    const typeSelect = document.getElementById('duration-' + id);
-    const type = typeSelect ? typeSelect.value : '1_Yıl';
-    
-    if(confirm(`Bu kullanıcıya ${type.replace('_', ' ')} Premium tanımlamak istiyor musunuz?`)) {
-        const res = await fetch(`${API_BASE}/grant-premium/${id}`, { 
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ type })
-        });
-        const data = await res.json();
-        alert(data.message);
-        loadUsers();
-        loadKeys();
-        loadStats();
-    }
-}
+    let approvedDevs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
+    approvedDevs = approvedDevs.filter(d => String(d.id) !== String(id));
+    localStorage.setItem('approvedDevs', JSON.stringify(approvedDevs));
 
-async function revokePremium(id) {
-    if(confirm("Bu kullanıcının Premium üyeliğini anında iptal etmek istiyor musunuz?")) {
-        await fetch(`${API_BASE}/revoke-premium/${id}`, { method: 'DELETE' });
-        loadUsers();
-        loadKeys();
-        loadStats();
+    let curUser = JSON.parse(localStorage.getItem('user'));
+    if (curUser) {
+        curUser.isDev = false;
+        localStorage.setItem('user', JSON.stringify(curUser));
     }
-}
 
-// --- KULLANICI SİLME ---
-async function deleteUser(id) {
-    if(confirm("DİKKAT: Bu kullanıcıyı tamamen silmek istediğinize emin misiniz? (Tüm yetkileri ve premium süresi de silinir)")) {
-        await fetch(`${API_BASE}/users/${id}`, { method: 'DELETE' });
-        loadUsers();
-        loadKeys();
-        loadDevelopers();
-        loadPendingDevs();
-        loadStats();
-    }
+    loadDevelopers();
+    loadStats();
 }
 
 function openEditModal(id) {
-    // String zorlaması ile ID tip uyuşmazlığını çözüyoruz
-    const tool = window.currentTools.find(t => String(t.id) === String(id));
+    const tool = (window.currentTools || []).find(t => String(t.id) === String(id));
     if(!tool) return;
     
     document.getElementById('edit-id').value = tool.id;
@@ -298,7 +438,7 @@ function openEditModal(id) {
     document.getElementById('edit-category').value = tool.category || '';
     document.getElementById('edit-desc').value = tool.description || '';
     document.getElementById('edit-specs').value = Array.isArray(tool.specs) ? tool.specs.join('\n') : (tool.specs || '');
-    document.getElementById('edit-about').value = tool.about || tool.longDescription || '';
+    document.getElementById('edit-about').value = tool.about || '';
     
     document.getElementById('edit-modal').style.display = 'flex';
 }
@@ -316,13 +456,21 @@ async function updateModel() {
         specs: document.getElementById('edit-specs').value,
         about: document.getElementById('edit-about').value
     };
-    
-    await fetch(`${API_BASE}/tools/${id}`, {
+
+    fetch(`${API_BASE}/tools/${id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(updatedTool)
-    });
-    
+    }).catch(() => null);
+
+    let customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
+    const idx = customTools.findIndex(t => String(t.id) === String(id));
+    if(idx !== -1) {
+        customTools[idx] = { ...customTools[idx], ...updatedTool };
+        localStorage.setItem('customTools', JSON.stringify(customTools));
+    }
+
     closeEditModal();
     loadModels();
+    alert("Model güncellendi!");
 }
