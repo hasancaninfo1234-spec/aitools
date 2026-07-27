@@ -859,6 +859,19 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (lowerMsg.includes('premium') || lowerMsg.includes('key')) {
             akilliCevap = "👑 **Premium Üyelik:** Profil sayfanızdaki **'🔑 Premium Key Aktifleştir'** alanına lisans kodunuzu girerek tüm gelişmiş AI araçlarına erişim sağlayabilirsiniz!";
         }
+        // DESTEK TALEBİ & İLETİŞİM SORGULARI
+        else if (lowerMsg.includes('destek') || lowerMsg.includes('talep') || lowerMsg.includes('iletişim') || lowerMsg.includes('iletisim') || lowerMsg.includes('ulaş') || lowerMsg.includes('ulas') || lowerMsg.includes('sorun')) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+            const userTickets = user ? tickets.filter(t => t.username === user.username) : [];
+
+            if (userTickets.length > 0) {
+                const latest = userTickets[0];
+                akilliCevap = `💬 **Destek Talebiniz (#${latest.id}):**\nKonu: *${latest.subject}*\nDurum: **${latest.status}**\n\nYöneticilerimiz talebinizi yanıtladığında bildirimi Gelen Kutunuza (inbox.html) gönderecektir. Yeni talep açmak için 'Hakkımızda & İletişim' sayfamızı ziyaret edebilirsiniz!`;
+            } else {
+                akilliCevap = "💬 **Destek & İletişim:**\nBir sorunuz, öneriniz veya teknik bir probleminiz varsa **'Hakkımızda & İletişim'** sayfasındaki *Destek Talebi Oluştur* formundan mesaj iletebilirsiniz. Yöneticilerimiz Gelen Kutunuza (inbox.html) yanıt iletecektir!";
+            }
+        }
 
         try {
             const cevap = await fetch(`${API_BASE}/api/chat`, {
@@ -1002,3 +1015,29 @@ function submitNewTool() {
     document.getElementById('st-url').value = '';
     document.getElementById('st-desc').value = '';
 }
+
+// PREMİUM OLMAYAN KULLANICILAR İÇİN PERİYODİK PROMOSYON POP-UP KONTROLÜ
+function checkPeriodicPremiumPromo() {
+    let curUser = null;
+    try { curUser = JSON.parse(localStorage.getItem('user')); } catch(e) {}
+
+    // Eğer kullanıcı Premium ise pop-up çıkarma!
+    if (curUser && curUser.isPremium && !curUser.cancelledPremium) return;
+
+    // Oturumda 3 dakikada bir kontrol et
+    const lastShown = sessionStorage.getItem('premiumPromoShownAt');
+    const now = Date.now();
+    if (!lastShown || (now - parseInt(lastShown)) > 180000) {
+        const modal = document.getElementById('premium-promo-modal');
+        if (modal) modal.style.display = 'flex';
+        sessionStorage.setItem('premiumPromoShownAt', now.toString());
+    }
+}
+
+function closePremiumPromoModal() {
+    const modal = document.getElementById('premium-promo-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+setTimeout(checkPeriodicPremiumPromo, 4000);
+setInterval(checkPeriodicPremiumPromo, 60000);
