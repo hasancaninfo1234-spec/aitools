@@ -604,15 +604,66 @@ async function kullaniciDurumunuKontrolEt() {
     kullaniciArayuzu.innerHTML = `
         <div style="display:flex; align-items:center; gap:8px;">
             <span style="color:#fff; font-size:0.9rem;">Selam, <b>${aktifKullanici.username}</b> ${aktifKullanici.isDev ? '<span style="color:#c084fc; font-size:0.75rem; font-weight:700; background:rgba(192,132,252,0.15); padding:2px 8px; border-radius:10px; border:1px solid rgba(192,132,252,0.3);">💻 DEV</span>' : ''}</span>
-            <button class="auth-btn" onclick="openInboxModal()" style="position: relative; background: rgba(192,132,252,0.1); border-color: rgba(192,132,252,0.4); color: #c084fc; display: inline-flex; align-items: center; gap: 5px;">
+            <a href="inbox.html" class="auth-btn" style="position: relative; background: rgba(192,132,252,0.1); border-color: rgba(192,132,252,0.4); color: #c084fc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
                 🔔 Gelen Kutusu <span id="inbox-badge" style="background:#ef4444; color:#fff; font-size:0.7rem; font-weight:800; padding:1px 6px; border-radius:10px; display:none;">0</span>
-            </button>
+            </a>
             <a href="profile.html" class="auth-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">👤 Profilim</a>
             <button class="auth-btn" onclick="cikisYap()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); padding: 9px 13px;">Çıkış</button>
         </div>
     `;
 
     setTimeout(updateInboxBadge, 100);
+}
+
+function submitSupportTicket(e) {
+    if(e && e.preventDefault) e.preventDefault();
+    const subjectEl = document.getElementById('ticket-subject');
+    const priorityEl = document.getElementById('ticket-priority');
+    const messageEl = document.getElementById('ticket-message');
+
+    if(!subjectEl || !messageEl) return;
+
+    const subject = subjectEl.value.trim();
+    const priority = priorityEl ? priorityEl.value : 'Normal';
+    const message = messageEl.value.trim();
+
+    if(!subject || !message) {
+        alert("Lütfen tüm alanları doldurun!");
+        return;
+    }
+
+    const user = JSON.parse(localStorage.getItem('user')) || { username: 'Misafir' };
+
+    const ticket = {
+        id: 'TKT-' + Math.floor(1000 + Math.random() * 9000),
+        username: user.username,
+        email: user.email || '-',
+        subject: subject,
+        priority: priority,
+        message: message,
+        status: 'Açık',
+        date: new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    };
+
+    let tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+    tickets.unshift(ticket);
+    localStorage.setItem('supportTickets', JSON.stringify(tickets));
+
+    // Bildirim ekle
+    let notifs = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+    notifs.unshift({
+        id: 'notif-' + Date.now(),
+        targetUser: user.username,
+        icon: '💬',
+        title: `Destek Talebi Oluşturuldu (#${ticket.id})`,
+        message: `'${subject}' konulu destek talebiniz başarıyla alındı. Yönetici ekibimiz en kısa sürede talebinizi inceleyecektir.`,
+        date: ticket.date,
+        isRead: false
+    });
+    localStorage.setItem('userNotifications', JSON.stringify(notifs));
+
+    alert(`Destek talebiniz oluşturuldu! (Talep No: #${ticket.id})\nBildiriminiz Gelen Kutunuza aktarıldı. ✅`);
+    if(e && e.target && e.target.reset) e.target.reset();
 }
 
 // GELEN KUTUSU (INBOX) YÖNETİMİ

@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPendingDevs();
         loadDevelopers();
         loadUsers();
+        loadSupportTickets();
     }
     
     const addForm = document.getElementById('add-form');
@@ -68,9 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadStats() {
     const pendingToolsLocal = JSON.parse(localStorage.getItem('pendingTools') || '[]');
     const pendingDevsLocal = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+    const supportTicketsLocal = JSON.parse(localStorage.getItem('supportTickets') || '[]');
     
     let pendingToolsCount = pendingToolsLocal.length;
     let pendingDevsCount = pendingDevsLocal.length;
+    let openTicketsCount = supportTicketsLocal.filter(t => t.status !== 'Çözüldü').length;
 
     try {
         const res = await fetch(`${API_BASE}/stats`).catch(() => null);
@@ -90,6 +93,7 @@ async function loadStats() {
     
     if(document.getElementById('badge-devs')) document.getElementById('badge-devs').innerText = pendingDevsCount;
     if(document.getElementById('badge-tools')) document.getElementById('badge-tools').innerText = pendingToolsCount;
+    if(document.getElementById('badge-tickets')) document.getElementById('badge-tickets').innerText = openTicketsCount;
 }
 
 async function loadModels() {
@@ -188,11 +192,60 @@ async function loadPendingDevs() {
             <td><code style="color:#c084fc;">${d.email}</code></td>
             <td><span style="color:#64748b; font-size:0.82rem;">${d.date || 'Bugün'}</span></td>
             <td>
-                <button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="approveDev('${d.id}')">ONAYLA (YETKİLENDİR)</button>
+                <button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="approveDev('${d.id}')">ONAYLA</button>
                 <button class="delete-btn" onclick="rejectDev('${d.id}')">REDDET</button>
             </td>
         </tr>
     `).join('');
+}
+
+function loadSupportTickets() {
+    const tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+    const tbody = document.getElementById('tickets-tbody');
+    if(!tbody) return;
+
+    if(tickets.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b; padding:15px;">Destek talebi bulunmuyor.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = tickets.map(t => `
+        <tr>
+            <td><code>#${t.id}</code></td>
+            <td><strong>${t.username}</strong> ${t.email !== '-' ? `<span style="color:#64748b; font-size:0.78rem;">(${t.email})</span>` : ''}</td>
+            <td><strong>${t.subject}</strong><br><span style="color:#cbd5e1; font-size:0.82rem;">${t.message}</span></td>
+            <td><span style="background:${t.priority === 'Acil' ? 'rgba(239,68,68,0.2)' : 'rgba(56,189,248,0.1)'}; color:${t.priority === 'Acil' ? '#f87171' : '#38bdf8'}; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:700;">${t.priority}</span></td>
+            <td><span style="color:${t.status === 'Çözüldü' ? '#4ade80' : '#fbbf24'}; font-weight:700;">${t.status}</span></td>
+            <td>
+                ${t.status === 'Çözüldü' ? '<span style="color:#4ade80; font-size:0.8rem; font-weight:700;">✓ Yanıtlandı</span>' : `<button class="edit-btn" onclick="resolveTicket('${t.id}')">YANITLA / KAPAT</button>`}
+            </td>
+        </tr>
+    `).join('');
+}
+
+function resolveTicket(id) {
+    let tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+    const ticket = tickets.find(t => String(t.id) === String(id));
+    if(!ticket) return;
+
+    const replyNote = prompt(`'#${ticket.id}' talep numaralı '${ticket.subject}' konusuna yanıtınız:`, "Talebiniz incelenmiş ve gerekli işlem sağlanmıştır.");
+    if(replyNote === null) return;
+
+    ticket.status = 'Çözüldü';
+    localStorage.setItem('supportTickets', JSON.stringify(tickets));
+
+    // Bildirim gönder
+    addNotification(
+        ticket.username,
+        '💬',
+        `Destek Talebiniz Yanıtlandı (#${ticket.id})`,
+        `'${ticket.subject}' konulu destek talebinize yönetim ekibimiz yanıt verdi.`,
+        replyNote
+    );
+
+    loadSupportTickets();
+    loadStats();
+    alert("Destek talebi yanıtlandı ve kullanıcının Gelen Kutusuna bildirimi iletildi! ✅");
 }
 
 async function loadDevelopers() {
@@ -335,7 +388,7 @@ async function deleteKey(code, id) {
     alert("Key başarıyla silindi! ✅");
 }
 
-function addNotification(targetUser, icon, title, message) {
+function addNotification(targetUser, icon, title, message, adminNote) {
     let notifs = JSON.parse(localStorage.getItem('userNotifications') || '[]');
     notifs.unshift({
         id: 'notif-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
@@ -343,6 +396,7 @@ function addNotification(targetUser, icon, title, message) {
         icon: icon || '🔔',
         title: title,
         message: message,
+        adminNote: adminNote || '',
         date: new Date().toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
         isRead: false
     });
@@ -377,17 +431,19 @@ async function confirmApproveTool() {
     pendingTools = pendingTools.filter(t => String(t.id) !== String(id));
     localStorage.setItem('pendingTools', JSON.stringify(pendingTools));
 
+    const adminNote = prompt("Kullanıcıya özel onay açıklaması/notu eklemek ister misiniz? (Opsiyonel):", "Araç öneriniz portal kriterlerine uygun bulunarak yayınlanmıştır.");
+
     if (toolToApprove) {
         let customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
         customTools.push(toolToApprove);
         localStorage.setItem('customTools', JSON.stringify(customTools));
 
-        // Bildirim Gönder
         addNotification(
             toolToApprove.submittedBy,
             '✅',
             'Araç Öneriniz Onaylandı!',
-            `'${toolToApprove.name}' isimli yapay zeka aracı öneriniz onaylandı ve sitede yayınlandı! Katkınız için teşekkür ederiz.`
+            `'${toolToApprove.name}' isimli yapay zeka aracı öneriniz onaylandı ve sitede yayınlandı! Katkınız için teşekkür ederiz.`,
+            adminNote
         );
     }
 
@@ -395,7 +451,7 @@ async function confirmApproveTool() {
     loadPendingTools();
     loadModels();
     loadStats();
-    alert("Araç önerisi onaylandı ve bildirim gönderildi! ✅");
+    alert("Araç önerisi onaylandı ve bildirimi gönderildi! ✅");
 }
 
 async function confirmRejectTool() {
@@ -410,13 +466,15 @@ async function confirmRejectTool() {
     pendingTools = pendingTools.filter(t => String(t.id) !== String(id));
     localStorage.setItem('pendingTools', JSON.stringify(pendingTools));
 
+    const adminNote = prompt("Kullanıcıya özel ret açıklaması/nedeni eklemek ister misiniz? (Opsiyonel):", "Sağlanan URL geçersiz veya içerik yetersiz bulundu.");
+
     if (toolToReject) {
-        // Bildirim Gönder
         addNotification(
             toolToReject.submittedBy,
             '❌',
             'Araç Öneriniz Kabul Edilmedi',
-            `'${toolToReject.name}' isimli yapay zeka aracı öneriniz yapılan inceleme sonucunda kabul edilmemiştir.`
+            `'${toolToReject.name}' isimli yapay zeka aracı öneriniz yapılan inceleme sonucunda kabul edilmemiştir.`,
+            adminNote
         );
     }
 
@@ -425,7 +483,6 @@ async function confirmRejectTool() {
     loadStats();
 }
 
-// --- GELİŞTİRİCİ ONAY/RET (E-POSTA VE KULLANICI ADI EŞLEŞTİRME) ---
 async function approveDev(id) {
     if(!confirm("Bu kullanıcıyı Geliştirici yapmak istediğinize emin misiniz?")) return;
 
@@ -435,6 +492,8 @@ async function approveDev(id) {
     const devToApprove = pendingDevs.find(d => String(d.id) === String(id));
     pendingDevs = pendingDevs.filter(d => String(d.id) !== String(id));
     localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
+
+    const adminNote = prompt("Kullanıcıya özel onay mesajı/notu eklemek ister misiniz? (Opsiyonel):", "Tebrikler! Geliştirici başvurunuz onaylanmıştır.");
 
     if (devToApprove) {
         let devs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
@@ -449,12 +508,12 @@ async function approveDev(id) {
             localStorage.setItem('user', JSON.stringify(curUser));
         }
 
-        // Bildirim Gönder
         addNotification(
             devToApprove.username,
             '🎉',
             'Geliştirici Başvurunuz Onaylandı!',
-            'Tebrikler! Yönetim ekibimiz geliştirici başvurunuzu onayladı. Artık platforma yeni yapay zeka araçları ekleyebilirsiniz.'
+            'Tebrikler! Yönetim ekibimiz geliştirici başvurunuzu onayladı. Artık platforma yeni yapay zeka araçları ekleyebilirsiniz.',
+            adminNote
         );
     }
 
@@ -462,7 +521,7 @@ async function approveDev(id) {
     loadDevelopers();
     loadUsers();
     loadStats();
-    alert("Geliştirici başvurusu onaylandı ve bildirim gönderildi! 💻🎉");
+    alert("Geliştirici başvurusu onaylandı ve özel açıklama bildirimi gönderildi! 💻🎉");
 }
 
 async function rejectDev(id) {
@@ -476,13 +535,15 @@ async function rejectDev(id) {
     pendingDevs = pendingDevs.filter(d => String(d.id) !== String(id));
     localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
 
+    const adminNote = prompt("Kullanıcıya özel ret açıklaması/nedeni eklemek ister misiniz? (Opsiyonel):", "E-posta adresi ve başvuru bilgileri kriterlerimize uygun görülmedi.");
+
     if (devToReject) {
-        // Bildirim Gönder
         addNotification(
             devToReject.username,
             '❌',
             'Geliştirici Başvurunuz Onaylanmadı',
-            'Geliştirici hesabınız için yaptığınız başvuru yapılan inceleme sonucunda maalesef kabul edilmemiştir.'
+            'Geliştirici hesabınız için yaptığınız başvuru yapılan inceleme sonucunda maalesef kabul edilmemiştir.',
+            adminNote
         );
     }
 

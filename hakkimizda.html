@@ -499,6 +499,23 @@
                 </div>
             </div>
 
+            <!-- Destek Talebi Bölümü -->
+            <section class="section-wrapper" style="max-width: 680px; margin: 0 auto 60px auto;">
+                <div class="section-heading">💬 Destek Talebi Oluştur</div>
+                <div class="section-subheading">Bir sorunuz, öneriniz veya teknik bir probleminiz mi var? Destek ekibimize talep iletin.</div>
+
+                <form onsubmit="submitSupportTicket(event)" style="background: rgba(16, 19, 32, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px; backdrop-filter: blur(15px);">
+                    <input type="text" id="ticket-subject" class="admin-input" placeholder="Talep Konusu (Örn: Giriş Yapamıyorum)" required autocomplete="off">
+                    <select id="ticket-priority" class="admin-input">
+                        <option value="Normal">Öncelik: Normal</option>
+                        <option value="Yüksek">Öncelik: Yüksek ⚡</option>
+                        <option value="Acil">Öncelik: Acil 🚨</option>
+                    </select>
+                    <textarea id="ticket-message" class="admin-input" placeholder="Talebinizin detaylarını yazınız..." rows="4" required style="resize: vertical;"></textarea>
+                    <button type="submit" class="admin-btn" style="width: 100%; padding: 13px; font-size: 1rem; background: linear-gradient(90deg, #38bdf8, #818cf8);">DESTEK TALEBİ GÖNDER 🚀</button>
+                </form>
+            </section>
+
             <!-- Harekete Geçirici Çağrı (CTA) -->
             <div class="cta-box">
                 <h2>Yapay Zeka Evreninde Yerinizi Alın</h2>

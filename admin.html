@@ -252,6 +252,7 @@
             <button class="admin-tab-btn active" onclick="switchAdminTab('tab-stats', this)">📊 İstatistikler</button>
             <button class="admin-tab-btn" onclick="switchAdminTab('tab-pending-devs', this)">💻 Geliştirici Başvuruları <span id="badge-devs" class="tab-badge">0</span></button>
             <button class="admin-tab-btn" onclick="switchAdminTab('tab-pending-tools', this)">⏳ Araç Önerileri <span id="badge-tools" class="tab-badge">0</span></button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('tab-tickets', this)">🎫 Destek Talepleri <span id="badge-tickets" class="tab-badge">0</span></button>
             <button class="admin-tab-btn" onclick="switchAdminTab('tab-developers', this)">👨‍💻 Geliştiriciler</button>
             <button class="admin-tab-btn" onclick="switchAdminTab('tab-models', this)">🤖 AI Modelleri</button>
             <button class="admin-tab-btn" onclick="switchAdminTab('tab-keys', this)">🔑 Key Yönetimi</button>
@@ -335,6 +336,21 @@
                     <table>
                         <thead><tr><th>ARAÇ ADI</th><th>KATEGORİ</th><th>ÖNEREN</th><th>İŞLEM</th></tr></thead>
                         <tbody id="pending-tools-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- SEKME 8: DESTEK TALEPLERİ -->
+        <div id="tab-tickets" class="tab-content">
+            <section class="admin-section" style="border-color: rgba(56, 189, 248, 0.3);">
+                <div class="admin-section-title" style="color: #38bdf8;">
+                    <span>🎫 Kullanıcı Destek Talepleri</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>TALEP NO</th><th>KULLANICI</th><th>KONU</th><th>ÖNCELİK</th><th>DURUM</th><th>İŞLEM</th></tr></thead>
+                        <tbody id="tickets-tbody"></tbody>
                     </table>
                 </div>
             </section>
