@@ -151,6 +151,7 @@
         <a href="index.html" class="back-link">← Ana Sayfaya Dön</a>
     </div>
 
+    <script src="script.js"></script>
     <script>
         document.getElementById('login-form').onsubmit = async (e) => {
             e.preventDefault();
@@ -175,14 +176,14 @@
                 if (res && res.ok) {
                     const data = await res.json();
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    alert("Giriş başarılı! Yönlendiriliyorsunuz...");
-                    window.location.href = 'index.html';
+                    showToast("Giriş başarılı! Yönlendiriliyorsunuz...", "success");
+                    setTimeout(() => { window.location.href = 'index.html'; }, 800);
                 } else {
-                    alert("Kullanıcı adı veya şifre hatalı! Lütfen tekrar dene.");
+                    showToast("Kullanıcı adı veya şifre hatalı! Lütfen tekrar deneyiniz.", "error");
                 }
             } catch (err) {
                 console.error("Giriş hatası:", err);
-                alert("Sunucuya bağlanılamadı.");
+                showToast("Sunucuya bağlanılamadı.", "warning");
             }
         };
     </script>

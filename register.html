@@ -94,6 +94,7 @@
         </div>
     </div>
 
+    <script src="script.js"></script>
     <script>
         document.getElementById('register-form').onsubmit = async (e) => {
             e.preventDefault();
@@ -116,14 +117,14 @@
                 }
 
                 if (res && res.ok) {
-                    alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
-                    window.location.href = 'login.html';
+                    showToast("Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...", "success");
+                    setTimeout(() => { window.location.href = 'login.html'; }, 1000);
                 } else {
                     const data = res ? await res.json() : {};
-                    alert(data.message || "Kayıt sırasında hata oluştu!");
+                    showToast(data.message || "Kayıt sırasında hata oluştu!", "error");
                 }
             } catch(err) {
-                alert("Sunucuya bağlanılamadı.");
+                showToast("Sunucuya bağlanılamadı.", "warning");
             }
         };
     </script>

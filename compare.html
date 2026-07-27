@@ -272,6 +272,7 @@
         </div>
     </div>
 
+    <script src="script.js"></script>
     <script>
         let tools = [];
 
@@ -279,8 +280,8 @@
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if(!user) {
-                    alert("Yetkisiz erişim! Lütfen giriş yapın.");
-                    window.location.href = 'index.html';
+                    showToast("Yetkisiz erişim! Lütfen önce giriş yapınız.", "warning");
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
                     return;
                 }
 

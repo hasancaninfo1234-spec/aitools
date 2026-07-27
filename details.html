@@ -206,7 +206,7 @@
 
         function shareTool() {
             navigator.clipboard.writeText(window.location.href).then(() => {
-                alert("Link Kopyalandı!");
+                showToast("Link panoya kopyalandı! 🔗", "success");
             });
         }
 
@@ -302,7 +302,7 @@
             const text = document.getElementById('review-text').value.trim();
             
             if(!text) {
-                alert("Lütfen bir değerlendirme metni yazın.");
+                showToast("Lütfen bir değerlendirme metni yazınız.", "warning");
                 return;
             }
 
@@ -353,14 +353,15 @@
                 currentTool.reviews = sysReviews;
                 document.getElementById('review-text').value = '';
                 renderReviews();
-                alert("Değerlendirmeniz başarıyla kaydedildi!");
+                showToast("Değerlendirmeniz başarıyla kaydedildi!", "success");
                 
             } catch (e) {
-                alert("Hata oluştu.");
+                showToast("İşlem sırasında bir hata oluştu.", "error");
             }
         }
 
         load();
     </script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             customTools.push(tool);
             localStorage.setItem('customTools', JSON.stringify(customTools));
 
-            alert("Model sisteme eklendi! ✅");
+            showToast("Model sisteme başarıyla eklendi! ✅", "success");
             loadModels();
             loadStats();
             e.target.reset();
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             localKeys.push({ id: Date.now().toString(), code, type, isUsed: false, username: '-' });
             localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
 
-            alert(`Yeni Premium Key Üretildi: ${code}`);
+            showToast(`Yeni Premium Key Üretildi: ${code}`, "purple", "Premium Key Üretildi");
             loadKeys();
             loadStats();
         };
@@ -245,7 +245,7 @@ function resolveTicket(id) {
 
     loadSupportTickets();
     loadStats();
-    alert("Destek talebi yanıtlandı ve kullanıcının Gelen Kutusuna bildirimi iletildi! ✅");
+    showToast("Destek talebi yanıtlandı ve Gelen Kutusu bildirimi iletildi! ✅", "success");
 }
 
 async function loadDevelopers() {
@@ -352,7 +352,7 @@ function toggleUserDev(username) {
         curUser.isDev = !curUser.isDev;
         if(curUser.isDev) curUser.showDevCongratulation = true;
         localStorage.setItem('user', JSON.stringify(curUser));
-        alert(`${username} kullanıcısının Geliştirici durumu güncellendi: ${curUser.isDev ? 'Geliştirici yapıldı ✅' : 'Kullanıcı yapıldı'}`);
+        showToast(`${username} kullanıcısının durumu güncellendi: ${curUser.isDev ? 'Geliştirici yapıldı ✅' : 'Kullanıcı yapıldı'}`, "success");
         loadUsers();
         loadDevelopers();
     }
@@ -385,7 +385,7 @@ async function deleteKey(code, id) {
 
     loadKeys();
     loadStats();
-    alert("Key başarıyla silindi! ✅");
+    showToast("Lisans key başarıyla silindi! ✅", "info");
 }
 
 function addNotification(targetUser, icon, title, message, adminNote) {
@@ -451,7 +451,7 @@ async function confirmApproveTool() {
     loadPendingTools();
     loadModels();
     loadStats();
-    alert("Araç önerisi onaylandı ve bildirimi gönderildi! ✅");
+    showToast("Araç önerisi onaylandı ve bildirimi gönderildi! ✅", "success");
 }
 
 async function confirmRejectTool() {
@@ -521,7 +521,7 @@ async function approveDev(id) {
     loadDevelopers();
     loadUsers();
     loadStats();
-    alert("Geliştirici başvurusu onaylandı ve özel açıklama bildirimi gönderildi! 💻🎉");
+    showToast("Geliştirici başvurusu onaylandı ve özel açıklama bildirimi gönderildi! 💻🎉", "success");
 }
 
 async function rejectDev(id) {
@@ -615,5 +615,5 @@ async function updateModel() {
 
     closeEditModal();
     loadModels();
-    alert("Model başarıyla güncellendi! ✅");
+    showToast("Model başarıyla güncellendi! ✅", "success");
 }

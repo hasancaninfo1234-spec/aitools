@@ -2,17 +2,197 @@
  * ============================================================================
  * Proje Adı: AI Tools (Yapay Zeka Evreni)
  * Dosya: script.js
- * Hazırlayan: Bilgisayar Programcılığı Öğrencisi
- * Açıklama: Bu kodlar sitenin ön yüzündeki dinamik işlemleri yapar.
- * Not: Hocam canvas animasyonunu internetten bakarak uyarladım, çok güzel oldu :)
+ * Açıklama: Ön yüz dinamik etkileşimleri, Toast bildirim sistemi ve canlı sidebar işlemleri.
  * ============================================================================
  */
 
 const API_BASE = "";
 
-let aktifKullanici = JSON.parse(localStorage.getItem('user')) || null; // Kullanıcı giriş yapmış mı diye bakıyoruz
-let girisModuMu = true; // true ise giriş yap, false ise kayıt ol
-let butunAraclar = []; // Apiden gelen verileri burada tutucaz
+let aktifKullanici = JSON.parse(localStorage.getItem('user')) || null;
+let girisModuMu = true;
+let butunAraclar = [];
+
+/* ============================================================================
+   SİTE İÇİ GELİŞMİŞ TOAST BİLDİRİM SİSTEMİ (NATIVE ALERT YERİNE)
+   ============================================================================ */
+function showToast(message, type = 'info', title = null, duration = 3800) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    let icon = 'ℹ️';
+    let defaultTitle = 'Bilgi';
+    
+    if (type === 'success') {
+        icon = '✅';
+        defaultTitle = 'Başarılı';
+    } else if (type === 'error') {
+        icon = '❌';
+        defaultTitle = 'Hata';
+    } else if (type === 'warning') {
+        icon = '⚠️';
+        defaultTitle = 'Uyarı';
+    } else if (type === 'purple') {
+        icon = '🔮';
+        defaultTitle = 'AI Evreni';
+    }
+
+    const toastTitle = title || defaultTitle;
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast-notification toast-${type}`;
+
+    toastEl.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-body">
+            <div class="toast-title">
+                <span>${toastTitle}</span>
+                <button class="toast-close" onclick="closeToast(this.parentElement.parentElement.parentElement)">&times;</button>
+            </div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <div class="toast-progress">
+            <div class="toast-progress-bar" style="transition-duration: ${duration}ms;"></div>
+        </div>
+    `;
+
+    container.appendChild(toastEl);
+
+    requestAnimationFrame(() => {
+        toastEl.classList.add('toast-show');
+        const progressBar = toastEl.querySelector('.toast-progress-bar');
+        if (progressBar) {
+            progressBar.style.width = '0%';
+        }
+    });
+
+    const timer = setTimeout(() => {
+        closeToast(toastEl);
+    }, duration);
+
+    toastEl.dataset.timer = timer;
+}
+
+function closeToast(toastEl) {
+    if (!toastEl || toastEl.classList.contains('toast-hide')) return;
+    if (toastEl.dataset.timer) clearTimeout(parseInt(toastEl.dataset.timer));
+    toastEl.classList.remove('toast-show');
+    toastEl.classList.add('toast-hide');
+    setTimeout(() => {
+        if (toastEl.parentNode) toastEl.parentNode.removeChild(toastEl);
+    }, 400);
+}
+
+// Window alert çağrılarını site içi Toast bildirim sistemi ile değiştiriyoruz
+window.showToast = showToast;
+window.alert = function(msg, type = null) {
+    let inferredType = type || 'info';
+    if (typeof msg === 'string') {
+        if (msg.includes('Hata') || msg.includes('hata') || msg.includes('Yetkisiz') || msg.includes('⚠️')) inferredType = 'warning';
+        if (msg.includes('başarılı') || msg.includes('Başarılı') || msg.includes('✅') || msg.includes('🎉')) inferredType = 'success';
+        if (msg.includes('silindi') || msg.includes('Engellendi') || msg.includes('❌')) inferredType = 'error';
+    }
+    showToast(msg, inferredType);
+};
+
+/* ============================================================================
+   SOL ALT TARAF WİDGET (CANLI SİSTEM & İPUCU KARTI)
+   ============================================================================ */
+const aiTips = [
+    "💡 Midjourney v6 ile foto-gerçekçi çıktılar almak için prompt sonuna '--v 6.0 --style raw' ekleyin.",
+    "💡 ChatGPT Plus'ta Custom GPT'ler oluşturarak özel çalışma asistanları elde edebilirsiniz.",
+    "💡 Claude 3.5 Sonnet, karmaşık kod analizi ve uzun doküman özetlemede üstün performans sunar.",
+    "💡 Gemini Advanced, Google Workspace entegrasyonu sayesinde belgelerinizi doğrudan analiz eder.",
+    "💡 Karşılaştırma Laboratuvarımızı kullanarak ihtiyacınıza en uygun yapay zekayı anında belirleyebilirsiniz."
+];
+let currentTipIdx = 0;
+
+function renderSidebarBottomWidget() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+
+    let targetContainer = sidebar.querySelector('.premium-section');
+    if (!targetContainer) {
+        targetContainer = document.createElement('div');
+        targetContainer.className = 'premium-section';
+        sidebar.appendChild(targetContainer);
+    }
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    const isDev = user && user.isDev;
+    const isPremium = user && user.isPremium;
+
+    let badgeText = "👑 PRO Üyelik";
+    let badgeTitle = "Sınırsız AI Araç Analizi";
+    let btnText = "👑 Yükselt / Key Gir";
+
+    if (isDev) {
+        badgeText = "💻 Geliştirici Modu";
+        badgeTitle = "Yeni Araç Yayınlama Yetkisi";
+        btnText = "➕ Yeni Araç Ekle";
+    } else if (isPremium) {
+        badgeText = "👑 PRO Üye";
+        badgeTitle = "Tüm Özellikler Aktif";
+        btnText = "✨ Profilimi İncele";
+    }
+
+    targetContainer.innerHTML = `
+        <div class="sidebar-bottom-widget">
+            <!-- Canlı Sistem Durumu -->
+            <div class="sidebar-status-card">
+                <div class="status-pulse-dot"></div>
+                <div class="status-info">
+                    <span class="status-title">Sistem Çevrimiçi</span>
+                    <span class="status-sub">%99.9 Sunucu Erişilebilirliği</span>
+                </div>
+            </div>
+
+            <!-- Günün AI İpucu Kartı -->
+            <div class="sidebar-tip-card">
+                <div class="tip-header">
+                    <span>Günün AI İpucu</span>
+                    <div class="tip-controls">
+                        <button onclick="prevAiTip(event)" title="Önceki İpucu">‹</button>
+                        <button onclick="nextAiTip(event)" title="Sonraki İpucu">›</button>
+                    </div>
+                </div>
+                <p id="sidebar-tip-text" class="tip-content">${aiTips[currentTipIdx]}</p>
+            </div>
+
+            <!-- PRO / Dev Banner -->
+            <div class="sidebar-pro-card">
+                <div class="pro-card-badge">${badgeText}</div>
+                <div class="pro-card-title">${badgeTitle}</div>
+                <button class="pro-card-btn" onclick="sidebarActionClick()">${btnText}</button>
+            </div>
+        </div>
+    `;
+}
+
+function nextAiTip(e) {
+    if (e) e.stopPropagation();
+    currentTipIdx = (currentTipIdx + 1) % aiTips.length;
+    const el = document.getElementById('sidebar-tip-text');
+    if (el) el.innerText = aiTips[currentTipIdx];
+}
+
+function prevAiTip(e) {
+    if (e) e.stopPropagation();
+    currentTipIdx = (currentTipIdx - 1 + aiTips.length) % aiTips.length;
+    const el = document.getElementById('sidebar-tip-text');
+    if (el) el.innerText = aiTips[currentTipIdx];
+}
+
+function sidebarActionClick() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.isDev) {
+        openSubmitToolModal();
+    } else {
+        window.location.href = 'profile.html';
+    }
+}
 
 // Sayfa yüklendiğinde çalışacak ana fonksiyon
 document.addEventListener('DOMContentLoaded', () => {
@@ -33,14 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
     filtreleriAyarla(); // Arama ve buton filtreleri
     mobilMenuyuAyarla(); // Mobil yan menü aç/kapat işlemleri
     aiAdvisorAyarla(); // Nova Asistan Formları
-
-    // GELİŞTİRİCİ MODU & ARAÇ EKLEME BUTONLARI
     gelistiriciButonlariniGuncelle();
+    renderSidebarBottomWidget(); // Sol alt taraf widget'ı yükle
 
-    // TEMA KONTROLÜ (Hocam burası karanlık/aydınlık tema için)
+    // TEMA KONTROLÜ
     const temaSecici = document.getElementById('theme-selector');
     if (temaSecici) {
-        const kaydedilenTema = localStorage.getItem('siteTheme') || 'dark'; // Varsayılan dark
+        const kaydedilenTema = localStorage.getItem('siteTheme') || 'dark';
         document.body.setAttribute('data-theme', kaydedilenTema);
         temaSecici.value = kaydedilenTema;
         
@@ -48,29 +227,31 @@ document.addEventListener('DOMContentLoaded', () => {
             const yeniTema = e.target.value;
             document.body.setAttribute('data-theme', yeniTema);
             localStorage.setItem('siteTheme', yeniTema);
-            console.log("Tema değiştirildi kanka: " + yeniTema);
         });
     }
     
     const girisButonu = document.querySelector('#login-or-profile-btn');
     if(girisButonu) girisButonu.onclick = modalAc;
 
-    document.getElementById('toggle-auth').onclick = (e) => {
-        e.preventDefault();
-        girisModuMu = !girisModuMu;
-        document.getElementById('modal-title').innerText = girisModuMu ? "Giriş Yap" : "Kayıt Ol";
-        document.getElementById('toggle-auth').innerText = girisModuMu ? "Hesabın yok mu? Kayıt Ol kanka" : "Zaten hesabın var mı? Giriş Yap";
-        
-        const passField = document.getElementById('auth-password');
-        if(!girisModuMu) {
-            passField.style.display = 'none';
-        } else {
-            passField.style.display = 'block';
-        }
-    };
+    const toggleAuthBtn = document.getElementById('toggle-auth');
+    if (toggleAuthBtn) {
+        toggleAuthBtn.onclick = (e) => {
+            e.preventDefault();
+            girisModuMu = !girisModuMu;
+            document.getElementById('modal-title').innerText = girisModuMu ? "Giriş Yap" : "Kayıt Ol";
+            document.getElementById('toggle-auth').innerText = girisModuMu ? "Hesabınız yok mu? Hemen Kayıt Olun" : "Zaten hesabınız var mı? Giriş Yapın";
+            
+            const passField = document.getElementById('auth-password');
+            if(passField) {
+                passField.style.display = girisModuMu ? 'block' : 'none';
+            }
+        };
+    }
 
-    document.getElementById('auth-submit-btn').onclick = girisYapVeyaKayitOl;
+    const authSubmitBtn = document.getElementById('auth-submit-btn');
+    if (authSubmitBtn) authSubmitBtn.onclick = girisYapVeyaKayitOl;
 });
+
 
 // ARKAPLAN ANİMASYONU (Sinir Ağı)
 function canvasAnimasyonunuBaslat() {
@@ -533,7 +714,7 @@ async function girisYapVeyaKayitOl() {
     
     if (!girisModuMu && !sifre) sifre = "none"; // Kayıt modundaysa ve şifre girilmediyse
     
-    if(!kAdi) { alert("Lütfen kullanıcı adı girin."); return; }
+    if(!kAdi) { showToast("Lütfen kullanıcı adınızı giriniz.", "warning"); return; }
 
     const urlYolu = girisModuMu ? '/login' : '/register';
     
@@ -552,7 +733,7 @@ async function girisYapVeyaKayitOl() {
             kullaniciDurumunuKontrolEt();
             console.log("Giriş başarılı hocam.");
         } else {
-            alert("Hata: " + gelenVeri.message);
+            showToast(gelenVeri.message || "Giriş işlemi başarısız.", "error");
         }
     } catch (hata) { 
         // Sunucu yoksa LocalStorage ile Front-end simülasyonu yap
@@ -649,7 +830,7 @@ function submitSupportTicket(e) {
     const message = messageEl.value.trim();
 
     if(!subject || !message) {
-        alert("Lütfen tüm alanları doldurun!");
+        showToast("Lütfen tüm zorunlu alanları doldurunuz.", "warning");
         return;
     }
 
@@ -683,7 +864,7 @@ function submitSupportTicket(e) {
     });
     localStorage.setItem('userNotifications', JSON.stringify(notifs));
 
-    alert(`Destek talebiniz oluşturuldu! (Talep No: #${ticket.id})\nBildiriminiz Gelen Kutunuza aktarıldı. ✅`);
+    showToast(`Destek talebiniz oluşturuldu! (Talep No: #${ticket.id})`, "success", "Destek Talebi Alındı");
     if(e && e.target && e.target.reset) e.target.reset();
 }
 
@@ -949,7 +1130,7 @@ function closeDevRequestModal() {
 function submitDevRequest() {
     const emailInput = document.getElementById('dev-email');
     const email = emailInput ? emailInput.value.trim() : '';
-    if(!email) { alert("Lütfen e-posta adresinizi girin."); return; }
+    if(!email) { showToast("Lütfen geçerli bir e-posta adresi giriniz.", "warning"); return; }
 
     const user = JSON.parse(localStorage.getItem('user')) || { username: 'Anonim' };
     const devRequest = {
@@ -970,7 +1151,7 @@ function submitDevRequest() {
     pendingDevs.push(devRequest);
     localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
 
-    alert("Geliştirici başvurunuz başarıyla yöneticiye iletildi! Onaylandıktan sonra araç ekleyebilirsiniz.");
+    showToast("Geliştirici başvurunuz yöneticiye iletildi! İnceleme sonrasında bilgilendirileceksiniz.", "success", "Başvuru Gönderildi");
     closeDevRequestModal();
     if(emailInput) emailInput.value = '';
 }
@@ -978,12 +1159,12 @@ function submitDevRequest() {
 function openSubmitToolModal() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user) {
-        alert("Araç ekleyebilmek için önce giriş yapmalısınız.");
+        showToast("Araç ekleyebilmek için lütfen önce giriş yapınız.", "info");
         modalAc();
         return;
     }
     if (!user.isDev) {
-        alert("⚠️ Yalnızca onaylı Geliştiriciler yeni araç ekleyebilir!\n\nLütfen önce '💻 Geliştirici Ol' butonuna tıklayarak başvuru yapın.");
+        showToast("Yalnızca onaylı Geliştiriciler yeni araç ekleyebilir. Lütfen önce başvuru yapınız.", "warning", "Geliştirici Hesabı Gerekli");
         openDevRequestModal();
         return;
     }
@@ -997,7 +1178,7 @@ function closeSubmitToolModal() {
 function submitNewTool() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || !user.isDev) {
-        alert("⚠️ Yalnızca onaylı Geliştiriciler yeni araç ekleyebilir!");
+        showToast("Yalnızca onaylı Geliştiriciler yeni araç ekleyebilir.", "warning", "Yetki Kısıtlaması");
         closeSubmitToolModal();
         openDevRequestModal();
         return;
@@ -1008,7 +1189,7 @@ function submitNewTool() {
     const url = document.getElementById('st-url').value.trim();
     const desc = document.getElementById('st-desc').value.trim();
 
-    if(!name || !url || !desc) { alert("Lütfen tüm zorunlu alanları doldurun."); return; }
+    if(!name || !url || !desc) { showToast("Lütfen tüm zorunlu alanları doldurunuz.", "warning"); return; }
 
     const newTool = {
         id: Date.now().toString(),
@@ -1030,7 +1211,7 @@ function submitNewTool() {
     pendingTools.push(newTool);
     localStorage.setItem('pendingTools', JSON.stringify(pendingTools));
 
-    alert("Araç öneriniz başarıyla yöneticiye gönderildi! İnceleme sonrasında onaylanacaktır.");
+    showToast("Araç öneriniz başarıyla yöneticiye gönderildi!", "success", "Öneri Gönderildi");
     closeSubmitToolModal();
     document.getElementById('st-name').value = '';
     document.getElementById('st-url').value = '';

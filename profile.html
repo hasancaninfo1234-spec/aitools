@@ -502,19 +502,22 @@
                 const data = await res.json();
                 if (res.ok) {
                     localStorage.setItem('user', JSON.stringify(data.user));
+                    showToast("Giriş başarılı!", "success");
                     initPage();
                 } else {
-                    alert(data.message || "Hata oluştu.");
+                    showToast(data.message || "Hata oluştu.", "error");
                 }
             } catch {
                 const fakeUser = { id: Date.now().toString(), username, password };
                 localStorage.setItem('user', JSON.stringify(fakeUser));
+                showToast("Oturum başlatıldı.", "success");
                 initPage();
             }
         });
 
         function cikisYapProfil() {
             localStorage.removeItem('user');
+            showToast("Çıkış yapıldı.", "info");
             initPage();
         }
 
@@ -522,7 +525,9 @@
             el.innerText = text;
             el.className = 'msg-box ' + (isSuccess ? 'msg-success' : 'msg-error');
             el.style.display = 'block';
+            showToast(text, isSuccess ? 'success' : 'error');
         }
     </script>
+    <script src="script.js"></script>
 </body>
 </html>

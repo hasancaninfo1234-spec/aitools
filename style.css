@@ -751,3 +751,291 @@ body[data-theme='cyberpunk'] .popular-card:hover { box-shadow: 0 0 25px rgba(245
     color: #ef4444 !important;
     border: 1px solid #ef4444 !important;
 }
+
+/* ============================================================================
+   SİTE İÇİ TOAST BİLDİRİM VE MESAJ SİSTEMİ (NATIVE ALERT YERİNE)
+   ============================================================================ */
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 420px;
+    width: calc(100vw - 48px);
+    pointer-events: none;
+}
+
+.toast-notification {
+    pointer-events: auto;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.toast-notification.toast-show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-notification.toast-hide {
+    transform: translateX(120%);
+    opacity: 0;
+}
+
+/* Toast Türleri */
+.toast-success { border-left: 4px solid #34d399; box-shadow: 0 10px 30px rgba(52, 211, 153, 0.15), 0 0 0 1px rgba(52, 211, 153, 0.2); }
+.toast-error { border-left: 4px solid #f43f5e; box-shadow: 0 10px 30px rgba(244, 63, 94, 0.15), 0 0 0 1px rgba(244, 63, 94, 0.2); }
+.toast-warning { border-left: 4px solid #fbbf24; box-shadow: 0 10px 30px rgba(251, 191, 36, 0.15), 0 0 0 1px rgba(251, 191, 36, 0.2); }
+.toast-info { border-left: 4px solid #38bdf8; box-shadow: 0 10px 30px rgba(56, 189, 248, 0.15), 0 0 0 1px rgba(56, 189, 248, 0.2); }
+.toast-purple { border-left: 4px solid #c084fc; box-shadow: 0 10px 30px rgba(192, 132, 252, 0.15), 0 0 0 1px rgba(192, 132, 252, 0.2); }
+
+.toast-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.toast-body {
+    flex: 1;
+}
+
+.toast-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.toast-message {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.toast-close:hover {
+    color: #ffffff;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.toast-progress-bar {
+    height: 100%;
+    width: 100%;
+    transition: width linear;
+}
+
+.toast-success .toast-progress-bar { background: #34d399; }
+.toast-error .toast-progress-bar { background: #f43f5e; }
+.toast-warning .toast-progress-bar { background: #fbbf24; }
+.toast-info .toast-progress-bar { background: #38bdf8; }
+.toast-purple .toast-progress-bar { background: #c084fc; }
+
+/* ============================================================================
+   SOL ALT TARAF - SİDEBAR BOTTOM WİDGET (CANLI SİSTEM & İPUCU ALANI)
+   ============================================================================ */
+.sidebar-bottom-widget {
+    margin-top: auto;
+    padding: 15px 12px 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sidebar-status-card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-status-card:hover {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.status-pulse-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #34d399;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #34d399;
+    animation: statusPulse 2s infinite ease-in-out;
+    flex-shrink: 0;
+}
+
+@keyframes statusPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+.status-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.status-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: 0.3px;
+}
+
+.status-sub {
+    font-size: 0.68rem;
+    color: #94a3b8;
+}
+
+/* Günün AI İpucu Kartı */
+.sidebar-tip-card {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 12px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.sidebar-tip-card:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+}
+
+.tip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tip-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.tip-controls button {
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: #94a3b8;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.tip-controls button:hover {
+    background: rgba(56, 189, 248, 0.2);
+    color: #ffffff;
+}
+
+.tip-content {
+    font-size: 0.78rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+    margin: 0;
+    min-height: 38px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* PRO / Dev Banner Kartı */
+.sidebar-pro-card {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border: 1px dashed rgba(251, 191, 36, 0.35);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.sidebar-pro-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(251, 191, 36, 0.15);
+    border-color: #fbbf24;
+}
+
+.pro-card-badge {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #fbbf24;
+    margin-bottom: 4px;
+}
+
+.pro-card-title {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.pro-card-btn {
+    width: 100%;
+    padding: 7px;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    color: #0f172a;
+    border: none;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.pro-card-btn:hover {
+    filter: brightness(1.1);
+}
+
