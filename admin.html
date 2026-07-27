@@ -1,208 +1,432 @@
-<!-- Bu dosya, yönetici panelinin arayüzünü sağlama işini yapar. -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetim Paneli | AI Tools</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        .admin-container { padding: 40px; max-width: 1000px; margin: 0 auto; }
-        .admin-section { background: #161926; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
-        .admin-input { background: #0a0b14; border: 1px solid #333; color: #fff; padding: 10px; width: 100%; border-radius: 5px; margin-bottom: 15px; box-sizing: border-box; }
-        .admin-btn { background: #38bdf8; color: #000; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #222; color: #fff; }
-        #edit-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:999; }
-        
-        .delete-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .delete-btn:hover { background: #dc2626; transform: scale(1.05); }
-        .edit-btn { background: #38bdf8; color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; }
-        .edit-btn:hover { background: #0ea5e9; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0b14;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
 
+        .bg-glow-admin {
+            position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+            width: 1000px; height: 500px;
+            background: radial-gradient(ellipse, rgba(56, 189, 248, 0.07) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* --- ADMİN LOGİN EKRANI --- */
+        .admin-login-wrapper {
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; position: relative; z-index: 2;
+        }
+        .admin-login-card {
+            width: 100%; max-width: 420px;
+            background: rgba(16, 19, 32, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px; padding: 40px 32px;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        .admin-login-title {
+            font-size: 1.6rem; font-weight: 800;
+            color: #38bdf8; margin-bottom: 6px;
+        }
+        .admin-login-sub {
+            font-size: 0.85rem; color: #64748b; margin-bottom: 25px;
+        }
+
+        /* --- ADMİN PANELİ ANA DÜZEN --- */
+        .admin-container {
+            max-width: 1200px; margin: 0 auto;
+            padding: 30px 20px 60px 20px;
+            position: relative; z-index: 1;
+        }
+
+        .admin-header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 15px; margin-bottom: 30px;
+            background: rgba(16, 19, 32, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 20px 25px; border-radius: 20px;
+            backdrop-filter: blur(15px);
+        }
+        .admin-header-title {
+            font-size: 1.6rem; font-weight: 800; color: #ffffff;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* --- İSTATİSTİK GRID --- */
+        .stats-grid-admin {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 15px; margin-bottom: 30px;
+        }
+        .stat-card-admin {
+            background: rgba(16, 19, 32, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px; padding: 20px;
+            text-align: center; backdrop-filter: blur(10px);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .stat-card-admin:hover { transform: translateY(-3px); border-color: rgba(56, 189, 248, 0.3); }
+        .stat-card-icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .stat-card-val { font-size: 2rem; font-weight: 800; color: #ffffff; }
+        .stat-card-lbl { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 4px; }
+
+        /* --- SEKTÖRLER --- */
+        .admin-section {
+            background: rgba(16, 19, 32, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            padding: 25px; border-radius: 20px;
+            margin-bottom: 25px; backdrop-filter: blur(15px);
+        }
+        .admin-section-title {
+            font-size: 1.1rem; font-weight: 800;
+            margin-bottom: 18px; display: flex; align-items: center; gap: 10px;
+        }
+
+        /* --- TABLO DÜZENİ --- */
         .table-wrap {
-            max-height: 350px;
-            overflow-y: auto;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            max-height: 380px; overflow-y: auto; overflow-x: auto;
+            border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th {
+            position: sticky; top: 0; background: #0f121e;
+            padding: 14px 16px; font-size: 0.8rem; font-weight: 700;
+            color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08); z-index: 2;
+        }
+        td {
+            padding: 14px 16px; font-size: 0.9rem; color: #e2e8f0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+        /* --- INPUT VE BUTONLAR --- */
+        .admin-input {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff; padding: 11px 15px; width: 100%;
+            border-radius: 10px; margin-bottom: 12px;
+            font-size: 0.9rem; outline: none; font-family: 'Inter', sans-serif;
+        }
+        .admin-input:focus { border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.15); }
+
+        .admin-btn {
+            background: #38bdf8; color: #0f172a; border: none;
+            padding: 11px 20px; border-radius: 10px;
+            cursor: pointer; font-weight: 800; font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .admin-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.15); color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 6px 14px; border-radius: 8px;
+            cursor: pointer; font-weight: 700; font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+        .delete-btn:hover { background: rgba(239, 68, 68, 0.3); border-color: #ef4444; }
+
+        .edit-btn {
+            background: rgba(56, 189, 248, 0.15); color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 6px 14px; border-radius: 8px;
+            cursor: pointer; font-weight: 700; font-size: 0.8rem;
+            margin-right: 6px; transition: all 0.2s ease;
+        }
+        .edit-btn:hover { background: rgba(56, 189, 248, 0.3); border-color: #38bdf8; }
+
+        /* --- MODAL PENCERELER --- */
+        .modal-overlay-admin {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+            justify-content: center; align-items: center; z-index: 9999;
+            padding: 20px;
         }
 
-        @media (max-width: 768px) {
-            .admin-container { padding: 15px; }
-            .admin-section { padding: 15px; }
-            #edit-modal .admin-section, #review-modal .admin-section { width: 92vw !important; max-width: 500px; padding: 20px; }
-            table { font-size: 0.85rem; min-width: 480px; }
-            th, td { padding: 8px 6px; }
+        .btn-nav-link {
+            color: #38bdf8; text-decoration: none; font-weight: 700;
+            background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 8px 16px; border-radius: 10px; font-size: 0.85rem;
+            transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px;
         }
+        .btn-nav-link:hover { background: rgba(56, 189, 248, 0.2); }
     </style>
-    <script>
-        const adminUser = "a";
-        const adminPass = "aa";
-        let authenticated = false;
-
-        while(!authenticated) {
-            let u = prompt("Yönetici Kullanıcı Adı:");
-            let p = prompt("Yönetici Şifresi:");
-            if (u === adminUser && p === adminPass) {
-                authenticated = true;
-            } else if (u === null || p === null) {
-                window.location.href = "index.html";
-                break;
-            } else {
-                alert("Hatalı kullanıcı adı veya şifre!");
-            }
-        }
-    </script>
 </head>
 <body>
-    <div id="edit-modal">
-        <div class="admin-section" style="width: 92vw; max-width: 500px;">
-            <h2 style="color:#38bdf8">Modeli Düzenle</h2>
+    <div class="bg-glow-admin"></div>
+
+    <!-- GİRİŞ YAPILMAMIŞSA: DAHİLİ ADMİN LOGİN EKRANI -->
+    <div class="admin-login-wrapper" id="admin-login-card">
+        <div class="admin-login-card">
+            <div style="font-size: 2.5rem; margin-bottom: 10px;">🛡️</div>
+            <h2 class="admin-login-title">Yönetim Paneli Girişi</h2>
+            <p class="admin-login-sub">Sistem ayarlarına erişmek için kimliğinizi doğrulayın.</p>
+
+            <form onsubmit="handleAdminLogin(event)">
+                <div style="text-align: left; margin-bottom: 12px;">
+                    <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 600; margin-bottom: 5px; display: block;">Kullanıcı Adı</label>
+                    <input type="text" id="admin-user-input" class="admin-input" placeholder="Yönetici kullanıcı adı..." required autocomplete="off">
+                </div>
+
+                <div style="text-align: left; margin-bottom: 18px;">
+                    <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 600; margin-bottom: 5px; display: block;">Şifre</label>
+                    <input type="password" id="admin-pass-input" class="admin-input" placeholder="Yönetici şifresi..." required>
+                </div>
+
+                <button type="submit" class="admin-btn" style="width: 100%; padding: 13px; font-size: 1rem;">GİRİŞ YAP</button>
+            </form>
+
+            <p id="admin-login-msg" style="margin-top: 15px; font-size: 0.85rem; color: #f87171; display: none;"></p>
+
+            <div style="margin-top: 25px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.06);">
+                <a href="index.html" style="color: #64748b; text-decoration: none; font-size: 0.85rem; font-weight: 600;">← Ana Sayfaya Dön</a>
+                <p style="font-size: 0.75rem; color: #475569; margin-top: 10px;">(Demo Varsayılan: Kullanıcı: <b>a</b> | Şifre: <b>aa</b>)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- GİRİŞ YAPILDIĞINDA: ADMİN KONTROL PANELİ -->
+    <div class="admin-container" id="admin-panel-content" style="display: none;">
+        
+        <!-- HEADER BAR -->
+        <div class="admin-header-bar">
+            <div class="admin-header-title">
+                <span>🛡️ Admin Kontrol Paneli</span>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="index.html" class="btn-nav-link">🌐 Siteye Dön</a>
+                <button onclick="handleAdminLogout()" class="delete-btn" style="padding: 8px 16px; font-size: 0.85rem;">🚪 Çıkış Yap</button>
+            </div>
+        </div>
+
+        <!-- İSTATİSTİK GRID -->
+        <div class="stats-grid-admin">
+            <div class="stat-card-admin">
+                <div class="stat-card-icon">👥</div>
+                <div class="stat-card-val" id="stat-users">-</div>
+                <div class="stat-card-lbl">Toplam Üye</div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-card-icon">👑</div>
+                <div class="stat-card-val" id="stat-premium" style="color: #fbbf24;">-</div>
+                <div class="stat-card-lbl">Premium Üye</div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-card-icon">🤖</div>
+                <div class="stat-card-val" id="stat-tools" style="color: #38bdf8;">-</div>
+                <div class="stat-card-lbl">Model / Araç</div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-card-icon">🔑</div>
+                <div class="stat-card-val" id="stat-keys" style="color: #4ade80;">-</div>
+                <div class="stat-card-lbl">Aktif Key</div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-card-icon">⏳</div>
+                <div class="stat-card-val" id="stat-pending" style="color: #f472b6;">-</div>
+                <div class="stat-card-lbl">Bekleyen Araç</div>
+            </div>
+            <div class="stat-card-admin">
+                <div class="stat-card-icon">💻</div>
+                <div class="stat-card-val" id="stat-devs" style="color: #c084fc;">-</div>
+                <div class="stat-card-lbl">Geliştirici Başvurusu</div>
+            </div>
+        </div>
+
+        <!-- 1. BEKLEYEN GELİŞTİRİCİ BAŞVURULARI -->
+        <section class="admin-section" style="border-color: rgba(192, 132, 252, 0.3);">
+            <div class="admin-section-title" style="color: #c084fc;">
+                <span>💻 Bekleyen Geliştirici Başvuruları</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>KULLANICI ADI</th><th>E-POSTA</th><th>İŞLEM</th></tr></thead>
+                    <tbody id="pending-devs-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 2. KULLANICI ÖNERİLERİ (BEKLEYEN ARAÇLAR) -->
+        <section class="admin-section" style="border-color: rgba(52, 211, 153, 0.3);">
+            <div class="admin-section-title" style="color: #34d399;">
+                <span>⏳ Kullanıcı Önerileri (Bekleyen Araçlar)</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>ARAÇ ADI</th><th>KATEGORİ</th><th>ÖNEREN</th><th>İŞLEM</th></tr></thead>
+                    <tbody id="pending-tools-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. MEVCUT GELİŞTİRİCİLER -->
+        <section class="admin-section" style="border-color: rgba(129, 140, 248, 0.3);">
+            <div class="admin-section-title" style="color: #818cf8;">
+                <span>👨‍💻 Mevcut Geliştiriciler</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>KULLANICI ADI</th><th>E-POSTA</th><th>İŞLEM</th></tr></thead>
+                    <tbody id="developers-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. YENİ MODEL / ARAÇ EKLE -->
+        <section class="admin-section">
+            <div class="admin-section-title" style="color: #38bdf8;">
+                <span>➕ Sisteme Yeni Yapay Zeka Aracı Ekle</span>
+            </div>
+            <form id="add-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <input type="text" id="add-name" class="admin-input" placeholder="Model Adı (Örn: Claude 3.5)" required>
+                <input type="text" id="add-cat" class="admin-input" placeholder="Kategori (Örn: Kod, Görsel, Metin)" required>
+                <textarea id="add-desc" class="admin-input" style="grid-column: span 2;" placeholder="Kısa Açıklama" required rows="2"></textarea>
+                <textarea id="add-specs" class="admin-input" placeholder="Teknik Özellikler (Satır satır)" rows="3"></textarea>
+                <textarea id="add-about" class="admin-input" placeholder="Model Hakkında Detaylı Bilgi" rows="3"></textarea>
+                <button type="submit" class="admin-btn" style="grid-column: span 2; padding: 12px;">Sisteme Ekle</button>
+            </form>
+        </section>
+
+        <!-- 5. MEVCUT MODELLER / ARAÇLAR -->
+        <section class="admin-section">
+            <div class="admin-section-title" style="color: #e2e8f0;">
+                <span>🤖 Kayıtlı Yapay Zeka Modelleri</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>AD</th><th>KATEGORİ</th><th>İŞLEM</th></tr></thead>
+                    <tbody id="models-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 6. KEY YÖNETİMİ -->
+        <section class="admin-section" style="border-color: rgba(245, 158, 11, 0.3);">
+            <div class="admin-section-title" style="color: #fbbf24;">
+                <span>🔑 Premium Key Üretimi & Yönetimi</span>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <select id="key-duration" class="admin-input" style="width: 160px; margin-bottom: 0;">
+                    <option value="1_Saat">1 Saat</option>
+                    <option value="7_Gün">7 Gün</option>
+                    <option value="1_Ay">1 Ay</option>
+                    <option value="1_Yıl" selected>1 Yıl</option>
+                </select>
+                <button id="gen-key-btn" class="admin-btn" style="background:#f59e0b; color:#0f172a; flex: 1; margin-bottom: 0;">Yeni Premium Key Üret</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>KOD</th><th>SÜRE</th><th>DURUM</th><th>KULLANICI</th><th>İŞLEM</th></tr></thead>
+                    <tbody id="keys-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 7. TÜM KULLANICILAR -->
+        <section class="admin-section" style="border-color: rgba(56, 189, 248, 0.3);">
+            <div class="admin-section-title" style="color: #38bdf8;">
+                <span>👥 Tüm Kayıtlı Kullanıcılar</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>KULLANICI ADI</th><th>ROL</th><th>PREMIUM</th><th>İŞLEM</th></tr></thead>
+                    <tbody id="users-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODEL DÜZENLEME MODALI -->
+    <div id="edit-modal" class="modal-overlay-admin">
+        <div class="admin-section" style="width: 100%; max-width: 500px; margin-bottom: 0;">
+            <h2 style="color:#38bdf8; margin-bottom: 15px;">Modeli Düzenle</h2>
             <input type="hidden" id="edit-id">
             <input type="text" id="edit-name" class="admin-input" placeholder="Ad">
             <input type="text" id="edit-category" class="admin-input" placeholder="Kategori">
             <textarea id="edit-desc" class="admin-input" rows="2" placeholder="Kısa Açıklama"></textarea>
             <textarea id="edit-specs" class="admin-input" rows="3" placeholder="Teknik Özellikler"></textarea>
             <textarea id="edit-about" class="admin-input" rows="4" placeholder="Model Hakkında"></textarea>
-            <button onclick="updateModel()" class="admin-btn">Güncelle</button>
-            <button onclick="closeEditModal()" class="admin-btn" style="background:#444; color:#fff">İptal</button>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button onclick="updateModel()" class="admin-btn" style="flex: 1;">Güncelle</button>
+                <button onclick="closeEditModal()" class="admin-btn" style="background:#475569; color:#fff; flex: 1;">İptal</button>
+            </div>
         </div>
     </div>
 
-    <!-- Araç İnceleme Modalı -->
-    <div id="review-modal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index:999;">
-        <div class="admin-section" style="width: 92vw; max-width: 500px;">
-            <h2 style="color:#10b981">Araç İncele</h2>
+    <!-- ARAÇ İNCELEME MODALI -->
+    <div id="review-modal" class="modal-overlay-admin">
+        <div class="admin-section" style="width: 100%; max-width: 500px; margin-bottom: 0;">
+            <h2 style="color:#34d399; margin-bottom: 15px;">Araç Önerisini İncele</h2>
             <input type="hidden" id="review-id">
-            <div style="margin-bottom: 10px;"><strong>Ad:</strong> <span id="review-name"></span></div>
-            <div style="margin-bottom: 10px;"><strong>Kategori:</strong> <span id="review-cat"></span></div>
-            <div style="margin-bottom: 10px;"><strong>URL:</strong> <a id="review-url" href="#" target="_blank" style="color: #38bdf8;"></a></div>
-            <div style="margin-bottom: 20px;"><strong>Açıklama:</strong> <p id="review-desc" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px;"></p></div>
+            <div style="margin-bottom: 10px; font-size: 0.9rem;"><strong>Ad:</strong> <span id="review-name" style="color: #38bdf8;"></span></div>
+            <div style="margin-bottom: 10px; font-size: 0.9rem;"><strong>Kategori:</strong> <span id="review-cat"></span></div>
+            <div style="margin-bottom: 10px; font-size: 0.9rem;"><strong>URL:</strong> <a id="review-url" href="#" target="_blank" style="color: #38bdf8;"></a></div>
+            <div style="margin-bottom: 20px; font-size: 0.9rem;"><strong>Açıklama:</strong> <p id="review-desc" style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 6px; color: #cbd5e1;"></p></div>
             
             <div style="display: flex; gap: 10px;">
-                <button onclick="confirmApproveTool()" class="admin-btn" style="background:#10b981; flex: 1;">ONAYLA</button>
-                <button onclick="confirmRejectTool()" class="admin-btn" style="background:#ef4444; flex: 1;">REDDET</button>
-                <button onclick="closeReviewModal()" class="admin-btn" style="background:#444; color:#fff; flex: 1;">İptal</button>
+                <button onclick="confirmApproveTool()" class="admin-btn" style="background:#34d399; color:#0f172a; flex: 1;">ONAYLA</button>
+                <button onclick="confirmRejectTool()" class="delete-btn" style="flex: 1; padding: 11px;">REDDET</button>
+                <button onclick="closeReviewModal()" class="admin-btn" style="background:#475569; color:#fff; flex: 1;">İptal</button>
             </div>
         </div>
     </div>
 
-    <div class="admin-container">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <h1 style="color:#fff">Admin Kontrol Paneli</h1>
-            <a href="index.html" style="color: #38bdf8; text-decoration: none; font-weight: bold;">← Siteye Dön</a>
-        </div>
+    <script>
+        const ADMIN_USER = "a";
+        const ADMIN_PASS = "aa";
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0;">
-            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
-                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Toplam Üye</h3>
-                <div id="stat-users" style="color:#fff; font-size:2.5rem; font-weight:bold;">-</div>
-            </div>
-            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
-                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Premium Üye</h3>
-                <div id="stat-premium" style="color:#f59e0b; font-size:2.5rem; font-weight:bold;">-</div>
-            </div>
-            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
-                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Sistemdeki Araç</h3>
-                <div id="stat-tools" style="color:#38bdf8; font-size:2.5rem; font-weight:bold;">-</div>
-            </div>
-            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
-                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Bekleyen Araç</h3>
-                <div id="stat-pending" style="color:#10b981; font-size:2.5rem; font-weight:bold;">-</div>
-            </div>
-            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
-                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Bekleyen Geliştirici</h3>
-                <div id="stat-devs" style="color:#8b5cf6; font-size:2.5rem; font-weight:bold;">-</div>
-            </div>
-            <div class="admin-section" style="margin-bottom: 0; text-align: center; padding: 20px;">
-                <h3 style="color:#94a3b8; font-size:1rem; margin:0 0 10px 0;">Bekleyen Key</h3>
-                <div id="stat-keys" style="color:#ef4444; font-size:2.5rem; font-weight:bold;">-</div>
-            </div>
-        </div>
-        
-        <section class="admin-section" style="margin-top: 20px;">
-            <h2>Yeni Model Ekle</h2>
-            <form id="add-form">
-                <input type="text" id="add-name" class="admin-input" placeholder="Model Adı" required>
-                <input type="text" id="add-cat" class="admin-input" placeholder="Kategori" required>
-                <textarea id="add-desc" class="admin-input" placeholder="Kısa Açıklama" required></textarea>
-                <textarea id="add-specs" class="admin-input" placeholder="Teknik Özellikler (Satır satır)"></textarea>
-                <textarea id="add-about" class="admin-input" placeholder="Model Hakkında Detaylı Bilgi"></textarea>
-                <button type="submit" class="admin-btn">Sisteme Ekle</button>
-            </form>
-        </section>
+        // Sayfa yüklendiğinde admin giriş durumunu kontrol et
+        checkSession();
 
-        <section class="admin-section">
-            <h2>Mevcut Modeller</h2>
-            <div class="table-wrap">
-                <table style="width: 100%;">
-                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">AD</th><th style="position: sticky; top: 0; background: #161926;">KATEGORİ</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
-                    <tbody id="models-tbody"></tbody>
-                </table>
-            </div>
-        </section>
+        function checkSession() {
+            const isAuthed = sessionStorage.getItem('adminAuthed') === 'true';
+            if (isAuthed) {
+                document.getElementById('admin-login-card').style.display = 'none';
+                document.getElementById('admin-panel-content').style.display = 'block';
+            } else {
+                document.getElementById('admin-login-card').style.display = 'flex';
+                document.getElementById('admin-panel-content').style.display = 'none';
+            }
+        }
 
-        <section class="admin-section" style="border-color: #10b981;">
-            <h2 style="color:#10b981">Kullanıcı Önerileri (Bekleyen Araçlar)</h2>
-            <div class="table-wrap">
-                <table style="width: 100%;">
-                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">AD</th><th style="position: sticky; top: 0; background: #161926;">KATEGORİ</th><th style="position: sticky; top: 0; background: #161926;">ÖNEREN</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
-                    <tbody id="pending-tools-tbody"></tbody>
-                </table>
-            </div>
-        </section>
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('admin-user-input').value.trim();
+            const p = document.getElementById('admin-pass-input').value;
+            const msg = document.getElementById('admin-login-msg');
 
-        <section class="admin-section" style="border-color: #8b5cf6;">
-            <h2 style="color:#8b5cf6">Bekleyen Geliştirici Başvuruları</h2>
-            <div class="table-wrap">
-                <table style="width: 100%;">
-                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">KULLANICI ADI</th><th style="position: sticky; top: 0; background: #161926;">E-POSTA</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
-                    <tbody id="pending-devs-tbody"></tbody>
-                </table>
-            </div>
-        </section>
+            if (u === ADMIN_USER && p === ADMIN_PASS) {
+                sessionStorage.setItem('adminAuthed', 'true');
+                msg.style.display = 'none';
+                checkSession();
+                if (typeof loadStats === 'function') {
+                    loadStats(); loadModels(); loadKeys(); loadPendingTools(); loadPendingDevs(); loadDevelopers(); loadUsers();
+                }
+            } else {
+                msg.innerText = "Hatalı kullanıcı adı veya şifre!";
+                msg.style.display = 'block';
+            }
+        }
 
-        <section class="admin-section" style="border-color: #3b82f6;">
-            <h2 style="color:#3b82f6">Mevcut Geliştiriciler</h2>
-            <div class="table-wrap">
-                <table style="width: 100%;">
-                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">KULLANICI ADI</th><th style="position: sticky; top: 0; background: #161926;">E-POSTA</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
-                    <tbody id="developers-tbody"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="admin-section">
-            <h2 style="color:#f59e0b">Key Yönetimi</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                <select id="key-duration" class="admin-input" style="width: 150px; margin-bottom: 0;">
-                    <option value="1_Saat">1 Saat</option>
-                    <option value="7_Gün">7 Gün</option>
-                    <option value="1_Ay">1 Ay</option>
-                    <option value="1_Yıl">1 Yıl</option>
-                </select>
-                <button id="gen-key-btn" class="admin-btn" style="background:#f59e0b; flex: 1; margin-bottom: 0;">Yeni Premium Key Üret</button>
-            </div>
-            <div class="table-wrap">
-                <table style="width: 100%;">
-                  <thead><tr><th style="position: sticky; top: 0; background: #161926;">KOD</th><th style="position: sticky; top: 0; background: #161926;">SÜRE</th><th style="position: sticky; top: 0; background: #161926;">DURUM</th><th style="position: sticky; top: 0; background: #161926;">KULLANICI</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
-                    <tbody id="keys-tbody"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="admin-section" style="border-color: #38bdf8;">
-            <h2 style="color:#38bdf8">Tüm Kullanıcılar</h2>
-            <div class="table-wrap">
-                <table style="width: 100%;">
-                    <thead><tr><th style="position: sticky; top: 0; background: #161926;">KULLANICI ADI</th><th style="position: sticky; top: 0; background: #161926;">ROL</th><th style="position: sticky; top: 0; background: #161926;">PREMIUM</th><th style="position: sticky; top: 0; background: #161926;">İŞLEM</th></tr></thead>
-                    <tbody id="users-tbody"></tbody>
-                </table>
-            </div>
-        </section>
-
-    </div>
+        function handleAdminLogout() {
+            sessionStorage.removeItem('adminAuthed');
+            checkSession();
+        }
+    </script>
     <script src="admin.js"></script>
 </body>
 </html>

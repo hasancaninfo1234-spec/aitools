@@ -154,12 +154,13 @@
         .btn-action:hover { background: rgba(56, 189, 248, 0.22); border-color: #38bdf8; }
 
         .btn-primary {
-            background: linear-gradient(90deg, #38bdf8, #818cf8);
-            color: #0f172a; font-weight: 800;
+            background: linear-gradient(90deg, #f59e0b, #ea580c);
+            color: #ffffff; font-weight: 800;
             border: none; border-radius: 10px;
-            padding: 10px 18px; cursor: pointer;
-            font-size: 0.88rem; white-space: nowrap;
+            padding: 11px 20px; cursor: pointer;
+            font-size: 0.9rem; white-space: nowrap;
             transition: opacity 0.2s ease;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
         }
         .btn-primary:hover { opacity: 0.9; }
 
@@ -249,7 +250,25 @@
             </div>
         </div>
 
-        <!-- 1. KULLANICI ADI GÜNCELLEME -->
+        <!-- 1. PREMIUM KEY KODU GİRİŞİ (HER ZAMAN AÇIK & AKTİF) -->
+        <div class="section" style="border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.03);">
+            <div class="section-title" style="color: #f59e0b;">🔑 Premium Key Aktifleştir</div>
+            <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 12px;">Premium lisans kodunuzu girerek tüm PRO özellikleri anında aktif edebilirsiniz.</p>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="premium-key" class="input-field" style="border-color: rgba(245, 158, 11, 0.3);" placeholder="Örn: AI-X9K2P0L4M" autocomplete="off">
+                <button onclick="keyAktifEtProfil()" class="btn-primary">Aktif Et</button>
+            </div>
+            <div id="key-msg" class="msg-box"></div>
+
+            <!-- Premium Üye İse İptal Butonu Göster -->
+            <div id="premium-active-area" style="display: none; margin-top: 15px; border-top: 1px dashed rgba(245, 158, 11, 0.2); padding-top: 12px;">
+                <p style="font-size: 0.85rem; color: #4ade80; margin-bottom: 6px; font-weight: 600;">👑 Mevcut Durum: Premium Üyesiniz</p>
+                <button onclick="premiumIptalEt()" class="btn-cancel-premium">⚠️ Premium Üyeliği İptal Et</button>
+                <div id="premium-cancel-msg" class="msg-box"></div>
+            </div>
+        </div>
+
+        <!-- 2. KULLANICI ADI GÜNCELLEME -->
         <div class="section">
             <div class="section-title">👤 Kullanıcı Adı Güncelle</div>
             <form id="username-form">
@@ -260,28 +279,6 @@
                 <button type="submit" class="btn-action">Kullanıcı Adımı Güncelle</button>
             </form>
             <div id="username-msg" class="msg-box"></div>
-        </div>
-
-        <!-- 2. PREMIUM YÖNETİMİ & KEY -->
-        <div class="section" id="premium-section">
-            <div class="section-title">👑 Premium Üyelik Yönetimi</div>
-            
-            <!-- Aktif Premium Değilse -->
-            <div id="key-activation-area">
-                <p style="font-size: 0.83rem; color: #94a3b8; margin-bottom: 10px;">Premium kodu girerek tüm ayrıcalıkları açabilirsiniz.</p>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="premium-key" class="input-field" style="flex: 1;" placeholder="Premium key kodunu gir...">
-                    <button onclick="keyAktifEtProfil()" class="btn-primary">Aktif Et</button>
-                </div>
-                <div id="key-msg" class="msg-box"></div>
-            </div>
-
-            <!-- Aktif Premium İse -->
-            <div id="premium-active-area" style="display: none;">
-                <p style="font-size: 0.85rem; color: #4ade80; margin-bottom: 10px; font-weight: 600;">✅ Premium ayrıcalıklarınız aktif!</p>
-                <button onclick="premiumIptalEt()" class="btn-cancel-premium">⚠️ Premium Üyeliği İptal Et</button>
-                <div id="premium-cancel-msg" class="msg-box"></div>
-            </div>
         </div>
 
         <!-- 3. ŞİFRE GÜNCELLEME -->
@@ -330,7 +327,6 @@
         let isLoginMode = true;
         const API_BASE = "";
 
-        // Sayfa doğrudan yüklenirken çalışır (flicker önleme)
         initPage();
 
         function initPage() {
@@ -352,7 +348,6 @@
                 document.getElementById('avatar-emoji').innerText = name.charAt(0).toUpperCase();
                 document.getElementById('new-username-input').value = name;
 
-                // Favori Sayısı İstatistiği
                 const favs = JSON.parse(localStorage.getItem('favs') || '[]');
                 document.getElementById('stat-fav-count').innerText = favs.length;
 
@@ -380,12 +375,10 @@
             showMsg(msg, "Kullanıcı adı başarıyla güncellendi! ✅", true);
         });
 
-        // --- 2. PREMIUM KONTROL VE İPTAL ETME ---
+        // --- 2. PREMIUM KONTROL VE KEY AKTİFLEŞTİRME ---
         async function premiumKontrol() {
-            // Eğer kullanıcı iptal etmişse false kalır, yoksa localStorage'daki değere bakılır
             let isPremium = profAktifKullanici.isPremium === true;
 
-            // Sadece iptal edilmemişse API kontrolü yap
             if (isPremium && !profAktifKullanici.cancelledPremium) {
                 try {
                     const res = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
@@ -397,7 +390,6 @@
             }
 
             const badge = document.getElementById('prof-badge');
-            const keyArea = document.getElementById('key-activation-area');
             const activeArea = document.getElementById('premium-active-area');
 
             if (isPremium && !profAktifKullanici.cancelledPremium) {
@@ -411,14 +403,18 @@
                 activeArea.style.display = 'none';
                 document.getElementById('stat-status-lbl').innerText = 'Aktif';
             }
-
-            // Key girme kutusu her durumda açık kalır!
-            keyArea.style.display = 'block';
         }
 
         async function keyAktifEtProfil() {
-            const key = document.getElementById('premium-key').value.trim();
+            const keyInput = document.getElementById('premium-key');
+            const key = keyInput.value.trim();
             const msg = document.getElementById('key-msg');
+
+            if(!key) {
+                showMsg(msg, "Lütfen bir key kodu girin.", false);
+                return;
+            }
+
             showMsg(msg, "Kontrol ediliyor...", true);
 
             try {
@@ -432,8 +428,8 @@
                     profAktifKullanici.isPremium = true;
                     profAktifKullanici.cancelledPremium = false;
                     localStorage.setItem('user', JSON.stringify(profAktifKullanici));
-                    showMsg(msg, "Tebrikler! Premium aktif edildi 👑", true);
-                    document.getElementById('premium-key').value = '';
+                    showMsg(msg, "Tebrikler! Premium başarıyla aktif edildi 👑", true);
+                    keyInput.value = '';
                     premiumKontrol();
                 } else {
                     showMsg(msg, data.message || "Geçersiz key!", false);
@@ -443,8 +439,8 @@
                     profAktifKullanici.isPremium = true;
                     profAktifKullanici.cancelledPremium = false;
                     localStorage.setItem('user', JSON.stringify(profAktifKullanici));
-                    showMsg(msg, "Tebrikler! Premium aktif edildi 👑", true);
-                    document.getElementById('premium-key').value = '';
+                    showMsg(msg, "Tebrikler! Premium başarıyla aktif edildi 👑", true);
+                    keyInput.value = '';
                     premiumKontrol();
                 } else {
                     showMsg(msg, "Geçersiz key kodu!", false);
