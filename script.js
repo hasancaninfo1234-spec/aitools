@@ -583,11 +583,7 @@ async function kullaniciDurumunuKontrolEt() {
 }
 
 function profilTikla() {
-    if (aktifKullanici) {
-        window.location.href = 'profile.html';
-    } else {
-        modalAc();
-    }
+    window.location.href = 'profile.html';
 }
 
 function modalAc() { document.getElementById('auth-modal').style.display = 'flex'; }

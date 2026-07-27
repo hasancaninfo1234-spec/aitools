@@ -42,9 +42,10 @@
 
     <a href="index.html" style="color:#38bdf8; text-decoration:none; font-weight:bold; display: inline-flex; align-items: center; gap: 6px; position: absolute; top: 30px; left: 40px;">← Ana Sayfaya Dön</a>
 
-    <div class="profile-wrapper">
+    <!-- GİRİŞ YAPILMIŞSA GÖRÜNECEK ALAN -->
+    <div class="profile-wrapper" id="profile-container" style="display: none;">
         <h1 class="profile-title">👤 Profilim</h1>
-        <p id="prof-greeting" style="color: #cbd5e1; margin-bottom: 30px;">Hoş geldin, Yükleniyor...</p>
+        <p id="prof-greeting" style="color: #cbd5e1; margin-bottom: 30px;">Hoş geldin!</p>
 
         <!-- Premium / Key Bölümü -->
         <div class="profile-section" id="prof-premium-section">
@@ -62,7 +63,7 @@
         <div class="profile-section">
             <h3 style="color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">🔒 Şifre İşlemleri</h3>
             <form id="profile-pass-form" style="display: flex; flex-direction: column; gap: 10px;">
-                <label class="profile-label">Yeni Şifre Belirle (İsteğe Bağlı):</label>
+                <label class="profile-label">Yeni Şifre Belirle:</label>
                 <input type="password" id="prof-new-password" placeholder="Yeni Şifreniz" class="auth-input" required>
                 <button type="submit" class="filter-btn" style="border-radius: 8px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border-color: #38bdf8; margin-top: 5px;">Şifremi Güncelle</button>
             </form>
@@ -72,16 +73,103 @@
         <button onclick="cikisYapProfil()" class="filter-btn" style="width: 100%; border-radius: 8px; margin-top: 10px; color: #ef4444; border-color: #ef4444; background: rgba(239, 68, 68, 0.05);">Çıkış Yap</button>
     </div>
 
+    <!-- GİRİŞ YAPILMAMIŞSA GÖRÜNECEK ALAN (ŞİFRESİZ KAYIT DESTEKLİ) -->
+    <div class="profile-wrapper" id="login-container" style="display: none;">
+        <h1 class="profile-title" id="auth-title">Giriş Yap</h1>
+        <p style="color: #cbd5e1; margin-bottom: 25px;">Profilinize erişmek için lütfen giriş yapın veya kayıt olun.</p>
+        
+        <form id="auth-form-profil" style="display: flex; flex-direction: column; gap: 15px; text-align: left; max-width: 400px; margin: 0 auto;">
+            <div>
+                <label class="profile-label">Kullanıcı Adı:</label>
+                <input type="text" id="auth-user-profil" class="auth-input" style="width: 100%;" placeholder="Kullanıcı adınız..." required autocomplete="off">
+            </div>
+            
+            <div id="auth-pass-group-profil">
+                <label class="profile-label">Şifre:</label>
+                <input type="password" id="auth-pass-profil" class="auth-input" style="width: 100%;" placeholder="Şifreniz...">
+            </div>
+            
+            <button type="submit" class="compare-btn" style="width: 100%; border-radius: 8px; margin-top: 10px; font-size: 1.1rem; padding: 12px;" id="auth-submit-profil">GİRİŞ YAP</button>
+        </form>
+        
+        <div style="margin-top: 20px;">
+            <a href="#" onclick="toggleAuthProfil(event)" id="toggle-auth-profil" style="color: #38bdf8; text-decoration: none; font-size: 0.9rem; font-weight: bold;">Hesabın yok mu? Kayıt Ol kanka</a>
+        </div>
+    </div>
+
     <script>
         let profAktifKullanici = JSON.parse(localStorage.getItem('user'));
+        let isLoginMode = true;
         const API_BASE = "";
 
-        if (!profAktifKullanici) {
-            window.location.href = "index.html"; // Giriş yapmamışsa anasayfaya at
-        } else {
-            document.getElementById('prof-greeting').innerHTML = `Hoş geldin, <b>${profAktifKullanici.username}</b>!`;
-            premiumKontrol();
+        // Sayfa yükleme kontrolü
+        initPage();
+
+        function initPage() {
+            profAktifKullanici = JSON.parse(localStorage.getItem('user'));
+            if (!profAktifKullanici) {
+                document.getElementById('profile-container').style.display = 'none';
+                document.getElementById('login-container').style.display = 'block';
+                updateAuthFormUI();
+            } else {
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('profile-container').style.display = 'block';
+                document.getElementById('prof-greeting').innerHTML = `Hoş geldin, <b>${profAktifKullanici.username}</b>!`;
+                premiumKontrol();
+            }
         }
+
+        function toggleAuthProfil(e) {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+            updateAuthFormUI();
+        }
+
+        function updateAuthFormUI() {
+            document.getElementById('auth-title').innerText = isLoginMode ? "Giriş Yap" : "Kayıt Ol";
+            document.getElementById('auth-submit-profil').innerText = isLoginMode ? "GİRİŞ YAP" : "KAYIT OL";
+            document.getElementById('toggle-auth-profil').innerText = isLoginMode ? "Hesabın yok mu? Kayıt Ol kanka" : "Zaten hesabın var mı? Giriş Yap";
+            
+            // Kayıt modunda şifre isteme
+            const passGroup = document.getElementById('auth-pass-group-profil');
+            if (!isLoginMode) {
+                passGroup.style.display = 'none';
+            } else {
+                passGroup.style.display = 'block';
+            }
+        }
+
+        // Şifresiz/Şifreli Giriş & Kayıt Form Gönderimi
+        document.getElementById('auth-form-profil').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('auth-user-profil').value.trim();
+            let password = document.getElementById('auth-pass-profil').value;
+            
+            if (!isLoginMode && !password) password = "none";
+            
+            const endpoint = isLoginMode ? '/login' : '/register';
+            
+            try {
+                const cevap = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const veri = await cevap.json();
+                
+                if (cevap.ok) {
+                    localStorage.setItem('user', JSON.stringify(veri.user));
+                    initPage();
+                } else {
+                    alert("Hata: " + veri.message);
+                }
+            } catch (err) {
+                // API hatası durumunda lokal simülasyon (Frontend-only)
+                const fakeUser = { id: Date.now().toString(), username: username, password: password };
+                localStorage.setItem('user', JSON.stringify(fakeUser));
+                initPage();
+            }
+        });
 
         async function premiumKontrol() {
             try {
@@ -90,7 +178,7 @@
                     const veri = await cevap.json();
                     if(veri.status === "premium") {
                         document.getElementById('prof-premium-status').innerHTML = `<span class="premium-status-badge">👑 PREMIUM ÜYE</span>`;
-                        document.getElementById('key-activation-area').style.display = 'none'; // Zaten premium ise gizle
+                        document.getElementById('key-activation-area').style.display = 'none';
                     }
                 }
             } catch(e) {}
@@ -114,13 +202,12 @@
                 if(sonuc.success || cevap.ok) { 
                     msgBox.style.color = '#4ade80';
                     msgBox.innerText = "Harika! Premium aktif edildi.";
-                    premiumKontrol(); // Durumu güncelle
+                    premiumKontrol();
                 } else {
                     msgBox.style.color = '#ef4444';
                     msgBox.innerText = sonuc.message || "Geçersiz kod!";
                 }
             } catch (e) {
-                // API Yoksa Fake Simülasyon
                 if(girilenKey.length > 5) {
                     msgBox.style.color = '#4ade80';
                     msgBox.innerText = "Simülasyon: Premium aktif edildi! 👑";
@@ -136,8 +223,6 @@
         document.getElementById('profile-pass-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const newPass = document.getElementById('prof-new-password').value;
-            
-            // Simüle edilmiş şifre güncelleme
             profAktifKullanici.password = newPass;
             localStorage.setItem('user', JSON.stringify(profAktifKullanici));
             
@@ -150,7 +235,7 @@
 
         function cikisYapProfil() {
             localStorage.removeItem('user');
-            window.location.href = "index.html";
+            initPage();
         }
     </script>
 </body>
