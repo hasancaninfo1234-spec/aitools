@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilim | AI Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-wrapper {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            background: rgba(22, 25, 38, 0.8);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+        .profile-title {
+            color: #38bdf8;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .profile-section {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .profile-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+    </style>
+</head>
+<body style="background:#0a0b14; color:white; padding:20px;">
+
+    <a href="index.html" style="color:#38bdf8; text-decoration:none; font-weight:bold; display: inline-flex; align-items: center; gap: 6px; position: absolute; top: 30px; left: 40px;">← Ana Sayfaya Dön</a>
+
+    <div class="profile-wrapper">
+        <h1 class="profile-title">👤 Profilim</h1>
+        <p id="prof-greeting" style="color: #cbd5e1; margin-bottom: 30px;">Hoş geldin, Yükleniyor...</p>
+
+        <!-- Premium / Key Bölümü -->
+        <div class="profile-section" id="prof-premium-section">
+            <h3 style="color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">👑 Premium Durumu</h3>
+            <div id="prof-premium-status" style="margin-bottom: 15px; font-weight: bold; color: #94a3b8;">Normal Üye</div>
+            
+            <div id="key-activation-area" style="display: flex; gap: 10px; margin-top: 10px;">
+                <input type="text" id="premium-key" class="auth-input" style="flex: 1;" placeholder="Premium Key Giriniz...">
+                <button onclick="keyAktifEtProfil()" class="compare-btn" style="border-radius: 8px;">Aktif Et</button>
+            </div>
+            <p id="key-msg" style="margin-top: 10px; font-size: 0.85rem; display: none;"></p>
+        </div>
+
+        <!-- Şifre Güncelleme -->
+        <div class="profile-section">
+            <h3 style="color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">🔒 Şifre İşlemleri</h3>
+            <form id="profile-pass-form" style="display: flex; flex-direction: column; gap: 10px;">
+                <label class="profile-label">Yeni Şifre Belirle (İsteğe Bağlı):</label>
+                <input type="password" id="prof-new-password" placeholder="Yeni Şifreniz" class="auth-input" required>
+                <button type="submit" class="filter-btn" style="border-radius: 8px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border-color: #38bdf8; margin-top: 5px;">Şifremi Güncelle</button>
+            </form>
+            <p id="prof-pass-msg" style="margin-top: 10px; font-size: 0.85rem; color: #4ade80; display: none;"></p>
+        </div>
+
+        <button onclick="cikisYapProfil()" class="filter-btn" style="width: 100%; border-radius: 8px; margin-top: 10px; color: #ef4444; border-color: #ef4444; background: rgba(239, 68, 68, 0.05);">Çıkış Yap</button>
+    </div>
+
+    <script>
+        let profAktifKullanici = JSON.parse(localStorage.getItem('user'));
+        const API_BASE = "";
+
+        if (!profAktifKullanici) {
+            window.location.href = "index.html"; // Giriş yapmamışsa anasayfaya at
+        } else {
+            document.getElementById('prof-greeting').innerHTML = `Hoş geldin, <b>${profAktifKullanici.username}</b>!`;
+            premiumKontrol();
+        }
+
+        async function premiumKontrol() {
+            try {
+                const cevap = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
+                if(cevap && cevap.ok) {
+                    const veri = await cevap.json();
+                    if(veri.status === "premium") {
+                        document.getElementById('prof-premium-status').innerHTML = `<span class="premium-status-badge">👑 PREMIUM ÜYE</span>`;
+                        document.getElementById('key-activation-area').style.display = 'none'; // Zaten premium ise gizle
+                    }
+                }
+            } catch(e) {}
+        }
+
+        async function keyAktifEtProfil() {
+            const girilenKey = document.getElementById('premium-key').value;
+            const msgBox = document.getElementById('key-msg');
+            msgBox.style.display = 'block';
+            msgBox.style.color = '#94a3b8';
+            msgBox.innerText = "Kontrol ediliyor...";
+
+            try {
+                const cevap = await fetch(`${API_BASE}/api/activate-key`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: girilenKey, userId: profAktifKullanici.id })
+                });
+                const sonuc = await cevap.json();
+                
+                if(sonuc.success || cevap.ok) { 
+                    msgBox.style.color = '#4ade80';
+                    msgBox.innerText = "Harika! Premium aktif edildi.";
+                    premiumKontrol(); // Durumu güncelle
+                } else {
+                    msgBox.style.color = '#ef4444';
+                    msgBox.innerText = sonuc.message || "Geçersiz kod!";
+                }
+            } catch (e) {
+                // API Yoksa Fake Simülasyon
+                if(girilenKey.length > 5) {
+                    msgBox.style.color = '#4ade80';
+                    msgBox.innerText = "Simülasyon: Premium aktif edildi! 👑";
+                    document.getElementById('prof-premium-status').innerHTML = `<span class="premium-status-badge">👑 PREMIUM ÜYE</span>`;
+                    document.getElementById('key-activation-area').style.display = 'none';
+                } else {
+                    msgBox.style.color = '#ef4444';
+                    msgBox.innerText = "Sunucuya bağlanılamadı veya key geçersiz.";
+                }
+            }
+        }
+
+        document.getElementById('profile-pass-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newPass = document.getElementById('prof-new-password').value;
+            
+            // Simüle edilmiş şifre güncelleme
+            profAktifKullanici.password = newPass;
+            localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+            
+            const pMsg = document.getElementById('prof-pass-msg');
+            pMsg.innerText = "Şifre başarıyla güncellendi! ✅";
+            pMsg.style.display = 'block';
+            
+            setTimeout(() => { pMsg.style.display = 'none'; document.getElementById('prof-new-password').value = ""; }, 2500);
+        });
+
+        function cikisYapProfil() {
+            localStorage.removeItem('user');
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

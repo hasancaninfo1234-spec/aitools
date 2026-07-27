@@ -72,7 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         girisModuMu = !girisModuMu;
         document.getElementById('modal-title').innerText = girisModuMu ? "Giriş Yap" : "Kayıt Ol";
-        document.getElementById('toggle-auth').innerText = girisModuMu ? "Kayıt Ol" : "Giriş Yap";
+        document.getElementById('toggle-auth').innerText = girisModuMu ? "Hesabın yok mu? Kayıt Ol kanka" : "Zaten hesabın var mı? Giriş Yap";
+        
+        const passField = document.getElementById('auth-password');
+        if(!girisModuMu) {
+            passField.style.display = 'none';
+        } else {
+            passField.style.display = 'block';
+        }
     };
 
     document.getElementById('auth-submit-btn').onclick = girisYapVeyaKayitOl;
@@ -535,7 +542,12 @@ function spotlightGuncelle(araclar) {
 // GİRİŞ / ÇIKIŞ / PREMİUM İŞLEMLERİ
 async function girisYapVeyaKayitOl() {
     const kAdi = document.getElementById('auth-username').value;
-    const sifre = document.getElementById('auth-password').value;
+    let sifre = document.getElementById('auth-password').value;
+    
+    if (!girisModuMu && !sifre) sifre = "none"; // Kayıt modundaysa ve şifre girilmediyse
+    
+    if(!kAdi) { alert("Lütfen kullanıcı adı girin."); return; }
+
     const urlYolu = girisModuMu ? '/login' : '/register';
     
     try {
@@ -556,8 +568,12 @@ async function girisYapVeyaKayitOl() {
             alert("Hata: " + gelenVeri.message);
         }
     } catch (hata) { 
-        alert("Sunucuya bağlanılamadı. Node.js çalışıyor mu kontrol et kanka."); 
-        console.error(hata);
+        // Sunucu yoksa LocalStorage ile Front-end simülasyonu yap
+        console.log("Sunucuya bağlanılamadı, Frontend modunda giriş yapılıyor.");
+        aktifKullanici = { id: Date.now().toString(), username: kAdi, password: sifre };
+        localStorage.setItem('user', JSON.stringify(aktifKullanici));
+        modalKapat();
+        kullaniciDurumunuKontrolEt();
     }
 }
 
@@ -572,57 +588,9 @@ async function kullaniciDurumunuKontrolEt() {
     kullaniciArayuzu.innerHTML = `
         <div style="display:flex; align-items:center; gap:15px;">
             <span style="color:#fff; font-size:0.9rem;">Hoş geldin, <b>${aktifKullanici.username}</b></span>
-            <button class="auth-btn" style="background: rgba(56,189,248,0.2); border-color: #38bdf8;" onclick="openProfileModal()">👤 Profilim</button>
+            <button class="auth-btn" style="background: rgba(56,189,248,0.2); border-color: #38bdf8;" onclick="window.location.href='profile.html'">👤 Profilim</button>
         </div>
     `;
-    
-    // (Opsiyonel API Premium Check buradaydı, basitleştirildi)
-}
-
-function openProfileModal() {
-    document.getElementById('profile-username').innerText = aktifKullanici.username + " Profili";
-    document.getElementById('profile-modal').style.display = 'flex';
-}
-function closeProfileModal() {
-    document.getElementById('profile-modal').style.display = 'none';
-}
-
-document.getElementById('profile-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newPass = document.getElementById('new-password').value;
-    
-    // API olmadan LocalStorage'daki user objesini güncelleyelim (Simülasyon)
-    aktifKullanici.password = newPass; 
-    localStorage.setItem('user', JSON.stringify(aktifKullanici));
-    
-    document.getElementById('profile-msg').innerText = "Şifre başarıyla güncellendi! ✅";
-    document.getElementById('profile-msg').style.color = "#4ade80";
-    
-    setTimeout(() => {
-        closeProfileModal();
-        document.getElementById('profile-msg').innerText = "";
-    }, 1500);
-});
-
-async function keyAktifEt() {
-    const girilenKey = document.getElementById('premium-key').value;
-    try {
-        const cevap = await fetch(`${API_BASE}/api/activate-key`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key: girilenKey, userId: aktifKullanici.id })
-        });
-        const sonuc = await cevap.json();
-        if(sonuc.success) { 
-            alert("Helal, Premium aktif oldu!"); 
-            kullaniciDurumunuKontrolEt(); 
-        } else {
-            alert(sonuc.message);
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Bağlantı hatası");
-    }
 }
 
 function modalAc() { document.getElementById('auth-modal').style.display = 'flex'; }
