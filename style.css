@@ -183,15 +183,16 @@ body {
 }
 
 .search-box { 
-    width: 100%; max-width: 600px; 
-    padding: 16px 25px; background: var(--input-bg); 
+    width: 100%; max-width: 450px; 
+    padding: 12px 22px; background: var(--input-bg); 
     border: 1px solid var(--border-color); border-radius: 30px; 
     color: var(--text-color); display: block; margin: 0 auto; 
+    font-size: 0.95rem;
     outline: none; transition: 0.3s;
 }
 .search-box:focus { 
-    border-color: #38bdf8; /* Tıklanıldığında çerçevenin rengini mavi yapar */
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); /* Tıklanıldığında etrafa hafif mavi ışık saçar */
+    border-color: #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
 }
 
 .filter-bar { 

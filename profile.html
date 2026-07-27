@@ -4,96 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profilim | AI Tools</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
-        .profile-wrapper {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 40px;
-            background: rgba(22, 25, 38, 0.8);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0b14;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- ARKA PLAN EFEKTİ --- */
+        .bg-glow {
+            position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+            width: 800px; height: 500px;
+            background: radial-gradient(ellipse, rgba(56,189,248,0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* --- BACK BUTTON --- */
+        .back-btn {
+            position: fixed; top: 25px; left: 30px;
+            color: #38bdf8; text-decoration: none; font-weight: 600;
+            font-size: 0.9rem; display: flex; align-items: center; gap: 6px;
+            opacity: 0.8; transition: opacity 0.2s;
+        }
+        .back-btn:hover { opacity: 1; }
+
+        /* --- ANA KART --- */
+        .profile-card {
+            width: 100%; max-width: 480px;
+            background: rgba(16, 18, 30, 0.9);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 20px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 35px 30px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- AVATAR & BAŞLIK --- */
+        .profile-header {
             text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .profile-title {
-            color: #38bdf8;
-            font-size: 2rem;
-            margin-bottom: 10px;
+        .avatar-circle {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 14px auto;
+            box-shadow: 0 0 25px rgba(56,189,248,0.25);
         }
-        .profile-section {
-            background: rgba(0,0,0,0.3);
+        .profile-name {
+            font-size: 1.3rem; font-weight: 700; color: #fff;
+            margin-bottom: 4px;
+        }
+        .profile-badge {
+            display: inline-block; font-size: 0.75rem; font-weight: 600;
+            padding: 3px 10px; border-radius: 20px;
+            background: rgba(148,163,184,0.1); color: #94a3b8;
+            border: 1px solid rgba(148,163,184,0.15);
+        }
+        .profile-badge.premium {
+            background: rgba(245,158,11,0.12);
+            color: #f59e0b;
+            border-color: rgba(245,158,11,0.25);
+        }
+
+        /* --- BÖLÜMLER --- */
+        .section {
+            background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.05);
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            text-align: left;
+            padding: 18px;
+            margin-bottom: 14px;
         }
-        .profile-label {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-            display: block;
+        .section-title {
+            font-size: 0.8rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: #64748b; margin-bottom: 14px;
         }
+
+        /* --- KEY INPUT --- */
+        .key-row {
+            display: flex; gap: 8px;
+        }
+        .key-input-field {
+            flex: 1; background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px; padding: 9px 14px;
+            color: #fff; font-size: 0.9rem; outline: none;
+            transition: border-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .key-input-field:focus { border-color: #38bdf8; }
+        .key-input-field::placeholder { color: #475569; }
+        .btn-primary {
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            color: #000; font-weight: 700;
+            border: none; border-radius: 8px;
+            padding: 9px 16px; cursor: pointer;
+            font-size: 0.85rem; white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+        .btn-primary:hover { opacity: 0.85; }
+        .key-msg { font-size: 0.8rem; margin-top: 8px; display: none; }
+
+        /* --- ŞİFRE FORMU --- */
+        .pass-input {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px; padding: 9px 14px;
+            color: #fff; font-size: 0.9rem; outline: none;
+            transition: border-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .pass-input:focus { border-color: #38bdf8; }
+        .pass-input::placeholder { color: #475569; }
+        .btn-outline {
+            width: 100%; margin-top: 10px;
+            background: transparent;
+            border: 1px solid rgba(56,189,248,0.3);
+            color: #38bdf8; font-weight: 600;
+            border-radius: 8px; padding: 9px;
+            cursor: pointer; font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { background: rgba(56,189,248,0.08); border-color: #38bdf8; }
+        .pass-msg { font-size: 0.8rem; margin-top: 8px; color: #4ade80; display: none; }
+
+        /* --- ÇIKIŞ --- */
+        .btn-logout {
+            width: 100%; background: rgba(239,68,68,0.05);
+            border: 1px solid rgba(239,68,68,0.2);
+            color: #ef4444; font-weight: 600;
+            border-radius: 10px; padding: 11px;
+            cursor: pointer; font-size: 0.9rem;
+            transition: all 0.2s; margin-top: 4px;
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.12); }
+
+        /* --- GİRİŞ FORMU (Login/Register) --- */
+        .auth-card {
+            width: 100%; max-width: 400px;
+            background: rgba(16, 18, 30, 0.9);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px; padding: 35px 28px;
+            backdrop-filter: blur(20px);
+            position: relative; z-index: 1;
+        }
+        .auth-card h2 {
+            font-size: 1.4rem; font-weight: 800;
+            color: #38bdf8; text-align: center; margin-bottom: 6px;
+        }
+        .auth-subtitle {
+            text-align: center; color: #64748b;
+            font-size: 0.85rem; margin-bottom: 24px;
+        }
+        .auth-label { font-size: 0.78rem; color: #64748b; font-weight: 600; margin-bottom: 5px; display: block; }
+        .auth-field {
+            width: 100%; background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px; padding: 10px 14px;
+            color: #fff; font-size: 0.9rem; outline: none;
+            transition: border-color 0.2s; margin-bottom: 14px;
+            font-family: 'Inter', sans-serif;
+        }
+        .auth-field:focus { border-color: #38bdf8; }
+        .auth-field::placeholder { color: #475569; }
+        .btn-login {
+            width: 100%; margin-top: 4px;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            color: #000; font-weight: 800;
+            border: none; border-radius: 10px;
+            padding: 12px; cursor: pointer;
+            font-size: 1rem; letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+        }
+        .btn-login:hover { opacity: 0.85; }
+        .toggle-link {
+            text-align: center; margin-top: 18px;
+            font-size: 0.83rem; color: #64748b;
+        }
+        .toggle-link a { color: #38bdf8; text-decoration: none; font-weight: 600; }
     </style>
 </head>
-<body style="background:#0a0b14; color:white; padding:20px;">
+<body>
+    <div class="bg-glow"></div>
+    <a href="index.html" class="back-btn">← Ana Sayfaya Dön</a>
 
-    <a href="index.html" style="color:#38bdf8; text-decoration:none; font-weight:bold; display: inline-flex; align-items: center; gap: 6px; position: absolute; top: 30px; left: 40px;">← Ana Sayfaya Dön</a>
+    <!-- GİRİŞ YAPILMIŞSA -->
+    <div class="profile-card" id="profile-container" style="display:none;">
+        <div class="profile-header">
+            <div class="avatar-circle" id="avatar-emoji">👤</div>
+            <div class="profile-name" id="prof-name">Kullanıcı</div>
+            <span class="profile-badge" id="prof-badge">Normal Üye</span>
+        </div>
 
-    <!-- GİRİŞ YAPILMIŞSA GÖRÜNECEK ALAN -->
-    <div class="profile-wrapper" id="profile-container" style="display: none;">
-        <h1 class="profile-title">👤 Profilim</h1>
-        <p id="prof-greeting" style="color: #cbd5e1; margin-bottom: 30px;">Hoş geldin!</p>
-
-        <!-- Premium / Key Bölümü -->
-        <div class="profile-section" id="prof-premium-section">
-            <h3 style="color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">👑 Premium Durumu</h3>
-            <div id="prof-premium-status" style="margin-bottom: 15px; font-weight: bold; color: #94a3b8;">Normal Üye</div>
-            
-            <div id="key-activation-area" style="display: flex; gap: 10px; margin-top: 10px;">
-                <input type="text" id="premium-key" class="auth-input" style="flex: 1;" placeholder="Premium Key Giriniz...">
-                <button onclick="keyAktifEtProfil()" class="compare-btn" style="border-radius: 8px;">Aktif Et</button>
+        <!-- Premium / Key -->
+        <div class="section" id="key-section">
+            <div class="section-title">👑 Premium Üyelik</div>
+            <div class="key-row">
+                <input type="text" id="premium-key" class="key-input-field" placeholder="Premium key kodunu gir...">
+                <button onclick="keyAktifEtProfil()" class="btn-primary">Aktif Et</button>
             </div>
-            <p id="key-msg" style="margin-top: 10px; font-size: 0.85rem; display: none;"></p>
+            <div id="key-msg" class="key-msg"></div>
         </div>
 
-        <!-- Şifre Güncelleme -->
-        <div class="profile-section">
-            <h3 style="color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">🔒 Şifre İşlemleri</h3>
-            <form id="profile-pass-form" style="display: flex; flex-direction: column; gap: 10px;">
-                <label class="profile-label">Yeni Şifre Belirle:</label>
-                <input type="password" id="prof-new-password" placeholder="Yeni Şifreniz" class="auth-input" required>
-                <button type="submit" class="filter-btn" style="border-radius: 8px; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border-color: #38bdf8; margin-top: 5px;">Şifremi Güncelle</button>
+        <!-- Şifre -->
+        <div class="section">
+            <div class="section-title">🔒 Şifre Güncelle</div>
+            <form id="profile-pass-form">
+                <input type="password" id="prof-new-password" class="pass-input" placeholder="Yeni şifreniz...">
+                <button type="submit" class="btn-outline">Şifremi Güncelle</button>
             </form>
-            <p id="prof-pass-msg" style="margin-top: 10px; font-size: 0.85rem; color: #4ade80; display: none;"></p>
+            <div id="prof-pass-msg" class="pass-msg"></div>
         </div>
 
-        <button onclick="cikisYapProfil()" class="filter-btn" style="width: 100%; border-radius: 8px; margin-top: 10px; color: #ef4444; border-color: #ef4444; background: rgba(239, 68, 68, 0.05);">Çıkış Yap</button>
+        <button onclick="cikisYapProfil()" class="btn-logout">Çıkış Yap</button>
     </div>
 
-    <!-- GİRİŞ YAPILMAMIŞSA GÖRÜNECEK ALAN (ŞİFRESİZ KAYIT DESTEKLİ) -->
-    <div class="profile-wrapper" id="login-container" style="display: none;">
-        <h1 class="profile-title" id="auth-title">Giriş Yap</h1>
-        <p style="color: #cbd5e1; margin-bottom: 25px;">Profilinize erişmek için lütfen giriş yapın veya kayıt olun.</p>
-        
-        <form id="auth-form-profil" style="display: flex; flex-direction: column; gap: 15px; text-align: left; max-width: 400px; margin: 0 auto;">
-            <div>
-                <label class="profile-label">Kullanıcı Adı:</label>
-                <input type="text" id="auth-user-profil" class="auth-input" style="width: 100%;" placeholder="Kullanıcı adınız..." required autocomplete="off">
-            </div>
-            
+    <!-- GİRİŞ YAPILMAMIŞSA -->
+    <div class="auth-card" id="login-container" style="display:none;">
+        <h2 id="auth-title">Giriş Yap</h2>
+        <p class="auth-subtitle">Profilinize erişmek için giriş yapın.</p>
+
+        <form id="auth-form-profil">
+            <label class="auth-label">Kullanıcı Adı</label>
+            <input type="text" id="auth-user-profil" class="auth-field" placeholder="Kullanıcı adınız..." autocomplete="off" required>
+
             <div id="auth-pass-group-profil">
-                <label class="profile-label">Şifre:</label>
-                <input type="password" id="auth-pass-profil" class="auth-input" style="width: 100%;" placeholder="Şifreniz...">
+                <label class="auth-label">Şifre</label>
+                <input type="password" id="auth-pass-profil" class="auth-field" placeholder="Şifreniz...">
             </div>
-            
-            <button type="submit" class="compare-btn" style="width: 100%; border-radius: 8px; margin-top: 10px; font-size: 1.1rem; padding: 12px;" id="auth-submit-profil">GİRİŞ YAP</button>
+
+            <button type="submit" class="btn-login" id="auth-submit-profil">GİRİŞ YAP</button>
         </form>
-        
-        <div style="margin-top: 20px;">
-            <a href="#" onclick="toggleAuthProfil(event)" id="toggle-auth-profil" style="color: #38bdf8; text-decoration: none; font-size: 0.9rem; font-weight: bold;">Hesabın yok mu? Kayıt Ol kanka</a>
+
+        <div class="toggle-link">
+            <a href="#" onclick="toggleAuthProfil(event)" id="toggle-auth-profil">Hesabın yok mu? Kayıt Ol</a>
         </div>
     </div>
 
@@ -102,7 +260,6 @@
         let isLoginMode = true;
         const API_BASE = "";
 
-        // Sayfa yükleme kontrolü
         initPage();
 
         function initPage() {
@@ -110,11 +267,13 @@
             if (!profAktifKullanici) {
                 document.getElementById('profile-container').style.display = 'none';
                 document.getElementById('login-container').style.display = 'block';
-                updateAuthFormUI();
             } else {
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('profile-container').style.display = 'block';
-                document.getElementById('prof-greeting').innerHTML = `Hoş geldin, <b>${profAktifKullanici.username}</b>!`;
+                
+                const name = profAktifKullanici.username || 'Kullanıcı';
+                document.getElementById('prof-name').innerText = name;
+                document.getElementById('avatar-emoji').innerText = name.charAt(0).toUpperCase();
                 premiumKontrol();
             }
         }
@@ -122,50 +281,34 @@
         function toggleAuthProfil(e) {
             e.preventDefault();
             isLoginMode = !isLoginMode;
-            updateAuthFormUI();
-        }
-
-        function updateAuthFormUI() {
             document.getElementById('auth-title').innerText = isLoginMode ? "Giriş Yap" : "Kayıt Ol";
             document.getElementById('auth-submit-profil').innerText = isLoginMode ? "GİRİŞ YAP" : "KAYIT OL";
-            document.getElementById('toggle-auth-profil').innerText = isLoginMode ? "Hesabın yok mu? Kayıt Ol kanka" : "Zaten hesabın var mı? Giriş Yap";
-            
-            // Kayıt modunda şifre isteme
-            const passGroup = document.getElementById('auth-pass-group-profil');
-            if (!isLoginMode) {
-                passGroup.style.display = 'none';
-            } else {
-                passGroup.style.display = 'block';
-            }
+            document.getElementById('toggle-auth-profil').innerText = isLoginMode ? "Hesabın yok mu? Kayıt Ol" : "Zaten hesabın var mı? Giriş Yap";
+            document.getElementById('auth-pass-group-profil').style.display = isLoginMode ? 'block' : 'none';
         }
 
-        // Şifresiz/Şifreli Giriş & Kayıt Form Gönderimi
         document.getElementById('auth-form-profil').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('auth-user-profil').value.trim();
             let password = document.getElementById('auth-pass-profil').value;
-            
             if (!isLoginMode && !password) password = "none";
-            
-            const endpoint = isLoginMode ? '/login' : '/register';
-            
+            if (!username) return;
+
             try {
-                const cevap = await fetch(`${API_BASE}${endpoint}`, {
+                const res = await fetch(`${API_BASE}${isLoginMode ? '/login' : '/register'}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
-                const veri = await cevap.json();
-                
-                if (cevap.ok) {
-                    localStorage.setItem('user', JSON.stringify(veri.user));
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
                     initPage();
                 } else {
-                    alert("Hata: " + veri.message);
+                    alert(data.message || "Hata oluştu.");
                 }
-            } catch (err) {
-                // API hatası durumunda lokal simülasyon (Frontend-only)
-                const fakeUser = { id: Date.now().toString(), username: username, password: password };
+            } catch {
+                const fakeUser = { id: Date.now().toString(), username, password };
                 localStorage.setItem('user', JSON.stringify(fakeUser));
                 initPage();
             }
@@ -173,49 +316,50 @@
 
         async function premiumKontrol() {
             try {
-                const cevap = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
-                if(cevap && cevap.ok) {
-                    const veri = await cevap.json();
-                    if(veri.status === "premium") {
-                        document.getElementById('prof-premium-status').innerHTML = `<span class="premium-status-badge">👑 PREMIUM ÜYE</span>`;
-                        document.getElementById('key-activation-area').style.display = 'none';
+                const res = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data.status === "premium") {
+                        document.getElementById('prof-badge').innerText = '👑 Premium Üye';
+                        document.getElementById('prof-badge').classList.add('premium');
+                        document.getElementById('key-section').style.display = 'none';
                     }
                 }
-            } catch(e) {}
+            } catch {}
         }
 
         async function keyAktifEtProfil() {
-            const girilenKey = document.getElementById('premium-key').value;
-            const msgBox = document.getElementById('key-msg');
-            msgBox.style.display = 'block';
-            msgBox.style.color = '#94a3b8';
-            msgBox.innerText = "Kontrol ediliyor...";
+            const key = document.getElementById('premium-key').value.trim();
+            const msg = document.getElementById('key-msg');
+            msg.style.display = 'block';
+            msg.style.color = '#94a3b8';
+            msg.innerText = "Kontrol ediliyor...";
 
             try {
-                const cevap = await fetch(`${API_BASE}/api/activate-key`, {
+                const res = await fetch(`${API_BASE}/api/activate-key`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key: girilenKey, userId: profAktifKullanici.id })
+                    body: JSON.stringify({ key, userId: profAktifKullanici.id })
                 });
-                const sonuc = await cevap.json();
-                
-                if(sonuc.success || cevap.ok) { 
-                    msgBox.style.color = '#4ade80';
-                    msgBox.innerText = "Harika! Premium aktif edildi.";
+                const data = await res.json();
+                if (data.success) {
+                    msg.style.color = '#4ade80';
+                    msg.innerText = "Premium aktif edildi! 👑";
                     premiumKontrol();
                 } else {
-                    msgBox.style.color = '#ef4444';
-                    msgBox.innerText = sonuc.message || "Geçersiz kod!";
+                    msg.style.color = '#ef4444';
+                    msg.innerText = data.message || "Geçersiz key!";
                 }
-            } catch (e) {
-                if(girilenKey.length > 5) {
-                    msgBox.style.color = '#4ade80';
-                    msgBox.innerText = "Simülasyon: Premium aktif edildi! 👑";
-                    document.getElementById('prof-premium-status').innerHTML = `<span class="premium-status-badge">👑 PREMIUM ÜYE</span>`;
-                    document.getElementById('key-activation-area').style.display = 'none';
+            } catch {
+                if (key.length > 5) {
+                    msg.style.color = '#4ade80';
+                    msg.innerText = "Simülasyon: Premium aktif edildi! 👑";
+                    document.getElementById('prof-badge').innerText = '👑 Premium Üye';
+                    document.getElementById('prof-badge').classList.add('premium');
+                    document.getElementById('key-section').style.display = 'none';
                 } else {
-                    msgBox.style.color = '#ef4444';
-                    msgBox.innerText = "Sunucuya bağlanılamadı veya key geçersiz.";
+                    msg.style.color = '#ef4444';
+                    msg.innerText = "Geçersiz key veya sunucuya bağlanılamadı.";
                 }
             }
         }
@@ -225,12 +369,11 @@
             const newPass = document.getElementById('prof-new-password').value;
             profAktifKullanici.password = newPass;
             localStorage.setItem('user', JSON.stringify(profAktifKullanici));
-            
-            const pMsg = document.getElementById('prof-pass-msg');
-            pMsg.innerText = "Şifre başarıyla güncellendi! ✅";
-            pMsg.style.display = 'block';
-            
-            setTimeout(() => { pMsg.style.display = 'none'; document.getElementById('prof-new-password').value = ""; }, 2500);
+
+            const msg = document.getElementById('prof-pass-msg');
+            msg.innerText = "Şifre güncellendi ✅";
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; document.getElementById('prof-new-password').value = ''; }, 2500);
         });
 
         function cikisYapProfil() {
