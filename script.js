@@ -567,7 +567,7 @@ async function kullaniciDurumunuKontrolEt() {
 
     if (!aktifKullanici) {
         kullaniciArayuzu.innerHTML = `
-            <button class="auth-btn" id="header-profile-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8;" onclick="profilTikla()">👤 Profilim</button>
+            <a href="profile.html" class="auth-btn" id="header-profile-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">👤 Profilim</a>
             <button class="auth-btn" id="login-or-profile-btn" onclick="modalAc()">🔑 Giriş Yap</button>
         `;
         return;
@@ -575,8 +575,8 @@ async function kullaniciDurumunuKontrolEt() {
     
     kullaniciArayuzu.innerHTML = `
         <div style="display:flex; align-items:center; gap:10px;">
-            <span style="color:#fff; font-size:0.9rem; margin-right: 5px;">Selam, <b>${aktifKullanici.username}</b></span>
-            <button class="auth-btn" id="header-profile-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8;" onclick="profilTikla()">👤 Profilim</button>
+            <span style="color:#fff; font-size:0.9rem;">Selam, <b>${aktifKullanici.username}</b></span>
+            <a href="profile.html" class="auth-btn" style="background: rgba(56,189,248,0.1); border-color: #38bdf8; color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">👤 Profilim</a>
             <button class="auth-btn" onclick="cikisYap()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05); padding: 10px 15px;">Çıkış</button>
         </div>
     `;
