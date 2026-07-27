@@ -35,13 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     aiAdvisorAyarla(); // Nova Asistan Formları
 
     // GELİŞTİRİCİ MODU & ARAÇ EKLEME BUTONLARI
-    const devContainer = document.getElementById('dev-action-container');
-    if (devContainer) {
-        devContainer.innerHTML = `
-            <button class="auth-btn" style="background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.3); color: #c084fc; padding: 6px 12px; font-size: 0.82rem;" onclick="openDevRequestModal()">💻 Geliştirici Ol</button>
-            <button class="auth-btn" style="background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.3); color: #4ade80; padding: 6px 12px; font-size: 0.82rem; margin-left: 6px;" onclick="openSubmitToolModal()">➕ Araç Ekle</button>
-        `;
-    }
+    gelistiriciButonlariniGuncelle();
 
     // TEMA KONTROLÜ (Hocam burası karanlık/aydınlık tema için)
     const temaSecici = document.getElementById('theme-selector');
@@ -613,6 +607,33 @@ async function kullaniciDurumunuKontrolEt() {
     `;
 
     setTimeout(updateInboxBadge, 100);
+    gelistiriciButonlariniGuncelle();
+}
+
+function gelistiriciButonlariniGuncelle() {
+    const devContainer = document.getElementById('dev-action-container');
+    if (!devContainer) return;
+
+    let user = null;
+    try { user = JSON.parse(localStorage.getItem('user')); } catch(e) {}
+
+    const approvedDevs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
+    const isApproved = user && approvedDevs.some(d => 
+        (d.email && user.email && d.email.toLowerCase() === user.email.toLowerCase()) ||
+        (d.username && d.username.toLowerCase() === user.username.toLowerCase())
+    );
+
+    const isDeveloper = (user && user.isDev) || isApproved;
+
+    if (isDeveloper) {
+        devContainer.innerHTML = `
+            <button class="auth-btn" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.4); color: #4ade80; padding: 6px 14px; font-size: 0.85rem; font-weight:700;" onclick="openSubmitToolModal()">➕ Araç Ekle</button>
+        `;
+    } else {
+        devContainer.innerHTML = `
+            <button class="auth-btn" style="background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4); color: #c084fc; padding: 6px 14px; font-size: 0.85rem; font-weight:700;" onclick="openDevRequestModal()">💻 Geliştirici Ol</button>
+        `;
+    }
 }
 
 function submitSupportTicket(e) {
