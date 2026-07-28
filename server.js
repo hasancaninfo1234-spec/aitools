@@ -12,22 +12,24 @@ const cors = require('cors');
 const fs = require('fs');
 const app = express();
 
+const path = require('path');
+
 // Render ve local uyumlu port ve host
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.PORT ? "0.0.0.0" : "localhost";
 
-const DB_FILE = './database.json';
-const TOOLS_FILE = './tools.json';
-const PENDING_TOOLS_FILE = './pending_tools.json';
-const PENDING_DEVS_FILE = './pending_developers.json';
+const DB_FILE = path.join(__dirname, 'database.json');
+const TOOLS_FILE = path.join(__dirname, 'tools.json');
+const PENDING_TOOLS_FILE = path.join(__dirname, 'pending_tools.json');
+const PENDING_DEVS_FILE = path.join(__dirname, 'pending_developers.json');
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Güvenlik: Hassas dosyalara (kodlar ve veritabanı) dışarıdan erişimi engelle
+// Güvenlik: Hassas kod ve veritabanı dosyalarını gizle (tools.json açık bırakıldı çünkü genel araç verisidir)
 app.use((req, res, next) => {
-    const hiddenFiles = ['/server.js', '/database.json', '/tools.json', '/pending_tools.json', '/pending_developers.json', '/live_support.json', '/package.json', '/package-lock.json'];
+    const hiddenFiles = ['/server.js', '/database.json', '/pending_tools.json', '/pending_developers.json', '/live_support.json', '/package.json', '/package-lock.json'];
     if (hiddenFiles.includes(req.path) || req.path.endsWith('.env')) {
         return res.status(403).send('403 Forbidden: Bu dosyaya erişim izniniz yok.');
     }
@@ -37,16 +39,25 @@ app.use((req, res, next) => {
 app.use(express.static(__dirname));
 
 function loadJson(file, initialData) {
-    if (!fs.existsSync(file)) {
-        fs.writeFileSync(file, JSON.stringify(initialData, null, 2));
+    try {
+        if (!fs.existsSync(file)) {
+            fs.writeFileSync(file, JSON.stringify(initialData, null, 2), 'utf8');
+            return initialData;
+        }
+        const data = fs.readFileSync(file, 'utf8');
+        return JSON.parse(data);
+    } catch(e) {
+        console.error("loadJson hatası (" + file + "):", e);
         return initialData;
     }
-    const data = fs.readFileSync(file);
-    return JSON.parse(data);
 }
 
 function saveJson(file, data) {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    try {
+        fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+    } catch(e) {
+        console.error("saveJson hatası (" + file + "):", e);
+    }
 }
 
 // --- KULLANICI İŞLEMLERİ ---
