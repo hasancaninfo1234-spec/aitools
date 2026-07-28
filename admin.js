@@ -266,16 +266,23 @@ function renderDevelopersDOM(uniqueDevs) {
 }
 
 async function loadDevelopers() {
-    const localDevs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
-    renderDevelopersDOM(localDevs);
+    let localDevs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
+    let defaultDevs = [
+        { id: '1', username: 'x', email: 'dev@aiuniverse.com' }
+    ];
+
+    let combined = [...defaultDevs, ...localDevs];
+    let devMap = new Map();
+    combined.forEach(d => { if (d && d.username) devMap.set(d.username, d); });
+
+    renderDevelopersDOM(Array.from(devMap.values()));
 
     try {
         const res = await fetch(`${API_BASE}/developers?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiDevs = await res.json();
-            const combined = [...apiDevs, ...localDevs];
-            const uniqueDevs = Array.from(new Map(combined.map(item => [String(item.id || item.username), item])).values());
-            renderDevelopersDOM(uniqueDevs);
+            apiDevs.forEach(d => { if (d && d.username) devMap.set(d.username, d); });
+            renderDevelopersDOM(Array.from(devMap.values()));
         }
     } catch(e) {}
 }
@@ -292,25 +299,33 @@ function renderKeysDOM(uniqueKeys) {
     tbody.innerHTML = uniqueKeys.map(k => `
         <tr>
             <td><code>${k.code}</code></td>
-            <td>${k.type}</td>
+            <td>${k.type || '1_Yıl'}</td>
             <td><span style="color:${k.isUsed ? '#f87171' : '#4ade80'}; font-weight:700;">${k.isUsed ? 'Kullanıldı' : 'Aktif'}</span></td>
-            <td><strong style="color: #38bdf8">${k.isUsed ? k.username : '-'}</strong></td>
+            <td><strong style="color: #38bdf8">${k.isUsed ? (k.username || 'x') : '-'}</strong></td>
             <td><button class="delete-btn" onclick="deleteKey('${k.code}', '${k.id || ''}')">SİL</button></td>
         </tr>
     `).join('');
 }
 
 async function loadKeys() {
-    const localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
-    renderKeysDOM(localKeys);
+    let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+    let defaultKeys = [
+        { id: '1', code: 'AI-ECSRD3CDY', type: '1_Yıl', isUsed: true, username: 'x' },
+        { id: '2', code: 'ADM-UKIFZGVQJ', type: '1_Yıl', isUsed: true, username: 'a' }
+    ];
+
+    let combined = [...defaultKeys, ...localKeys];
+    let keyMap = new Map();
+    combined.forEach(k => { if (k && k.code) keyMap.set(k.code, k); });
+
+    renderKeysDOM(Array.from(keyMap.values()));
 
     try {
         const res = await fetch(`${API_BASE}/keys?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiKeys = await res.json();
-            const combined = [...apiKeys, ...localKeys];
-            const uniqueKeys = Array.from(new Map(combined.map(item => [String(item.code), item])).values());
-            renderKeysDOM(uniqueKeys);
+            apiKeys.forEach(k => { if (k && k.code) keyMap.set(k.code, k); });
+            renderKeysDOM(Array.from(keyMap.values()));
         }
     } catch(e) {}
 }
@@ -350,7 +365,6 @@ function resolveTicket(id) {
     ticket.status = 'Çözüldü';
     localStorage.setItem('supportTickets', JSON.stringify(tickets));
 
-    // Bildirim gönder
     addNotification(
         ticket.username,
         '💬',
@@ -375,7 +389,7 @@ function renderUsersDOM(userList) {
 
     tbody.innerHTML = userList.map(u => `
         <tr>
-            <td><strong>${u.username}</strong> ${u.email ? `<span style="color:#64748b; font-size:0.8rem;">(${u.email})</span>` : ''}</td>
+            <td><strong>${u.username}</strong> ${u.email && u.email !== '-' ? `<span style="color:#64748b; font-size:0.8rem;">(${u.email})</span>` : ''}</td>
             <td><span style="color:${u.role === 'admin' ? '#f59e0b' : u.role === 'developer' || u.isDev ? '#c084fc' : '#94a3b8'}; font-weight:700;">${u.role === 'admin' ? '🛡️ Yönetici' : u.role === 'developer' || u.isDev ? '💻 Developer' : '👤 Kullanıcı'}</span></td>
             <td><strong style="color:${u.isPremium ? '#fbbf24' : '#94a3b8'}">${u.isPremium ? '👑 Premium' : 'Standart'}</strong></td>
             <td>
@@ -391,7 +405,8 @@ async function loadUsers() {
     
     let defaultUsers = [
         { id: '1', username: 'a', role: 'admin', isPremium: true, email: 'admin@aiuniverse.com' },
-        { id: '2', username: 'demo_user', role: 'user', isPremium: false, email: 'demo@aiuniverse.com' }
+        { id: '2', username: 'x', role: 'developer', isPremium: true, email: 'dev@aiuniverse.com' },
+        { id: '3', username: 'demo_user', role: 'user', isPremium: false, email: 'user@aiuniverse.com' }
     ];
 
     if (curUser && curUser.username) localUsers.push(curUser);
@@ -400,7 +415,6 @@ async function loadUsers() {
     defaultUsers.forEach(u => userMap.set(u.username, u));
     localUsers.forEach(u => { if (u && u.username) userMap.set(u.username, u); });
 
-    // Hiç beklemeden ekrana bas!
     renderUsersDOM(Array.from(userMap.values()));
 
     try {
