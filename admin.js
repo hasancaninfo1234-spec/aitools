@@ -1,4 +1,4 @@
-/* Bu dosya, yönetici panelinin arka plan işlemlerini yönetme işini yapar. */
+/* Bu dosya, yönetici panelinin arka plan işlemlerini yönetme işini yapar. (Güncelleme: Canlı Destek Sunucu Modu) */
 const API_BASE = '/api';
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -4,8 +4,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
  * ============================================================================
  * Proje Adı: AI Tools (Yapay Zeka Evreni)
  * Dosya: server.js
- * Hazırlayan: Bilgisayar Programcılığı Öğrencisi
- * Açıklama: Bu dosya, Node.js arka ucumuzdur (backend). Veritabanını json dosyaları olarak tutuyoruz hoca kızmaz inşallah.
+ * Açıklama: Node.js / Express Arka Uç (Canlı Destek Sunucu Tabanlı Canlı Mod)
  * ============================================================================
  */
 const express = require('express');
