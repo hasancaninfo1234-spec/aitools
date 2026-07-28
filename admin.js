@@ -72,24 +72,36 @@ async function loadStats() {
     const pendingToolsLocal = JSON.parse(localStorage.getItem('pendingTools') || '[]');
     const pendingDevsLocal = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
     const supportTicketsLocal = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+    const customToolsLocal = JSON.parse(localStorage.getItem('customTools') || '[]');
+    const generatedKeysLocal = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+    const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
     
     let pendingToolsCount = pendingToolsLocal.length;
     let pendingDevsCount = pendingDevsLocal.length;
     let openTicketsCount = supportTicketsLocal.filter(t => t.status !== 'Çözüldü').length;
 
+    let usersCount = Math.max(localUsers.length, 1);
+    let premiumCount = localUsers.filter(u => u.isPremium).length;
+    let toolsCount = 194 + customToolsLocal.length;
+    let unusedKeysCount = generatedKeysLocal.filter(k => !k.isUsed).length;
+
     try {
         const res = await fetch(`${API_BASE}/stats`).catch(() => null);
         if (res && res.ok) {
             const stats = await res.json();
-            if(document.getElementById('stat-users')) document.getElementById('stat-users').innerText = stats.totalUsers || '1';
-            if(document.getElementById('stat-premium')) document.getElementById('stat-premium').innerText = stats.premiumUsers || '0';
-            if(document.getElementById('stat-tools')) document.getElementById('stat-tools').innerText = stats.totalTools || '194';
-            if(document.getElementById('stat-keys')) document.getElementById('stat-keys').innerText = stats.unusedKeys || '0';
-            if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = Math.max(stats.pendingTools || 0, pendingToolsCount);
-            if(document.getElementById('stat-devs')) document.getElementById('stat-devs').innerText = Math.max(stats.pendingDevs || 0, pendingDevsCount);
+            if (stats.totalUsers !== undefined) usersCount = stats.totalUsers;
+            if (stats.premiumUsers !== undefined) premiumCount = stats.premiumUsers;
+            if (stats.totalTools !== undefined) toolsCount = stats.totalTools;
+            if (stats.unusedKeys !== undefined) unusedKeysCount = stats.unusedKeys;
+            pendingToolsCount = Math.max(stats.pendingTools || 0, pendingToolsCount);
+            pendingDevsCount = Math.max(stats.pendingDevs || 0, pendingDevsCount);
         }
     } catch(e) {}
 
+    if(document.getElementById('stat-users')) document.getElementById('stat-users').innerText = usersCount;
+    if(document.getElementById('stat-premium')) document.getElementById('stat-premium').innerText = premiumCount;
+    if(document.getElementById('stat-tools')) document.getElementById('stat-tools').innerText = toolsCount;
+    if(document.getElementById('stat-keys')) document.getElementById('stat-keys').innerText = unusedKeysCount;
     if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = pendingToolsCount;
     if(document.getElementById('stat-devs')) document.getElementById('stat-devs').innerText = pendingDevsCount;
     
@@ -624,6 +636,7 @@ async function updateModel() {
    CANLI DESTEK SİSTEMİ (ADMİN TARAFI)
    ============================================================================ */
 let activeAdminChatReqId = null;
+let lastSeenWaitingCount = 0;
 
 async function loadLiveSupportRequests() {
     let requests = [];
@@ -638,7 +651,18 @@ async function loadLiveSupportRequests() {
         requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
     }
 
-    const waitingCount = requests.filter(r => r.status === 'waiting').length;
+    const waitingRequests = requests.filter(r => r.status === 'waiting');
+    const waitingCount = waitingRequests.length;
+
+    // Yeni talep düştüğünde admin'e anlık toast uyarısı çıkar
+    if (waitingCount > lastSeenWaitingCount) {
+        const newest = waitingRequests[0];
+        if (newest && typeof showToast === 'function') {
+            showToast(`Yeni Canlı Destek Talebi! (Kullanıcı: ${newest.username})`, "warning", "🎧 Canlı Destek");
+        }
+    }
+    lastSeenWaitingCount = waitingCount;
+
     const badgeEl = document.getElementById('badge-live');
     if (badgeEl) {
         if (waitingCount > 0) {
@@ -841,3 +865,16 @@ async function endLiveChatAdmin() {
     if (activeEl) activeEl.style.display = 'none';
     loadLiveSupportRequests();
 }
+
+// Sekmeler Arası Anlık Senkronizasyon (Storage Event & Fast Polling)
+window.addEventListener('storage', (e) => {
+    if (sessionStorage.getItem('adminAuthed') === 'true') {
+        loadLiveSupportRequests();
+    }
+});
+
+setInterval(() => {
+    if (sessionStorage.getItem('adminAuthed') === 'true') {
+        loadLiveSupportRequests();
+    }
+}, 1000);

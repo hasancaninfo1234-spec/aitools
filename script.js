@@ -1273,6 +1273,7 @@ async function requestLiveSupport() {
         };
         currentRequests.unshift(existing);
         localStorage.setItem('liveSupportRequests', JSON.stringify(currentRequests));
+        window.dispatchEvent(new Event('storage'));
 
         fetch('/api/live-support/request', {
             method: 'POST',
@@ -1286,7 +1287,7 @@ async function requestLiveSupport() {
     showToast("Canlı destek talebiniz yöneticiye iletildi. Onay bekleniyor...", "info", "Canlı Destek");
 
     if (liveSupportPollTimer) clearInterval(liveSupportPollTimer);
-    liveSupportPollTimer = setInterval(pollUserLiveSupport, 1800);
+    liveSupportPollTimer = setInterval(pollUserLiveSupport, 1000);
 }
 
 function setupLiveChatUserUI() {
@@ -1394,6 +1395,7 @@ async function sendUserLiveChatMessage(text) {
     if (idx !== -1) {
         requests[idx] = activeLiveSupportReq;
         localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+        window.dispatchEvent(new Event('storage'));
     }
 
     fetch('/api/live-support/send-message', {

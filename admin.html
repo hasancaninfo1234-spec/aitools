@@ -515,22 +515,37 @@
         </div>
     </div>
 
+    <script src="script.js"></script>
+    <script src="admin.js"></script>
     <script>
         const ADMIN_USER = "a";
         const ADMIN_PASS = "aa";
 
-        checkSession();
+        function loadAllAdminData() {
+            if (typeof loadStats === 'function') loadStats();
+            if (typeof loadModels === 'function') loadModels();
+            if (typeof loadKeys === 'function') loadKeys();
+            if (typeof loadPendingTools === 'function') loadPendingTools();
+            if (typeof loadPendingDevs === 'function') loadPendingDevs();
+            if (typeof loadDevelopers === 'function') loadDevelopers();
+            if (typeof loadUsers === 'function') loadUsers();
+            if (typeof loadSupportTickets === 'function') loadSupportTickets();
+            if (typeof loadLiveSupportRequests === 'function') loadLiveSupportRequests();
+        }
 
         function checkSession() {
             const isAuthed = sessionStorage.getItem('adminAuthed') === 'true';
             if (isAuthed) {
                 document.getElementById('admin-login-card').style.display = 'none';
                 document.getElementById('admin-panel-content').style.display = 'block';
+                loadAllAdminData();
             } else {
                 document.getElementById('admin-login-card').style.display = 'flex';
                 document.getElementById('admin-panel-content').style.display = 'none';
             }
         }
+
+        checkSession();
 
         function handleAdminLogin(e) {
             e.preventDefault();
@@ -542,9 +557,6 @@
                 sessionStorage.setItem('adminAuthed', 'true');
                 msg.style.display = 'none';
                 checkSession();
-                if (typeof loadStats === 'function') {
-                    loadStats(); loadModels(); loadKeys(); loadPendingTools(); loadPendingDevs(); loadDevelopers(); loadUsers();
-                }
             } else {
                 msg.innerText = "Hatalı kullanıcı adı veya şifre!";
                 msg.style.display = 'block';
@@ -570,7 +582,5 @@
             if (btnEl) btnEl.classList.add('active');
         }
     </script>
-    <script src="script.js"></script>
-    <script src="admin.js"></script>
 </body>
 </html>

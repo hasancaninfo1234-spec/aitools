@@ -87,6 +87,28 @@ app.get('/api/users', (req, res) => {
     res.json(users);
 });
 
+// --- GENEL İSTATİSTİKLER ---
+app.get('/api/stats', (req, res) => {
+    let db = loadJson(DB_FILE, { users: [], keys: [] });
+    let tools = loadJson(TOOLS_FILE, []);
+    let pendingTools = loadJson(PENDING_TOOLS_FILE, []);
+    let pendingDevs = loadJson(PENDING_DEVS_FILE, []);
+
+    const totalUsers = db.users ? db.users.length : 0;
+    const activeKeysCount = db.keys ? db.keys.filter(k => k.usedBy && k.isUsed).length : 0;
+    const premiumUsers = db.users ? db.users.filter(u => u.role === 'premium' || (db.keys && db.keys.some(k => k.usedBy === u.id && k.isUsed && k.expiryDate > Date.now()))).length : 0;
+    const unusedKeys = db.keys ? db.keys.filter(k => !k.isUsed).length : 0;
+
+    res.json({
+        totalUsers: totalUsers || 1,
+        premiumUsers: premiumUsers || 0,
+        totalTools: tools.length || 194,
+        unusedKeys: unusedKeys || (db.keys ? db.keys.length : 0),
+        pendingTools: pendingTools.length || 0,
+        pendingDevs: pendingDevs.length || 0
+    });
+});
+
 // --- GELİŞTİRİCİ İŞLEMLERİ ---
 app.get('/api/pending-developers', (req, res) => res.json(loadJson(PENDING_DEVS_FILE, [])));
 
