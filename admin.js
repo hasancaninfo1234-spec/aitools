@@ -140,33 +140,28 @@ function renderModelsDOM(uniqueTools) {
 
 async function loadModels() {
     let localCustom = JSON.parse(localStorage.getItem('customTools') || '[]');
-    let defaultModels = (window.allTools && window.allTools.length > 0) ? window.allTools : [
-        { id: '1', name: 'ChatGPT (GPT-4o)', category: 'Kod & Metin' },
-        { id: '2', name: 'Claude 3.5 Sonnet', category: 'Kod' },
-        { id: '3', name: 'Midjourney v6', category: 'Görsel' },
-        { id: '4', name: 'DALL-E 3', category: 'Görsel' },
-        { id: '5', name: 'Gemini 1.5 Pro', category: 'Genel' }
-    ];
-
-    let combined = [...defaultModels, ...localCustom];
-    let uniqueTools = Array.from(new Map(combined.map(item => [item.id || item.name, item])).values());
-    window.currentTools = uniqueTools;
-
-    renderModelsDOM(uniqueTools);
+    let tools = [];
 
     try {
         let res = await fetch(`${API_BASE}/tools?t=` + Date.now()).catch(() => null);
-        if (!res || !res.ok) {
-            res = await fetch(`tools.json?t=` + Date.now()).catch(() => null);
-        }
         if (res && res.ok) {
-            const apiTools = await res.json();
-            const updatedCombined = [...apiTools, ...localCustom];
-            uniqueTools = Array.from(new Map(updatedCombined.map(item => [item.id || item.name, item])).values());
-            window.currentTools = uniqueTools;
-            renderModelsDOM(uniqueTools);
+            tools = await res.json();
         }
     } catch(e) {}
+
+    if (!tools || tools.length === 0) {
+        try {
+            let res = await fetch(`tools.json?t=` + Date.now()).catch(() => null);
+            if (res && res.ok) {
+                tools = await res.json();
+            }
+        } catch(e) {}
+    }
+
+    const combined = [...tools, ...localCustom];
+    const uniqueTools = Array.from(new Map(combined.map(item => [String(item.id || item.name), item])).values());
+    window.currentTools = uniqueTools;
+    renderModelsDOM(uniqueTools);
 }
 
 function renderPendingToolsDOM(uniqueTools) {
