@@ -152,11 +152,13 @@ async function loadModels() {
     let uniqueTools = Array.from(new Map(combined.map(item => [item.id || item.name, item])).values());
     window.currentTools = uniqueTools;
 
-    // Anında DOM'a bas
     renderModelsDOM(uniqueTools);
 
     try {
-        const res = await fetch(`${API_BASE}/tools?t=` + Date.now()).catch(() => null);
+        let res = await fetch(`${API_BASE}/tools?t=` + Date.now()).catch(() => null);
+        if (!res || !res.ok) {
+            res = await fetch(`tools.json?t=` + Date.now()).catch(() => null);
+        }
         if (res && res.ok) {
             const apiTools = await res.json();
             const updatedCombined = [...apiTools, ...localCustom];

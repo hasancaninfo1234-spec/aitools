@@ -165,14 +165,6 @@
                     body: JSON.stringify({ username, password })
                 }).catch(() => null);
 
-                if (!res || !res.ok) {
-                    res = await fetch('http://localhost:3000/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    }).catch(() => null);
-                }
-
                 if (res && res.ok) {
                     const data = await res.json();
                     localStorage.setItem('user', JSON.stringify(data.user));

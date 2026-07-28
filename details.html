@@ -136,10 +136,7 @@
 
         async function fetchToolsData() {
             try {
-                let res = await fetch('/api/tools').catch(() => null);
-                if (res && res.ok) return await res.json();
-
-                res = await fetch('http://localhost:3000/api/tools').catch(() => null);
+                let res = await fetch('/api/tools?t=' + Date.now()).catch(() => null);
                 if (res && res.ok) return await res.json();
 
                 res = await fetch('tools.json').catch(() => null);

@@ -486,11 +486,7 @@ function toggleFavorite(event, id) {
 // VERİTABANINDAN (API'DEN) VERİLERİ ÇEKİYORUZ
 async function modelleriGetir() {
     try {
-        console.log("Veriler çekiliyor...");
-        let cevap = await fetch(`${API_BASE}/api/tools`).catch(() => null);
-        if (!cevap || !cevap.ok) {
-            cevap = await fetch(`http://localhost:3000/api/tools`).catch(() => null);
-        }
+        let cevap = await fetch(`/api/tools?t=` + Date.now()).catch(() => null);
         if (!cevap || !cevap.ok) {
             cevap = await fetch(`tools.json`).catch(() => null);
         }
