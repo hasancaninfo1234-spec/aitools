@@ -367,7 +367,13 @@
                 <div class="table-wrap">
                     <table>
                         <thead><tr><th>KULLANICI ADI</th><th>E-POSTA</th><th>İŞLEM</th></tr></thead>
-                        <tbody id="developers-tbody"></tbody>
+                        <tbody id="developers-tbody">
+                            <tr>
+                                <td><strong>x</strong></td>
+                                <td><code style="color:#818cf8;">dev@aiuniverse.com</code></td>
+                                <td><button class="delete-btn" onclick="revokeDev('x')">YETKİYİ AL (SİL)</button></td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -382,7 +388,28 @@
                 <div class="table-wrap">
                     <table>
                         <thead><tr><th>AD</th><th>KATEGORİ</th><th>İŞLEM</th></tr></thead>
-                        <tbody id="models-tbody"></tbody>
+                        <tbody id="models-tbody">
+                            <tr>
+                                <td><strong>ChatGPT (GPT-4o)</strong></td>
+                                <td><span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700;">Metin Üretimi</span></td>
+                                <td><button class="edit-btn" onclick="openEditModal('chatgpt_1')">DÜZENLE</button><button class="delete-btn" onclick="deleteModel('chatgpt_1')">SİL</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Google Gemini</strong></td>
+                                <td><span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700;">Metin Üretimi</span></td>
+                                <td><button class="edit-btn" onclick="openEditModal('gemini_1')">DÜZENLE</button><button class="delete-btn" onclick="deleteModel('gemini_1')">SİL</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Midjourney</strong></td>
+                                <td><span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700;">Görsel</span></td>
+                                <td><button class="edit-btn" onclick="openEditModal('2')">DÜZENLE</button><button class="delete-btn" onclick="deleteModel('2')">SİL</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Claude 3.5 Sonnet</strong></td>
+                                <td><span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:3px 10px; border-radius:12px; font-size:0.78rem; font-weight:700;">Kod</span></td>
+                                <td><button class="edit-btn" onclick="openEditModal('claude_1')">DÜZENLE</button><button class="delete-btn" onclick="deleteModel('claude_1')">SİL</button></td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -406,7 +433,22 @@
                 <div class="table-wrap">
                     <table>
                         <thead><tr><th>KOD</th><th>SÜRE</th><th>DURUM</th><th>KULLANICI</th><th>İŞLEM</th></tr></thead>
-                        <tbody id="keys-tbody"></tbody>
+                        <tbody id="keys-tbody">
+                            <tr>
+                                <td><code>AI-ECSRD3CDY</code></td>
+                                <td>1_Yıl</td>
+                                <td><span style="color:#f87171; font-weight:700;">Kullanıldı</span></td>
+                                <td><strong style="color: #38bdf8">x</strong></td>
+                                <td><button class="delete-btn" onclick="deleteKey('AI-ECSRD3CDY', '')">SİL</button></td>
+                            </tr>
+                            <tr>
+                                <td><code>ADM-UKIFZGVQJ</code></td>
+                                <td>1_Yıl</td>
+                                <td><span style="color:#f87171; font-weight:700;">Kullanıldı</span></td>
+                                <td><strong style="color: #38bdf8">a</strong></td>
+                                <td><button class="delete-btn" onclick="deleteKey('ADM-UKIFZGVQJ', '')">SİL</button></td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -421,7 +463,26 @@
                 <div class="table-wrap">
                     <table>
                         <thead><tr><th>KULLANICI ADI</th><th>ROL</th><th>PREMIUM</th><th>İŞLEM</th></tr></thead>
-                        <tbody id="users-tbody"></tbody>
+                        <tbody id="users-tbody">
+                            <tr>
+                                <td><strong>a</strong> <span style="color:#64748b; font-size:0.8rem;">(admin@aiuniverse.com)</span></td>
+                                <td><span style="color:#f59e0b; font-weight:700;">🛡️ Yönetici</span></td>
+                                <td><strong style="color:#fbbf24">👑 Premium</strong></td>
+                                <td><button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="toggleUserDev('a')">Dev Yetkisi Ver</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>x</strong> <span style="color:#64748b; font-size:0.8rem;">(dev@aiuniverse.com)</span></td>
+                                <td><span style="color:#c084fc; font-weight:700;">💻 Developer</span></td>
+                                <td><strong style="color:#fbbf24">👑 Premium</strong></td>
+                                <td><button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="toggleUserDev('x')">Dev Yetkisini Al</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>demo_user</strong> <span style="color:#64748b; font-size:0.8rem;">(user@aiuniverse.com)</span></td>
+                                <td><span style="color:#94a3b8; font-weight:700;">👤 Kullanıcı</span></td>
+                                <td><strong style="color:#94a3b8">Standart</strong></td>
+                                <td><button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="toggleUserDev('demo_user')">Dev Yetkisi Ver</button></td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -516,8 +577,8 @@
         </div>
     </div>
 
-    <script src="script.js?v=8"></script>
-    <script src="admin.js?v=8"></script>
+    <script src="script.js?v=9"></script>
+    <script src="admin.js?v=9"></script>
     <script>
         const ADMIN_USER = "a";
         const ADMIN_PASS = "aa";
