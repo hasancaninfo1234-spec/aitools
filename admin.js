@@ -68,6 +68,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+function applyStatsDOM(usersCount, premiumCount, toolsCount, unusedKeysCount, pendingToolsCount, pendingDevsCount, openTicketsCount) {
+    if(document.getElementById('stat-users')) document.getElementById('stat-users').innerText = usersCount;
+    if(document.getElementById('stat-premium')) document.getElementById('stat-premium').innerText = premiumCount;
+    if(document.getElementById('stat-tools')) document.getElementById('stat-tools').innerText = toolsCount;
+    if(document.getElementById('stat-keys')) document.getElementById('stat-keys').innerText = unusedKeysCount;
+    if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = pendingToolsCount;
+    if(document.getElementById('stat-devs')) document.getElementById('stat-devs').innerText = pendingDevsCount;
+    
+    if(document.getElementById('badge-devs')) document.getElementById('badge-devs').innerText = pendingDevsCount;
+    if(document.getElementById('badge-tools')) document.getElementById('badge-tools').innerText = pendingToolsCount;
+    if(document.getElementById('badge-tickets')) document.getElementById('badge-tickets').innerText = openTicketsCount;
+}
+
 async function loadStats() {
     const pendingToolsLocal = JSON.parse(localStorage.getItem('pendingTools') || '[]');
     const pendingDevsLocal = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
@@ -85,8 +98,11 @@ async function loadStats() {
     let toolsCount = 194 + customToolsLocal.length;
     let unusedKeysCount = generatedKeysLocal.filter(k => !k.isUsed).length;
 
+    // Anında ekran verilerini doldur (Ağ isteğini beklemeden!)
+    applyStatsDOM(usersCount, premiumCount, toolsCount, unusedKeysCount, pendingToolsCount, pendingDevsCount, openTicketsCount);
+
     try {
-        const res = await fetch(`${API_BASE}/stats`).catch(() => null);
+        const res = await fetch(`${API_BASE}/stats?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const stats = await res.json();
             if (stats.totalUsers !== undefined) usersCount = stats.totalUsers;
@@ -95,19 +111,10 @@ async function loadStats() {
             if (stats.unusedKeys !== undefined) unusedKeysCount = stats.unusedKeys;
             pendingToolsCount = Math.max(stats.pendingTools || 0, pendingToolsCount);
             pendingDevsCount = Math.max(stats.pendingDevs || 0, pendingDevsCount);
+
+            applyStatsDOM(usersCount, premiumCount, toolsCount, unusedKeysCount, pendingToolsCount, pendingDevsCount, openTicketsCount);
         }
     } catch(e) {}
-
-    if(document.getElementById('stat-users')) document.getElementById('stat-users').innerText = usersCount;
-    if(document.getElementById('stat-premium')) document.getElementById('stat-premium').innerText = premiumCount;
-    if(document.getElementById('stat-tools')) document.getElementById('stat-tools').innerText = toolsCount;
-    if(document.getElementById('stat-keys')) document.getElementById('stat-keys').innerText = unusedKeysCount;
-    if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = pendingToolsCount;
-    if(document.getElementById('stat-devs')) document.getElementById('stat-devs').innerText = pendingDevsCount;
-    
-    if(document.getElementById('badge-devs')) document.getElementById('badge-devs').innerText = pendingDevsCount;
-    if(document.getElementById('badge-tools')) document.getElementById('badge-tools').innerText = pendingToolsCount;
-    if(document.getElementById('badge-tickets')) document.getElementById('badge-tickets').innerText = openTicketsCount;
 }
 
 async function loadModels() {
