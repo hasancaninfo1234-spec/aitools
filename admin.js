@@ -639,22 +639,37 @@ let activeAdminChatReqId = null;
 let lastSeenWaitingCount = 0;
 
 async function loadLiveSupportRequests() {
-    let requests = [];
+    let apiRequests = [];
     try {
         const res = await fetch('/api/live-support/requests').catch(() => null);
         if (res && res.ok) {
-            requests = await res.json();
-        } else {
-            requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+            apiRequests = await res.json();
         }
-    } catch(e) {
-        requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
-    }
+    } catch(e) {}
+
+    let localRequests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+
+    let mergedMap = new Map();
+    localRequests.forEach(r => { if (r && r.id) mergedMap.set(r.id, r); });
+    apiRequests.forEach(r => { 
+        if (r && r.id) {
+            const existing = mergedMap.get(r.id);
+            if (existing) {
+                mergedMap.set(r.id, { ...existing, ...r });
+            } else {
+                mergedMap.set(r.id, r);
+            }
+        }
+    });
+
+    let requests = Array.from(mergedMap.values());
+    requests.sort((a, b) => (b.id > a.id ? 1 : -1));
+
+    localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
 
     const waitingRequests = requests.filter(r => r.status === 'waiting');
     const waitingCount = waitingRequests.length;
 
-    // Yeni talep düştüğünde admin'e anlık toast uyarısı çıkar
     if (waitingCount > lastSeenWaitingCount) {
         const newest = waitingRequests[0];
         if (newest && typeof showToast === 'function') {
@@ -677,7 +692,13 @@ async function loadLiveSupportRequests() {
     if (!listEl) return;
 
     if (requests.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; color:#64748b; padding:20px 5px; font-size:0.85rem;">Henüz canlı destek talebi yok.</div>`;
+        listEl.innerHTML = `
+            <div style="text-align:center; color:#64748b; padding:20px 5px; font-size:0.85rem;">
+                Henüz canlı destek talebi bulunmuyor.
+                <br><br>
+                <button onclick="createTestLiveSupportRequest()" class="admin-btn" style="font-size:0.75rem; padding:6px 12px; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.3);">🧪 Test Talebi Oluştur</button>
+            </div>
+        `;
         return;
     }
 
@@ -863,6 +884,31 @@ async function endLiveChatAdmin() {
     const activeEl = document.getElementById('live-chat-active');
     if (emptyEl) emptyEl.style.display = 'block';
     if (activeEl) activeEl.style.display = 'none';
+    loadLiveSupportRequests();
+}
+
+function createTestLiveSupportRequest() {
+    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    const testReq = {
+        id: 'LIVE-' + Date.now(),
+        username: 'Örnek Kullanıcı (Test)',
+        email: 'test@aiuniverse.com',
+        status: 'waiting',
+        date: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+        messages: [
+            { id: 'msg-1', sender: 'user', text: 'Merhaba, sitenizdeki yapay zeka araçları ve canlı destek hakkında bilgi almak istiyorum.', time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) }
+        ]
+    };
+    requests.unshift(testReq);
+    localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+
+    fetch('/api/live-support/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testReq)
+    }).catch(() => null);
+
+    showToast("Test Canlı Destek Talebi Oluşturuldu!", "success");
     loadLiveSupportRequests();
 }
 
