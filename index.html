@@ -307,21 +307,30 @@
         <button id="advisor-toggle" style="background: #38bdf8; color: #0f172a; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer; box-shadow: 0 4px 15px rgba(56,189,248,0.4); transition: transform 0.3s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">🤖</button>
         
         <div id="advisor-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 320px; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-direction: column;">
-            <div style="background: rgba(56, 189, 248, 0.2); padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;" id="advisor-header">
-                <h4 id="advisor-title" style="margin: 0; color: #fff; font-size: 1rem; display: flex; align-items: center; gap: 8px;">✨ Nova Asistan</h4>
-                <button id="advisor-close" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.2rem;">&times;</button>
+            <div style="background: rgba(56, 189, 248, 0.2); padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;" id="advisor-header">
+                <h4 id="advisor-title" style="margin: 0; color: #fff; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">✨ Nova Asistan</h4>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button id="advisor-live-end-btn" onclick="endUserLiveSupport()" style="display: none; background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4); border-radius: 6px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">🔴 Çık</button>
+                    <button id="advisor-close" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.2rem;">&times;</button>
+                </div>
             </div>
             
             <div id="advisor-messages" style="height: 300px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                <div id="advisor-live-banner" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); padding: 8px 10px; border-radius: 10px; font-size: 0.76rem; color: #38bdf8; display: flex; align-items: center; justify-content: space-between;">
+                    <span>💬 İşinizi çözemediniz mi?</span>
+                    <button onclick="requestLiveSupport()" style="background: #38bdf8; color: #0f172a; border: none; border-radius: 6px; padding: 3px 8px; font-weight: 800; font-size: 0.72rem; cursor: pointer;">Canlı Desteğe Geç</button>
+                </div>
+
                 <div id="advisor-intro" style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%;">
                     Selam kanka! Ne tarz bir yapay zeka arıyorsun? Sana en iyi aracı önerebilirim.
                 </div>
                 <!-- Tavsiye Formları -->
-                <div id="advisor-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                <div id="advisor-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px;">
                     <button class="advisor-option-btn" data-ask="Metin">📝 Metin Yazmak İstiyorum</button>
                     <button class="advisor-option-btn" data-ask="Görsel">🎨 Görsel Çizmek İstiyorum</button>
                     <button class="advisor-option-btn" data-ask="Kod">💻 Kod Yazmak İstiyorum</button>
                     <button class="advisor-option-btn" data-ask="Ses/Video">🎬 Ses/Video Üretmek İstiyorum</button>
+                    <button class="advisor-option-btn" onclick="requestLiveSupport()" style="background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: #38bdf8; font-weight:700;">🎧 Canlı Desteğe Bağlan</button>
                 </div>
             </div>
             

@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadDevelopers();
         loadUsers();
         loadSupportTickets();
+        loadLiveSupportRequests();
+        setInterval(loadLiveSupportRequests, 2000);
     }
     
     const addForm = document.getElementById('add-form');
@@ -616,4 +618,226 @@ async function updateModel() {
     closeEditModal();
     loadModels();
     showToast("Model başarıyla güncellendi! ✅", "success");
+}
+
+/* ============================================================================
+   CANLI DESTEK SİSTEMİ (ADMİN TARAFI)
+   ============================================================================ */
+let activeAdminChatReqId = null;
+
+async function loadLiveSupportRequests() {
+    let requests = [];
+    try {
+        const res = await fetch('/api/live-support/requests').catch(() => null);
+        if (res && res.ok) {
+            requests = await res.json();
+        } else {
+            requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+        }
+    } catch(e) {
+        requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    }
+
+    const waitingCount = requests.filter(r => r.status === 'waiting').length;
+    const badgeEl = document.getElementById('badge-live');
+    if (badgeEl) {
+        if (waitingCount > 0) {
+            badgeEl.innerText = waitingCount;
+            badgeEl.style.display = 'inline-block';
+        } else {
+            badgeEl.style.display = 'none';
+        }
+    }
+
+    const listEl = document.getElementById('live-requests-list');
+    if (!listEl) return;
+
+    if (requests.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; color:#64748b; padding:20px 5px; font-size:0.85rem;">Henüz canlı destek talebi yok.</div>`;
+        return;
+    }
+
+    listEl.innerHTML = requests.map(r => {
+        const isSelected = activeAdminChatReqId === r.id;
+        let statusBadge = '<span style="color:#fbbf24; font-size:0.7rem; background:rgba(251,191,36,0.15); padding:2px 6px; border-radius:6px; border:1px solid rgba(251,191,36,0.3);">⏳ Onay Bekliyor</span>';
+        if (r.status === 'accepted') statusBadge = '<span style="color:#4ade80; font-size:0.7rem; background:rgba(34,197,94,0.15); padding:2px 6px; border-radius:6px; border:1px solid rgba(34,197,94,0.3);">🟢 Aktif</span>';
+        if (r.status === 'rejected') statusBadge = '<span style="color:#f87171; font-size:0.7rem; background:rgba(239,68,68,0.15); padding:2px 6px; border-radius:6px; border:1px solid rgba(239,68,68,0.3);">❌ Reddedildi</span>';
+        if (r.status === 'ended') statusBadge = '<span style="color:#94a3b8; font-size:0.7rem; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:6px; border:1px solid rgba(255,255,255,0.1);">⏹️ Sonlandı</span>';
+
+        let actionBtns = '';
+        if (r.status === 'waiting') {
+            actionBtns = `
+                <div style="display:flex; gap:6px; margin-top:8px;">
+                    <button onclick="acceptLiveSupportAdmin('${r.id}')" class="admin-btn" style="padding:5px 10px; font-size:0.75rem; background:#34d399; color:#0f172a; flex:1;">Kabul Et</button>
+                    <button onclick="rejectLiveSupportAdmin('${r.id}')" class="delete-btn" style="padding:5px 10px; font-size:0.75rem; flex:1;">Reddet</button>
+                </div>
+            `;
+        } else if (r.status === 'accepted') {
+            actionBtns = `
+                <button onclick="openLiveChatAdmin('${r.id}')" class="admin-btn" style="width:100%; padding:5px 10px; font-size:0.75rem; margin-top:8px;">💬 Sohbete Bağlan</button>
+            `;
+        }
+
+        return `
+            <div style="background: ${isSelected ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isSelected ? '#38bdf8' : 'rgba(255,255,255,0.06)'}; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s;" onclick="openLiveChatAdmin('${r.id}')">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <strong style="color:#fff; font-size:0.85rem;">👤 ${r.username}</strong>
+                    <span style="font-size:0.7rem; color:#64748b;">${r.date}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    ${statusBadge}
+                </div>
+                ${actionBtns}
+            </div>
+        `;
+    }).join('');
+
+    if (activeAdminChatReqId) {
+        const activeReq = requests.find(r => r.id === activeAdminChatReqId);
+        if (activeReq) {
+            renderAdminChatLog(activeReq);
+        }
+    }
+}
+
+async function acceptLiveSupportAdmin(id) {
+    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    let idx = requests.findIndex(r => r.id === id);
+    if (idx !== -1) {
+        requests[idx].status = 'accepted';
+        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+    }
+
+    fetch('/api/live-support/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+    }).catch(() => null);
+
+    showToast("Canlı destek talebi onaylandı! Chat başlatıldı.", "success", "Canlı Destek");
+    openLiveChatAdmin(id);
+}
+
+async function rejectLiveSupportAdmin(id) {
+    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    let idx = requests.findIndex(r => r.id === id);
+    if (idx !== -1) {
+        requests[idx].status = 'rejected';
+        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+    }
+
+    fetch('/api/live-support/reject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+    }).catch(() => null);
+
+    showToast("Canlı destek talebi reddedildi.", "info");
+    if (activeAdminChatReqId === id) {
+        activeAdminChatReqId = null;
+        const emptyEl = document.getElementById('live-chat-empty');
+        const activeEl = document.getElementById('live-chat-active');
+        if (emptyEl) emptyEl.style.display = 'block';
+        if (activeEl) activeEl.style.display = 'none';
+    }
+    loadLiveSupportRequests();
+}
+
+function openLiveChatAdmin(id) {
+    activeAdminChatReqId = id;
+    const emptyEl = document.getElementById('live-chat-empty');
+    const activeEl = document.getElementById('live-chat-active');
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (activeEl) activeEl.style.display = 'flex';
+    loadLiveSupportRequests();
+}
+
+function renderAdminChatLog(reqObj) {
+    const userLabel = document.getElementById('active-chat-user');
+    const msgContainer = document.getElementById('admin-chat-messages');
+
+    if (userLabel) userLabel.innerText = `👤 ${reqObj.username} (${reqObj.email})`;
+
+    if (msgContainer) {
+        const msgs = reqObj.messages || [];
+        if (msgs.length === 0) {
+            msgContainer.innerHTML = `<div style="text-align:center; color:#64748b; margin:auto;">Henüz mesaj gönderilmedi. Aşağıdan ilk yanıtınızı yazın.</div>`;
+        } else {
+            msgContainer.innerHTML = msgs.map(m => {
+                if (m.sender === 'user') {
+                    return `
+                        <div style="background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.25); padding: 8px 12px; border-radius: 12px 12px 12px 0; color: #fff; font-size: 0.88rem; max-width: 80%; align-self: flex-start;">
+                            <div style="font-size: 0.7rem; color: #38bdf8; font-weight: bold; margin-bottom: 2px;">👤 ${reqObj.username} (${m.time || ''})</div>
+                            ${m.text}
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div style="background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); padding: 8px 12px; border-radius: 12px 12px 0 12px; color: #fff; font-size: 0.88rem; max-width: 80%; align-self: flex-end; margin-left: auto;">
+                            <div style="font-size: 0.7rem; color: #4ade80; font-weight: bold; margin-bottom: 2px; text-align: right;">🛡️ Siz (Admin) (${m.time || ''})</div>
+                            ${m.text}
+                        </div>
+                    `;
+                }
+            }).join('');
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+    }
+}
+
+async function sendAdminChatMessage() {
+    const input = document.getElementById('admin-chat-input');
+    if (!input || !activeAdminChatReqId) return;
+
+    const text = input.value.trim();
+    if (!text) return;
+
+    const msgObj = {
+        id: 'msg-' + Date.now(),
+        sender: 'admin',
+        text: text,
+        time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    let idx = requests.findIndex(r => r.id === activeAdminChatReqId);
+    if (idx !== -1) {
+        if (!requests[idx].messages) requests[idx].messages = [];
+        requests[idx].messages.push(msgObj);
+        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+    }
+
+    fetch('/api/live-support/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeAdminChatReqId, sender: 'admin', text: text })
+    }).catch(() => null);
+
+    input.value = '';
+    loadLiveSupportRequests();
+}
+
+async function endLiveChatAdmin() {
+    if (!activeAdminChatReqId) return;
+
+    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    let idx = requests.findIndex(r => r.id === activeAdminChatReqId);
+    if (idx !== -1) {
+        requests[idx].status = 'ended';
+        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+    }
+
+    fetch('/api/live-support/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeAdminChatReqId })
+    }).catch(() => null);
+
+    showToast("Canlı sohbet sonlandırıldı.", "info");
+    activeAdminChatReqId = null;
+    const emptyEl = document.getElementById('live-chat-empty');
+    const activeEl = document.getElementById('live-chat-active');
+    if (emptyEl) emptyEl.style.display = 'block';
+    if (activeEl) activeEl.style.display = 'none';
+    loadLiveSupportRequests();
 }

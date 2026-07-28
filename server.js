@@ -411,6 +411,94 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+// --- CANLI DESTEK İŞLEMLERİ (LIVE SUPPORT) ---
+const LIVE_SUPPORT_FILE = './live_support.json';
+
+app.get('/api/live-support/requests', (req, res) => {
+    res.json(loadJson(LIVE_SUPPORT_FILE, []));
+});
+
+app.post('/api/live-support/request', (req, res) => {
+    let requests = loadJson(LIVE_SUPPORT_FILE, []);
+    const { username, email, initialMessage } = req.body;
+    
+    let existing = requests.find(r => r.username === username && (r.status === 'waiting' || r.status === 'accepted'));
+    if (existing) {
+        return res.json({ message: "Zaten aktif bir talebiniz var.", request: existing });
+    }
+
+    const newReq = {
+        id: 'LIVE-' + Date.now(),
+        username: username || 'Misafir',
+        email: email || '-',
+        status: 'waiting', // waiting, accepted, rejected, ended
+        date: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+        messages: initialMessage ? [{ id: 'msg-1', sender: 'user', text: initialMessage, time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) }] : []
+    };
+    requests.unshift(newReq);
+    saveJson(LIVE_SUPPORT_FILE, requests);
+    res.status(201).json({ message: "Canlı destek talebi oluşturuldu.", request: newReq });
+});
+
+app.post('/api/live-support/accept', (req, res) => {
+    let requests = loadJson(LIVE_SUPPORT_FILE, []);
+    const { id } = req.body;
+    const reqObj = requests.find(r => r.id === id);
+    if (reqObj) {
+        reqObj.status = 'accepted';
+        saveJson(LIVE_SUPPORT_FILE, requests);
+        res.json({ message: "Talep onaylandı.", request: reqObj });
+    } else {
+        res.status(404).json({ message: "Talep bulunamadı." });
+    }
+});
+
+app.post('/api/live-support/reject', (req, res) => {
+    let requests = loadJson(LIVE_SUPPORT_FILE, []);
+    const { id } = req.body;
+    const reqObj = requests.find(r => r.id === id);
+    if (reqObj) {
+        reqObj.status = 'rejected';
+        saveJson(LIVE_SUPPORT_FILE, requests);
+        res.json({ message: "Talep reddedildi.", request: reqObj });
+    } else {
+        res.status(404).json({ message: "Talep bulunamadı." });
+    }
+});
+
+app.post('/api/live-support/end', (req, res) => {
+    let requests = loadJson(LIVE_SUPPORT_FILE, []);
+    const { id } = req.body;
+    const reqObj = requests.find(r => r.id === id);
+    if (reqObj) {
+        reqObj.status = 'ended';
+        saveJson(LIVE_SUPPORT_FILE, requests);
+        res.json({ message: "Sohbet sonlandırıldı.", request: reqObj });
+    } else {
+        res.status(404).json({ message: "Talep bulunamadı." });
+    }
+});
+
+app.post('/api/live-support/send-message', (req, res) => {
+    let requests = loadJson(LIVE_SUPPORT_FILE, []);
+    const { id, sender, text } = req.body;
+    const reqObj = requests.find(r => r.id === id);
+    if (reqObj) {
+        const msg = {
+            id: 'msg-' + Date.now(),
+            sender: sender,
+            text: text,
+            time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+        };
+        if (!reqObj.messages) reqObj.messages = [];
+        reqObj.messages.push(msg);
+        saveJson(LIVE_SUPPORT_FILE, requests);
+        res.json({ message: "Mesaj gönderildi.", messageObj: msg, request: reqObj });
+    } else {
+        res.status(404).json({ message: "Talep bulunamadı." });
+    }
+});
+
 // --- Sunucu başlatma ---
 app.listen(PORT, HOST, () => {
     console.log(`🚀 Server ${HOST}:${PORT} üzerinde çalışıyor!`);

@@ -1019,6 +1019,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const kullaniciMesaji = mesajKutusu.value.trim();
         if(!kullaniciMesaji) return;
 
+        if (activeLiveSupportReq && activeLiveSupportReq.status === 'accepted') {
+            sendUserLiveChatMessage(kullaniciMesaji);
+            mesajKutusu.value = '';
+            return;
+        }
+
         mesajlarEkrani.innerHTML += `<div style="background: rgba(56,189,248,0.1); padding: 10px 15px; border-radius: 15px 15px 0 15px; color: #fff; font-size: 0.9rem; max-width: 85%; align-self: flex-end; margin-left: auto;">${kullaniciMesaji}</div>`;
         mesajKutusu.value = '';
         mesajlarEkrani.scrollTop = mesajlarEkrani.scrollHeight;
@@ -1243,3 +1249,208 @@ function closePremiumPromoModal() {
 
 setTimeout(checkPeriodicPremiumPromo, 4000);
 setInterval(checkPeriodicPremiumPromo, 60000);
+
+/* ============================================================================
+   CANLI DESTEK SİSTEMİ (KULLANICI TARAFI)
+   ============================================================================ */
+let activeLiveSupportReq = null;
+let liveSupportPollTimer = null;
+
+async function requestLiveSupport() {
+    const user = JSON.parse(localStorage.getItem('user')) || { username: 'Misafir Kullanıcı' };
+
+    let currentRequests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    let existing = currentRequests.find(r => r.username === user.username && (r.status === 'waiting' || r.status === 'accepted'));
+
+    if (!existing) {
+        existing = {
+            id: 'LIVE-' + Date.now(),
+            username: user.username,
+            email: user.email || '-',
+            status: 'waiting',
+            date: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+            messages: []
+        };
+        currentRequests.unshift(existing);
+        localStorage.setItem('liveSupportRequests', JSON.stringify(currentRequests));
+
+        fetch('/api/live-support/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(existing)
+        }).catch(() => null);
+    }
+
+    activeLiveSupportReq = existing;
+    setupLiveChatUserUI();
+    showToast("Canlı destek talebiniz yöneticiye iletildi. Onay bekleniyor...", "info", "Canlı Destek");
+
+    if (liveSupportPollTimer) clearInterval(liveSupportPollTimer);
+    liveSupportPollTimer = setInterval(pollUserLiveSupport, 1800);
+}
+
+function setupLiveChatUserUI() {
+    const titleEl = document.getElementById('advisor-title');
+    const optionsEl = document.getElementById('advisor-options');
+    const bannerEl = document.getElementById('advisor-live-banner');
+    const endBtn = document.getElementById('advisor-live-end-btn');
+    const windowEl = document.getElementById('advisor-window');
+    
+    if (windowEl) windowEl.style.display = 'flex';
+    if (optionsEl) optionsEl.style.display = 'none';
+    if (bannerEl) bannerEl.style.display = 'none';
+    if (endBtn) endBtn.style.display = 'inline-block';
+
+    if (activeLiveSupportReq.status === 'waiting') {
+        if (titleEl) titleEl.innerHTML = `⏳ Canlı Destek (Onay Bekleniyor...)`;
+        renderUserLiveChatMessages([
+            { sender: 'system', text: "⏳ Canlı destek talebiniz yöneticiye iletildi. Müşteri Temsilcisi (Admin) onayladığında sohbet burada başlayacaktır." }
+        ]);
+    } else if (activeLiveSupportReq.status === 'accepted') {
+        if (titleEl) titleEl.innerHTML = `🟢 Canlı Destek (Admin Bağlandı)`;
+        renderUserLiveChatMessages(activeLiveSupportReq.messages || []);
+    }
+}
+
+async function pollUserLiveSupport() {
+    if (!activeLiveSupportReq) return;
+
+    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    let reqFromApi = null;
+    
+    try {
+        const res = await fetch('/api/live-support/requests').catch(() => null);
+        if (res && res.ok) {
+            const apiReqs = await res.json();
+            reqFromApi = apiReqs.find(r => r.id === activeLiveSupportReq.id);
+        }
+    } catch(e) {}
+
+    const req = reqFromApi || requests.find(r => r.id === activeLiveSupportReq.id);
+    if (!req) return;
+
+    const prevStatus = activeLiveSupportReq.status;
+    const prevMsgCount = (activeLiveSupportReq.messages || []).length;
+    activeLiveSupportReq = req;
+
+    const titleEl = document.getElementById('advisor-title');
+
+    if (req.status === 'accepted') {
+        if (prevStatus === 'waiting') {
+            if (titleEl) titleEl.innerHTML = `🟢 Canlı Destek (Admin Bağlandı)`;
+            showToast("Admin canlı desteğe bağlandı! Konuşmaya başlayabilirsiniz.", "success", "Canlı Destek");
+        }
+        
+        const newMsgCount = (req.messages || []).length;
+        if (newMsgCount !== prevMsgCount || prevStatus === 'waiting') {
+            renderUserLiveChatMessages(req.messages || []);
+        }
+    } else if (req.status === 'rejected') {
+        clearInterval(liveSupportPollTimer);
+        showToast("Temsilci canlı destek talebinizi şu an kabul edemedi.", "warning", "Canlı Destek");
+        endUserLiveSupport();
+    } else if (req.status === 'ended') {
+        clearInterval(liveSupportPollTimer);
+        showToast("Canlı destek sohbeti sonlandırıldı.", "info", "Canlı Destek");
+        endUserLiveSupport();
+    }
+}
+
+function renderUserLiveChatMessages(messages) {
+    const msgContainer = document.getElementById('advisor-messages');
+    if (!msgContainer) return;
+
+    msgContainer.innerHTML = messages.map(m => {
+        if (m.sender === 'system') {
+            return `<div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 10px; color: #94a3b8; font-size: 0.8rem; text-align: center; margin: 5px 0;">${m.text}</div>`;
+        } else if (m.sender === 'user') {
+            return `<div style="background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.3); padding: 8px 12px; border-radius: 12px 12px 0 12px; color: #fff; font-size: 0.88rem; max-width: 85%; align-self: flex-end; margin-left: auto;">${m.text}</div>`;
+        } else { // admin
+            return `<div style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); padding: 8px 12px; border-radius: 12px 12px 12px 0; color: #e2e8f0; font-size: 0.88rem; max-width: 85%;">
+                <div style="font-size: 0.72rem; color: #4ade80; font-weight: bold; margin-bottom: 3px;">🛡️ Temsilci (Admin) (${m.time || ''})</div>
+                ${m.text}
+            </div>`;
+        }
+    }).join('');
+
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+async function sendUserLiveChatMessage(text) {
+    if (!activeLiveSupportReq || activeLiveSupportReq.status !== 'accepted') return;
+
+    const msgObj = {
+        id: 'msg-' + Date.now(),
+        sender: 'user',
+        text: text,
+        time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    if (!activeLiveSupportReq.messages) activeLiveSupportReq.messages = [];
+    activeLiveSupportReq.messages.push(msgObj);
+
+    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+    let idx = requests.findIndex(r => r.id === activeLiveSupportReq.id);
+    if (idx !== -1) {
+        requests[idx] = activeLiveSupportReq;
+        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+    }
+
+    fetch('/api/live-support/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeLiveSupportReq.id, sender: 'user', text: text })
+    }).catch(() => null);
+
+    renderUserLiveChatMessages(activeLiveSupportReq.messages);
+}
+
+function endUserLiveSupport() {
+    if (liveSupportPollTimer) clearInterval(liveSupportPollTimer);
+    if (activeLiveSupportReq) {
+        fetch('/api/live-support/end', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: activeLiveSupportReq.id })
+        }).catch(() => null);
+
+        let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
+        let idx = requests.findIndex(r => r.id === activeLiveSupportReq.id);
+        if (idx !== -1) {
+            requests[idx].status = 'ended';
+            localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+        }
+    }
+
+    activeLiveSupportReq = null;
+
+    const titleEl = document.getElementById('advisor-title');
+    const optionsEl = document.getElementById('advisor-options');
+    const bannerEl = document.getElementById('advisor-live-banner');
+    const endBtn = document.getElementById('advisor-live-end-btn');
+    const msgContainer = document.getElementById('advisor-messages');
+
+    if (titleEl) titleEl.innerHTML = `✨ Nova Asistan`;
+    if (optionsEl) optionsEl.style.display = 'flex';
+    if (bannerEl) bannerEl.style.display = 'flex';
+    if (endBtn) endBtn.style.display = 'none';
+
+    if (msgContainer) {
+        msgContainer.innerHTML = `
+            <div id="advisor-live-banner" style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); padding: 8px 10px; border-radius: 10px; font-size: 0.76rem; color: #38bdf8; display: flex; align-items: center; justify-content: space-between;">
+                <span>💬 İşinizi çözemediniz mi?</span>
+                <button onclick="requestLiveSupport()" style="background: #38bdf8; color: #0f172a; border: none; border-radius: 6px; padding: 3px 8px; font-weight: 800; font-size: 0.72rem; cursor: pointer;">Canlı Desteğe Geç</button>
+            </div>
+            <div id="advisor-intro" style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%;">
+                Selam! Ne tarz bir yapay zeka arıyorsunuz? Size yardımcı olabilirim.
+            </div>
+            <div id="advisor-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px;">
+                <button class="advisor-option-btn" data-ask="Metin">📝 Metin Yazmak İstiyorum</button>
+                <button class="advisor-option-btn" data-ask="Görsel">🎨 Görsel Çizmek İstiyorum</button>
+                <button class="advisor-option-btn" data-ask="Kod">💻 Kod Yazmak İstiyorum</button>
+                <button class="advisor-option-btn" data-ask="Ses/Video">🎬 Ses/Video Üretmek İstiyorum</button>
+                <button class="advisor-option-btn" onclick="requestLiveSupport()" style="background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: #38bdf8; font-weight:700;">🎧 Canlı Desteğe Bağlan</button>
+            </div>
+        `;
+    }
+}

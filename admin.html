@@ -250,6 +250,7 @@
         <!-- SEKMELİ NAVİGASYON (TAB BAR) -->
         <div class="admin-tabs-bar">
             <button class="admin-tab-btn active" onclick="switchAdminTab('tab-stats', this)">📊 İstatistikler</button>
+            <button class="admin-tab-btn" onclick="switchAdminTab('tab-live-support', this)">🎧 Canlı Destek <span id="badge-live" class="tab-badge" style="background:#ef4444; color:#fff; display:none;">0</span></button>
             <button class="admin-tab-btn" onclick="switchAdminTab('tab-pending-devs', this)">💻 Geliştirici Başvuruları <span id="badge-devs" class="tab-badge">0</span></button>
             <button class="admin-tab-btn" onclick="switchAdminTab('tab-pending-tools', this)">⏳ Araç Önerileri <span id="badge-tools" class="tab-badge">0</span></button>
             <button class="admin-tab-btn" onclick="switchAdminTab('tab-tickets', this)">🎫 Destek Talepleri <span id="badge-tickets" class="tab-badge">0</span></button>
@@ -421,6 +422,58 @@
                         <thead><tr><th>KULLANICI ADI</th><th>ROL</th><th>PREMIUM</th><th>İŞLEM</th></tr></thead>
                         <tbody id="users-tbody"></tbody>
                     </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- SEKME 8: CANLI DESTEK -->
+        <div id="tab-live-support" class="tab-content">
+            <section class="admin-section" style="border-color: rgba(56, 189, 248, 0.3);">
+                <div class="admin-section-title" style="color: #38bdf8; justify-content: space-between;">
+                    <span style="display:flex; align-items:center; gap:8px;">🎧 Canlı Destek Talepleri & Sohbet</span>
+                    <div style="font-size: 0.8rem; color: #94a3b8; font-weight: normal;">Otomatik Yenileme Aktif 🟢</div>
+                </div>
+                <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px;">
+                    Kullanıcıların Nova Asistan üzerinden başlattığı canlı destek taleplerini buradan onaylayıp anlık mesajlaşabilirsiniz.
+                </p>
+
+                <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px; min-height: 460px;">
+                    <!-- Sol Liste: Talepler -->
+                    <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 15px; display:flex; flex-direction:column; gap:12px;">
+                        <h4 style="font-size: 0.88rem; color: #fff; margin-bottom: 2px;">Talepler</h4>
+                        <div id="live-requests-list" style="display:flex; flex-direction:column; gap:10px; max-height: 380px; overflow-y: auto;">
+                            <!-- JS ile dolacak -->
+                        </div>
+                    </div>
+
+                    <!-- Sağ Alan: Canlı Sohbet Penceresi -->
+                    <div id="live-chat-panel" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 420px;">
+                        <div id="live-chat-empty" style="margin: auto; text-align: center; color: #64748b;">
+                            <div style="font-size: 2.5rem; margin-bottom: 10px;">💬</div>
+                            Lütfen soldan bir canlı destek talebini seçin veya onaylayın.
+                        </div>
+
+                        <div id="live-chat-active" style="display: none; flex-direction: column; height: 100%; justify-content: space-between;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; margin-bottom: 15px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <strong id="active-chat-user" style="color: #fff; font-size: 1.05rem;">Kullanıcı</strong>
+                                    <span id="active-chat-status" style="font-size: 0.75rem; background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(34, 197, 94, 0.4);">🟢 Aktif Sohbet</span>
+                                </div>
+                                <button onclick="endLiveChatAdmin()" class="delete-btn" style="padding: 6px 14px; font-size: 0.8rem;">🔴 Sohbeti Sonlandır</button>
+                            </div>
+
+                            <!-- Mesajlar Kutusu -->
+                            <div id="admin-chat-messages" style="flex: 1; min-height: 250px; max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; padding-right: 5px;">
+                                <!-- Mesajlar JS ile eklenecek -->
+                            </div>
+
+                            <!-- Yanıt Gönderme Formu -->
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="admin-chat-input" class="admin-input" placeholder="Kullanıcıya yanıt yazın..." style="margin-bottom: 0;" onkeypress="if(event.key==='Enter') sendAdminChatMessage()">
+                                <button onclick="sendAdminChatMessage()" class="admin-btn" style="padding: 0 22px;">Gönder</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
