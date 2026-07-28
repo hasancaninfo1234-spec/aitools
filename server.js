@@ -28,7 +28,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Güvenlik: Hassas dosyalara (kodlar ve veritabanı) dışarıdan erişimi engelle
 app.use((req, res, next) => {
-    const hiddenFiles = ['/server.js', '/database.json', '/tools.json', '/pending_tools.json', '/pending_developers.json', '/package.json', '/package-lock.json'];
+    const hiddenFiles = ['/server.js', '/database.json', '/tools.json', '/pending_tools.json', '/pending_developers.json', '/live_support.json', '/package.json', '/package-lock.json'];
     if (hiddenFiles.includes(req.path) || req.path.endsWith('.env')) {
         return res.status(403).send('403 Forbidden: Bu dosyaya erişim izniniz yok.');
     }
@@ -368,24 +368,6 @@ app.get('/api/verify-premium/:userId', (req, res) => {
     const user = db.users.find(u => u.id === req.params.userId);
     const validKey = db.keys.find(k => k.usedBy === req.params.userId && k.isUsed && k.expiryDate > Date.now());
     res.json({ status: validKey ? "premium" : "normal", role: user ? (user.role || 'user') : 'user' });
-});
-// --- STATS İŞLEMİ (Admin Paneli İçin) ---
-app.get('/api/stats', (req, res) => {
-    let db = loadJson(DB_FILE, { users: [], keys: [] });
-    let tools = loadJson(TOOLS_FILE, []);
-    let pendingTools = loadJson(PENDING_TOOLS_FILE, []);
-    let pendingDevs = loadJson(PENDING_DEVS_FILE, []);
-    
-    const stats = {
-        totalUsers: db.users.length,
-        premiumUsers: db.keys.filter(k => k.isUsed && k.expiryDate > Date.now()).length,
-        totalTools: tools.length,
-        unusedKeys: db.keys.filter(k => !k.isUsed).length,
-        pendingTools: pendingTools.length,
-        pendingDevs: pendingDevs.length
-    };
-    
-    res.json(stats);
 });
 
 

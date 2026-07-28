@@ -1259,11 +1259,51 @@ let liveSupportPollTimer = null;
 async function requestLiveSupport() {
     const user = JSON.parse(localStorage.getItem('user')) || { username: 'Misafir Kullanıcı' };
 
-    let currentRequests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
-    let existing = currentRequests.find(r => r.username === user.username && (r.status === 'waiting' || r.status === 'accepted'));
+    // Önce sunucuda bu kullanıcının aktif talebi var mı diye bak
+    try {
+        const checkRes = await fetch('/api/live-support/requests');
+        if (checkRes.ok) {
+            const allReqs = await checkRes.json();
+            const existing = allReqs.find(r => r.username === user.username && (r.status === 'waiting' || r.status === 'accepted'));
+            if (existing) {
+                activeLiveSupportReq = existing;
+                setupLiveChatUserUI();
+                showToast("Zaten aktif bir canlı destek talebiniz var. Onay bekleniyor...", "info", "Canlı Destek");
+                if (liveSupportPollTimer) clearInterval(liveSupportPollTimer);
+                liveSupportPollTimer = setInterval(pollUserLiveSupport, 2000);
+                return;
+            }
+        }
+    } catch(e) {}
 
-    if (!existing) {
-        existing = {
+    // Sunucuda talep oluştur
+    try {
+        const res = await fetch('/api/live-support/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: user.username,
+                email: user.email || '-',
+                initialMessage: 'Kullanıcı canlı destek talep etti.'
+            })
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            activeLiveSupportReq = data.request;
+        } else {
+            // Server erişilemez, yerel yedek
+            activeLiveSupportReq = {
+                id: 'LIVE-' + Date.now(),
+                username: user.username,
+                email: user.email || '-',
+                status: 'waiting',
+                date: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+                messages: []
+            };
+        }
+    } catch(e) {
+        activeLiveSupportReq = {
             id: 'LIVE-' + Date.now(),
             username: user.username,
             email: user.email || '-',
@@ -1271,23 +1311,13 @@ async function requestLiveSupport() {
             date: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
             messages: []
         };
-        currentRequests.unshift(existing);
-        localStorage.setItem('liveSupportRequests', JSON.stringify(currentRequests));
-        window.dispatchEvent(new Event('storage'));
-
-        fetch('/api/live-support/request', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(existing)
-        }).catch(() => null);
     }
 
-    activeLiveSupportReq = existing;
     setupLiveChatUserUI();
     showToast("Canlı destek talebiniz yöneticiye iletildi. Onay bekleniyor...", "info", "Canlı Destek");
 
     if (liveSupportPollTimer) clearInterval(liveSupportPollTimer);
-    liveSupportPollTimer = setInterval(pollUserLiveSupport, 1000);
+    liveSupportPollTimer = setInterval(pollUserLiveSupport, 2000);
 }
 
 function setupLiveChatUserUI() {

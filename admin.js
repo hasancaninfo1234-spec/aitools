@@ -639,33 +639,13 @@ let activeAdminChatReqId = null;
 let lastSeenWaitingCount = 0;
 
 async function loadLiveSupportRequests() {
-    let apiRequests = [];
+    let requests = [];
     try {
-        const res = await fetch('/api/live-support/requests').catch(() => null);
+        const res = await fetch('/api/live-support/requests?t=' + Date.now()).catch(() => null);
         if (res && res.ok) {
-            apiRequests = await res.json();
+            requests = await res.json();
         }
     } catch(e) {}
-
-    let localRequests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
-
-    let mergedMap = new Map();
-    localRequests.forEach(r => { if (r && r.id) mergedMap.set(r.id, r); });
-    apiRequests.forEach(r => { 
-        if (r && r.id) {
-            const existing = mergedMap.get(r.id);
-            if (existing) {
-                mergedMap.set(r.id, { ...existing, ...r });
-            } else {
-                mergedMap.set(r.id, r);
-            }
-        }
-    });
-
-    let requests = Array.from(mergedMap.values());
-    requests.sort((a, b) => (b.id > a.id ? 1 : -1));
-
-    localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
 
     const waitingRequests = requests.filter(r => r.status === 'waiting');
     const waitingCount = waitingRequests.length;
@@ -673,7 +653,7 @@ async function loadLiveSupportRequests() {
     if (waitingCount > lastSeenWaitingCount) {
         const newest = waitingRequests[0];
         if (newest && typeof showToast === 'function') {
-            showToast(`Yeni Canlı Destek Talebi! (Kullanıcı: ${newest.username})`, "warning", "🎧 Canlı Destek");
+            showToast(`🎧 Yeni Canlı Destek Talebi! (${newest.username})`, "warning", "Canlı Destek");
         }
     }
     lastSeenWaitingCount = waitingCount;
@@ -746,36 +726,30 @@ async function loadLiveSupportRequests() {
 }
 
 async function acceptLiveSupportAdmin(id) {
-    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
-    let idx = requests.findIndex(r => r.id === id);
-    if (idx !== -1) {
-        requests[idx].status = 'accepted';
-        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
+    try {
+        const res = await fetch('/api/live-support/accept', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+        if (!res.ok) throw new Error('Server error');
+    } catch(e) {
+        showToast("Sunucuya bağlanılamadı!", "error");
+        return;
     }
-
-    fetch('/api/live-support/accept', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-    }).catch(() => null);
-
     showToast("Canlı destek talebi onaylandı! Chat başlatıldı.", "success", "Canlı Destek");
     openLiveChatAdmin(id);
+    loadLiveSupportRequests();
 }
 
 async function rejectLiveSupportAdmin(id) {
-    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
-    let idx = requests.findIndex(r => r.id === id);
-    if (idx !== -1) {
-        requests[idx].status = 'rejected';
-        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
-    }
-
-    fetch('/api/live-support/reject', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-    }).catch(() => null);
+    try {
+        await fetch('/api/live-support/reject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+    } catch(e) {}
 
     showToast("Canlı destek talebi reddedildi.", "info");
     if (activeAdminChatReqId === id) {
@@ -836,47 +810,31 @@ async function sendAdminChatMessage() {
 
     const text = input.value.trim();
     if (!text) return;
-
-    const msgObj = {
-        id: 'msg-' + Date.now(),
-        sender: 'admin',
-        text: text,
-        time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
-    };
-
-    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
-    let idx = requests.findIndex(r => r.id === activeAdminChatReqId);
-    if (idx !== -1) {
-        if (!requests[idx].messages) requests[idx].messages = [];
-        requests[idx].messages.push(msgObj);
-        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
-    }
-
-    fetch('/api/live-support/send-message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: activeAdminChatReqId, sender: 'admin', text: text })
-    }).catch(() => null);
-
     input.value = '';
+
+    try {
+        await fetch('/api/live-support/send-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: activeAdminChatReqId, sender: 'admin', text: text })
+        });
+    } catch(e) {
+        showToast("Mesaj gönderilemedi!", "error");
+        return;
+    }
     loadLiveSupportRequests();
 }
 
 async function endLiveChatAdmin() {
     if (!activeAdminChatReqId) return;
 
-    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
-    let idx = requests.findIndex(r => r.id === activeAdminChatReqId);
-    if (idx !== -1) {
-        requests[idx].status = 'ended';
-        localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
-    }
-
-    fetch('/api/live-support/end', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: activeAdminChatReqId })
-    }).catch(() => null);
+    try {
+        await fetch('/api/live-support/end', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: activeAdminChatReqId })
+        });
+    } catch(e) {}
 
     showToast("Canlı sohbet sonlandırıldı.", "info");
     activeAdminChatReqId = null;
@@ -887,29 +845,26 @@ async function endLiveChatAdmin() {
     loadLiveSupportRequests();
 }
 
-function createTestLiveSupportRequest() {
-    let requests = JSON.parse(localStorage.getItem('liveSupportRequests') || '[]');
-    const testReq = {
-        id: 'LIVE-' + Date.now(),
-        username: 'Örnek Kullanıcı (Test)',
-        email: 'test@aiuniverse.com',
-        status: 'waiting',
-        date: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-        messages: [
-            { id: 'msg-1', sender: 'user', text: 'Merhaba, sitenizdeki yapay zeka araçları ve canlı destek hakkında bilgi almak istiyorum.', time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) }
-        ]
-    };
-    requests.unshift(testReq);
-    localStorage.setItem('liveSupportRequests', JSON.stringify(requests));
-
-    fetch('/api/live-support/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(testReq)
-    }).catch(() => null);
-
-    showToast("Test Canlı Destek Talebi Oluşturuldu!", "success");
-    loadLiveSupportRequests();
+async function createTestLiveSupportRequest() {
+    try {
+        const res = await fetch('/api/live-support/request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: 'Test Kullanıcısı',
+                email: 'test@aiuniverse.com',
+                initialMessage: 'Merhaba, sitenizdeki yapay zeka araçları hakkında bilgi almak istiyorum.'
+            })
+        });
+        if (res.ok) {
+            showToast("✅ Test Canlı Destek Talebi sunucuya eklendi!", "success");
+        } else {
+            showToast("Sunucu hatası! Tekrar deneyin.", "error");
+        }
+    } catch(e) {
+        showToast("Sunucuya bağlanılamadı!", "error");
+    }
+    setTimeout(loadLiveSupportRequests, 500);
 }
 
 // Sekmeler Arası Anlık Senkronizasyon (Storage Event & Fast Polling)
@@ -923,4 +878,4 @@ setInterval(() => {
     if (sessionStorage.getItem('adminAuthed') === 'true') {
         loadLiveSupportRequests();
     }
-}, 1000);
+}, 3000);
