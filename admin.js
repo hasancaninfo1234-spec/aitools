@@ -117,25 +117,11 @@ async function loadStats() {
     } catch(e) {}
 }
 
-async function loadModels() {
-    let tools = [];
-    try {
-        const res = await fetch(`${API_BASE}/tools`).catch(() => null);
-        if(res && res.ok) {
-            tools = await res.json();
-        }
-    } catch(e) {}
-
-    const localCustom = JSON.parse(localStorage.getItem('customTools') || '[]');
-    tools = [...tools, ...localCustom];
-
-    const uniqueTools = Array.from(new Map(tools.map(item => [item.id || item.name, item])).values());
-    window.currentTools = uniqueTools; 
-    
+function renderModelsDOM(uniqueTools) {
     const tbody = document.getElementById('models-tbody');
-    if(!tbody) return;
+    if (!tbody) return;
 
-    if(uniqueTools.length === 0) {
+    if (!uniqueTools || uniqueTools.length === 0) {
         tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b; padding:15px;">Model bulunamadı.</td></tr>`;
         return;
     }
@@ -152,24 +138,40 @@ async function loadModels() {
     `).join('');
 }
 
-async function loadPendingTools() {
-    let apiTools = [];
+async function loadModels() {
+    let localCustom = JSON.parse(localStorage.getItem('customTools') || '[]');
+    let defaultModels = (window.allTools && window.allTools.length > 0) ? window.allTools : [
+        { id: '1', name: 'ChatGPT (GPT-4o)', category: 'Kod & Metin' },
+        { id: '2', name: 'Claude 3.5 Sonnet', category: 'Kod' },
+        { id: '3', name: 'Midjourney v6', category: 'Görsel' },
+        { id: '4', name: 'DALL-E 3', category: 'Görsel' },
+        { id: '5', name: 'Gemini 1.5 Pro', category: 'Genel' }
+    ];
+
+    let combined = [...defaultModels, ...localCustom];
+    let uniqueTools = Array.from(new Map(combined.map(item => [item.id || item.name, item])).values());
+    window.currentTools = uniqueTools;
+
+    // Anında DOM'a bas
+    renderModelsDOM(uniqueTools);
+
     try {
-        const res = await fetch(`${API_BASE}/pending-tools`).catch(() => null);
+        const res = await fetch(`${API_BASE}/tools?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
-            apiTools = await res.json();
+            const apiTools = await res.json();
+            const updatedCombined = [...apiTools, ...localCustom];
+            uniqueTools = Array.from(new Map(updatedCombined.map(item => [item.id || item.name, item])).values());
+            window.currentTools = uniqueTools;
+            renderModelsDOM(uniqueTools);
         }
     } catch(e) {}
+}
 
-    const localTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
-    const combined = [...apiTools, ...localTools];
-    const uniqueTools = Array.from(new Map(combined.map(item => [String(item.id), item])).values());
-
-    window.currentPendingTools = uniqueTools;
+function renderPendingToolsDOM(uniqueTools) {
     const tbody = document.getElementById('pending-tools-tbody');
     if (!tbody) return;
 
-    if (uniqueTools.length === 0) {
+    if (!uniqueTools || uniqueTools.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Bekleyen araç önerisi yok.</td></tr>`;
         return;
     }
@@ -186,23 +188,29 @@ async function loadPendingTools() {
     `).join('');
 }
 
-async function loadPendingDevs() {
-    let apiDevs = [];
+async function loadPendingTools() {
+    const localTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
+    window.currentPendingTools = localTools;
+
+    renderPendingToolsDOM(localTools);
+
     try {
-        const res = await fetch(`${API_BASE}/pending-developers`).catch(() => null);
+        const res = await fetch(`${API_BASE}/pending-tools?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
-            apiDevs = await res.json();
+            const apiTools = await res.json();
+            const combined = [...apiTools, ...localTools];
+            const uniqueTools = Array.from(new Map(combined.map(item => [String(item.id), item])).values());
+            window.currentPendingTools = uniqueTools;
+            renderPendingToolsDOM(uniqueTools);
         }
     } catch(e) {}
+}
 
-    const localDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
-    const combined = [...apiDevs, ...localDevs];
-    const uniqueDevs = Array.from(new Map(combined.map(item => [String(item.id), item])).values());
-
+function renderPendingDevsDOM(uniqueDevs) {
     const tbody = document.getElementById('pending-devs-tbody');
     if (!tbody) return;
 
-    if (uniqueDevs.length === 0) {
+    if (!uniqueDevs || uniqueDevs.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Bekleyen geliştirici başvurusu yok.</td></tr>`;
         return;
     }
@@ -210,7 +218,7 @@ async function loadPendingDevs() {
     tbody.innerHTML = uniqueDevs.map(d => `
         <tr>
             <td><strong>${d.username}</strong></td>
-            <td><code style="color:#c084fc;">${d.email}</code></td>
+            <td><code style="color:#c084fc;">${d.email || '-'}</code></td>
             <td><span style="color:#64748b; font-size:0.82rem;">${d.date || 'Bugün'}</span></td>
             <td>
                 <button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="approveDev('${d.id}')">ONAYLA</button>
@@ -218,6 +226,91 @@ async function loadPendingDevs() {
             </td>
         </tr>
     `).join('');
+}
+
+async function loadPendingDevs() {
+    const localDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
+    renderPendingDevsDOM(localDevs);
+
+    try {
+        const res = await fetch(`${API_BASE}/pending-developers?t=` + Date.now()).catch(() => null);
+        if (res && res.ok) {
+            const apiDevs = await res.json();
+            const combined = [...apiDevs, ...localDevs];
+            const uniqueDevs = Array.from(new Map(combined.map(item => [String(item.id), item])).values());
+            renderPendingDevsDOM(uniqueDevs);
+        }
+    } catch(e) {}
+}
+
+function renderDevelopersDOM(uniqueDevs) {
+    const tbody = document.getElementById('developers-tbody');
+    if (!tbody) return;
+
+    if (!uniqueDevs || uniqueDevs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b; padding:15px;">Mevcut geliştirici bulunmuyor.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = uniqueDevs.map(d => `
+        <tr>
+            <td><strong>${d.username}</strong></td>
+            <td><code style="color:#818cf8;">${d.email || '-'}</code></td>
+            <td>
+                <button class="delete-btn" onclick="revokeDev('${d.id || d.username}')">YETKİYİ AL (SİL)</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+async function loadDevelopers() {
+    const localDevs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
+    renderDevelopersDOM(localDevs);
+
+    try {
+        const res = await fetch(`${API_BASE}/developers?t=` + Date.now()).catch(() => null);
+        if (res && res.ok) {
+            const apiDevs = await res.json();
+            const combined = [...apiDevs, ...localDevs];
+            const uniqueDevs = Array.from(new Map(combined.map(item => [String(item.id || item.username), item])).values());
+            renderDevelopersDOM(uniqueDevs);
+        }
+    } catch(e) {}
+}
+
+function renderKeysDOM(uniqueKeys) {
+    const tbody = document.getElementById('keys-tbody');
+    if (!tbody) return;
+
+    if (!uniqueKeys || uniqueKeys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:15px;">Üretilmiş key bulunmuyor.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = uniqueKeys.map(k => `
+        <tr>
+            <td><code>${k.code}</code></td>
+            <td>${k.type}</td>
+            <td><span style="color:${k.isUsed ? '#f87171' : '#4ade80'}; font-weight:700;">${k.isUsed ? 'Kullanıldı' : 'Aktif'}</span></td>
+            <td><strong style="color: #38bdf8">${k.isUsed ? k.username : '-'}</strong></td>
+            <td><button class="delete-btn" onclick="deleteKey('${k.code}', '${k.id || ''}')">SİL</button></td>
+        </tr>
+    `).join('');
+}
+
+async function loadKeys() {
+    const localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+    renderKeysDOM(localKeys);
+
+    try {
+        const res = await fetch(`${API_BASE}/keys?t=` + Date.now()).catch(() => null);
+        if (res && res.ok) {
+            const apiKeys = await res.json();
+            const combined = [...apiKeys, ...localKeys];
+            const uniqueKeys = Array.from(new Map(combined.map(item => [String(item.code), item])).values());
+            renderKeysDOM(uniqueKeys);
+        }
+    } catch(e) {}
 }
 
 function loadSupportTickets() {
@@ -269,102 +362,53 @@ function resolveTicket(id) {
     showToast("Destek talebi yanıtlandı ve Gelen Kutusu bildirimi iletildi! ✅", "success");
 }
 
-async function loadDevelopers() {
-    let apiDevs = [];
-    try {
-        const res = await fetch(`${API_BASE}/developers`).catch(() => null);
-        if (res && res.ok) {
-            apiDevs = await res.json();
-        }
-    } catch(e) {}
-
-    const localDevs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
-    const combined = [...apiDevs, ...localDevs];
-    const uniqueDevs = Array.from(new Map(combined.map(item => [String(item.id || item.username), item])).values());
-
-    const tbody = document.getElementById('developers-tbody');
+function renderUsersDOM(userList) {
+    const tbody = document.getElementById('users-tbody');
     if (!tbody) return;
 
-    if (uniqueDevs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b; padding:15px;">Mevcut geliştirici bulunmuyor.</td></tr>`;
+    if (!userList || userList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Kayıtlı kullanıcı bulunmuyor.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = uniqueDevs.map(d => `
+    tbody.innerHTML = userList.map(u => `
         <tr>
-            <td><strong>${d.username}</strong></td>
-            <td><code style="color:#818cf8;">${d.email || '-'}</code></td>
+            <td><strong>${u.username}</strong> ${u.email ? `<span style="color:#64748b; font-size:0.8rem;">(${u.email})</span>` : ''}</td>
+            <td><span style="color:${u.role === 'admin' ? '#f59e0b' : u.role === 'developer' || u.isDev ? '#c084fc' : '#94a3b8'}; font-weight:700;">${u.role === 'admin' ? '🛡️ Yönetici' : u.role === 'developer' || u.isDev ? '💻 Developer' : '👤 Kullanıcı'}</span></td>
+            <td><strong style="color:${u.isPremium ? '#fbbf24' : '#94a3b8'}">${u.isPremium ? '👑 Premium' : 'Standart'}</strong></td>
             <td>
-                <button class="delete-btn" onclick="revokeDev('${d.id || d.username}')">YETKİYİ AL (SİL)</button>
+                <button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="toggleUserDev('${u.username}')">${u.isDev || u.role === 'developer' ? 'Dev Yetkisini Al' : 'Dev Yetkisi Ver'}</button>
             </td>
-        </tr>
-    `).join('');
-}
-
-async function loadKeys() {
-    let keys = [];
-    try {
-        const res = await fetch(`${API_BASE}/keys`).catch(() => null);
-        if (res && res.ok) {
-            keys = await res.json();
-        }
-    } catch(e) {}
-
-    const localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
-    keys = [...keys, ...localKeys];
-    const uniqueKeys = Array.from(new Map(keys.map(item => [String(item.code), item])).values());
-
-    const tbody = document.getElementById('keys-tbody');
-    if (!tbody) return;
-
-    if (uniqueKeys.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#64748b; padding:15px;">Üretilmiş key bulunmuyor.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = uniqueKeys.map(k => `
-        <tr>
-            <td><code>${k.code}</code></td>
-            <td>${k.type}</td>
-            <td><span style="color:${k.isUsed ? '#f87171' : '#4ade80'}; font-weight:700;">${k.isUsed ? 'Kullanıldı' : 'Aktif'}</span></td>
-            <td><strong style="color: #38bdf8">${k.isUsed ? k.username : '-'}</strong></td>
-            <td><button class="delete-btn" onclick="deleteKey('${k.code}', '${k.id || ''}')">SİL</button></td>
         </tr>
     `).join('');
 }
 
 async function loadUsers() {
-    let users = [];
+    let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    let curUser = JSON.parse(localStorage.getItem('user'));
+    
+    let defaultUsers = [
+        { id: '1', username: 'a', role: 'admin', isPremium: true, email: 'admin@aiuniverse.com' },
+        { id: '2', username: 'demo_user', role: 'user', isPremium: false, email: 'demo@aiuniverse.com' }
+    ];
+
+    if (curUser && curUser.username) localUsers.push(curUser);
+
+    let userMap = new Map();
+    defaultUsers.forEach(u => userMap.set(u.username, u));
+    localUsers.forEach(u => { if (u && u.username) userMap.set(u.username, u); });
+
+    // Hiç beklemeden ekrana bas!
+    renderUsersDOM(Array.from(userMap.values()));
+
     try {
-        const res = await fetch(`${API_BASE}/users`).catch(() => null);
+        const res = await fetch(`${API_BASE}/users?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
-            users = await res.json();
+            const apiUsers = await res.json();
+            apiUsers.forEach(u => { if (u && u.username) userMap.set(u.username, u); });
+            renderUsersDOM(Array.from(userMap.values()));
         }
     } catch(e) {}
-
-    const curUser = JSON.parse(localStorage.getItem('user'));
-    if(curUser) users.push(curUser);
-
-    const uniqueUsers = Array.from(new Map(users.map(item => [String(item.username), item])).values());
-
-    const tbody = document.getElementById('users-tbody');
-    if (!tbody) return;
-
-    if (uniqueUsers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b; padding:15px;">Kayıtlı kullanıcı bulunmuyor.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = uniqueUsers.map(u => `
-        <tr>
-            <td><strong>${u.username}</strong> ${u.email ? `<span style="color:#64748b; font-size:0.8rem;">(${u.email})</span>` : ''}</td>
-            <td><span style="color:${u.isDev ? '#c084fc' : '#94a3b8'}; font-weight:700;">${u.isDev ? '💻 Developer' : '👤 Kullanıcı'}</span></td>
-            <td><strong style="color:${u.isPremium ? '#fbbf24' : '#94a3b8'}">${u.isPremium ? '👑 Premium' : 'Standart'}</strong></td>
-            <td>
-                <button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="toggleUserDev('${u.username}')">${u.isDev ? 'Dev Yetkisini Al' : 'Dev Yetkisi Ver'}</button>
-            </td>
-        </tr>
-    `).join('');
 }
 
 function toggleUserDev(username) {

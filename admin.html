@@ -515,8 +515,8 @@
         </div>
     </div>
 
-    <script src="script.js?v=3"></script>
-    <script src="admin.js?v=3"></script>
+    <script src="script.js?v=4"></script>
+    <script src="admin.js?v=4"></script>
     <script>
         const ADMIN_USER = "a";
         const ADMIN_PASS = "aa";
@@ -580,6 +580,17 @@
             if (targetTab) targetTab.classList.add('active-tab');
 
             if (btnEl) btnEl.classList.add('active');
+
+            // İlgili sekmeye geçildiğinde veriyi anında yenile
+            if (tabId === 'tab-stats' && typeof loadStats === 'function') loadStats();
+            if (tabId === 'tab-live-support' && typeof loadLiveSupportRequests === 'function') loadLiveSupportRequests();
+            if (tabId === 'tab-pending-devs' && typeof loadPendingDevs === 'function') loadPendingDevs();
+            if (tabId === 'tab-pending-tools' && typeof loadPendingTools === 'function') loadPendingTools();
+            if (tabId === 'tab-tickets' && typeof loadSupportTickets === 'function') loadSupportTickets();
+            if (tabId === 'tab-developers' && typeof loadDevelopers === 'function') loadDevelopers();
+            if (tabId === 'tab-models' && typeof loadModels === 'function') loadModels();
+            if (tabId === 'tab-keys' && typeof loadKeys === 'function') loadKeys();
+            if (tabId === 'tab-users' && typeof loadUsers === 'function') loadUsers();
         }
     </script>
 </body>
