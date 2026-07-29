@@ -85,12 +85,13 @@ app.post('/login', (req, res) => {
 app.get('/api/users', (req, res) => {
     let db = loadJson(DB_FILE, { users: [], keys: [] });
     const users = db.users.map(u => {
-        const activeKey = db.keys.find(k => k.usedBy === u.id && k.isUsed && k.expiryDate > Date.now());
+        const activeKey = db.keys.find(k => k.usedBy === u.id && k.isUsed);
         return {
             id: u.id,
             username: u.username,
+            email: u.email || '-',
             role: u.role || 'user',
-            isPremium: !!activeKey,
+            isPremium: u.isPremium !== undefined ? u.isPremium : !!activeKey,
             premiumExpiry: activeKey ? activeKey.expiryDate : null
         };
     });
@@ -106,14 +107,14 @@ app.get('/api/stats', (req, res) => {
 
     const totalUsers = db.users ? db.users.length : 0;
     const activeKeysCount = db.keys ? db.keys.filter(k => k.usedBy && k.isUsed).length : 0;
-    const premiumUsers = db.users ? db.users.filter(u => u.role === 'premium' || (db.keys && db.keys.some(k => k.usedBy === u.id && k.isUsed && k.expiryDate > Date.now()))).length : 0;
+    const premiumUsers = db.users ? db.users.filter(u => u.isPremium || (db.keys && db.keys.some(k => k.usedBy === u.id && k.isUsed))).length : 0;
     const unusedKeys = db.keys ? db.keys.filter(k => !k.isUsed).length : 0;
 
     res.json({
         totalUsers: totalUsers || 1,
         premiumUsers: premiumUsers || 0,
         totalTools: tools.length || 194,
-        unusedKeys: unusedKeys || (db.keys ? db.keys.length : 0),
+        unusedKeys: unusedKeys || 0,
         pendingTools: pendingTools.length || 0,
         pendingDevs: pendingDevs.length || 0
     });

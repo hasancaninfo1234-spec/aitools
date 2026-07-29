@@ -85,32 +85,88 @@ function applyStatsDOM(usersCount, premiumCount, toolsCount, unusedKeysCount, pe
     if(document.getElementById('badge-tickets')) document.getElementById('badge-tickets').innerText = openTicketsCount;
 }
 
+function getCombinedUsersAndKeys() {
+    let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+    let revokedKeys = JSON.parse(localStorage.getItem('revokedKeys') || '[]');
+    let revokedUsers = JSON.parse(localStorage.getItem('revokedUsers') || '[]');
+
+    let defaultKeys = [
+        { id: '1', code: 'AI-ECSRD3CDY', type: '1_Yıl', isUsed: true, username: 'x' },
+        { id: '2', code: 'ADM-UKIFZGVQJ', type: '1_Yıl', isUsed: true, username: 'a' }
+    ];
+
+    let keyMap = new Map();
+    defaultKeys.forEach(k => {
+        if (!revokedKeys.includes(k.code)) keyMap.set(k.code, k);
+    });
+    localKeys.forEach(k => {
+        if (k && k.code) {
+            if (revokedKeys.includes(k.code)) k.isUsed = false;
+            keyMap.set(k.code, k);
+        }
+    });
+
+    let allKeys = Array.from(keyMap.values());
+
+    let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    let curUser = JSON.parse(localStorage.getItem('user'));
+    let defaultUsers = [
+        { id: '1', username: 'a', role: 'admin', isPremium: true, email: 'admin@aiuniverse.com' },
+        { id: '2', username: 'x', role: 'developer', isPremium: true, email: 'dev@aiuniverse.com' },
+        { id: '3', username: 'demo_user', role: 'user', isPremium: false, email: 'user@aiuniverse.com' }
+    ];
+    if (curUser && curUser.username) localUsers.push(curUser);
+
+    let userMap = new Map();
+    defaultUsers.forEach(u => {
+        if (revokedUsers.includes(u.username)) u.isPremium = false;
+        userMap.set(u.username, u);
+    });
+    localUsers.forEach(u => {
+        if (u && u.username) {
+            if (revokedUsers.includes(u.username)) u.isPremium = false;
+            userMap.set(u.username, u);
+        }
+    });
+
+    allKeys.forEach(k => {
+        if (k.isUsed && k.username && k.username !== '-') {
+            let u = userMap.get(k.username);
+            if (u && !revokedUsers.includes(u.username)) {
+                u.isPremium = true;
+            }
+        }
+    });
+
+    let allUsers = Array.from(userMap.values());
+    return { allUsers, allKeys };
+}
+
 async function loadStats() {
     const pendingToolsLocal = JSON.parse(localStorage.getItem('pendingTools') || '[]');
     const pendingDevsLocal = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
     const supportTicketsLocal = JSON.parse(localStorage.getItem('supportTickets') || '[]');
     const customToolsLocal = JSON.parse(localStorage.getItem('customTools') || '[]');
-    const generatedKeysLocal = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
-    const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    
+
+    const { allUsers, allKeys } = getCombinedUsersAndKeys();
+
     let pendingToolsCount = pendingToolsLocal.length;
     let pendingDevsCount = pendingDevsLocal.length;
     let openTicketsCount = supportTicketsLocal.filter(t => t.status !== 'Çözüldü').length;
 
-    let usersCount = Math.max(localUsers.length, 1);
-    let premiumCount = localUsers.filter(u => u.isPremium).length;
+    let usersCount = Math.max(allUsers.length, 3);
+    let premiumCount = allUsers.filter(u => u.isPremium).length;
     let toolsCount = 194 + customToolsLocal.length;
-    let unusedKeysCount = generatedKeysLocal.filter(k => !k.isUsed).length;
+    let unusedKeysCount = allKeys.filter(k => !k.isUsed).length;
 
-    // Anında ekran verilerini doldur (Ağ isteğini beklemeden!)
     applyStatsDOM(usersCount, premiumCount, toolsCount, unusedKeysCount, pendingToolsCount, pendingDevsCount, openTicketsCount);
 
     try {
         const res = await fetch(`${ADMIN_API_BASE}/stats?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const stats = await res.json();
-            if (stats.totalUsers !== undefined) usersCount = stats.totalUsers;
-            if (stats.premiumUsers !== undefined) premiumCount = stats.premiumUsers;
+            if (stats.totalUsers !== undefined) usersCount = Math.max(stats.totalUsers, usersCount);
+            if (stats.premiumUsers !== undefined) premiumCount = Math.max(stats.premiumUsers, premiumCount);
             if (stats.totalTools !== undefined) toolsCount = stats.totalTools;
             if (stats.unusedKeys !== undefined) unusedKeysCount = stats.unusedKeys;
             pendingToolsCount = Math.max(stats.pendingTools || 0, pendingToolsCount);
@@ -316,23 +372,22 @@ function renderKeysDOM(uniqueKeys) {
 }
 
 async function loadKeys() {
-    let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
-    let defaultKeys = [
-        { id: '1', code: 'AI-ECSRD3CDY', type: '1_Yıl', isUsed: true, username: 'x' },
-        { id: '2', code: 'ADM-UKIFZGVQJ', type: '1_Yıl', isUsed: true, username: 'a' }
-    ];
-
-    let combined = [...defaultKeys, ...localKeys];
-    let keyMap = new Map();
-    combined.forEach(k => { if (k && k.code) keyMap.set(k.code, k); });
-
-    renderKeysDOM(Array.from(keyMap.values()));
+    const { allKeys } = getCombinedUsersAndKeys();
+    renderKeysDOM(allKeys);
 
     try {
         const res = await fetch(`${ADMIN_API_BASE}/keys?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiKeys = await res.json();
-            apiKeys.forEach(k => { if (k && k.code) keyMap.set(k.code, k); });
+            let keyMap = new Map();
+            allKeys.forEach(k => keyMap.set(k.code, k));
+            const revokedKeys = JSON.parse(localStorage.getItem('revokedKeys') || '[]');
+            apiKeys.forEach(k => {
+                if (k && k.code) {
+                    if (revokedKeys.includes(k.code)) k.isUsed = false;
+                    keyMap.set(k.code, k);
+                }
+            });
             renderKeysDOM(Array.from(keyMap.values()));
         }
     } catch(e) {}
@@ -412,28 +467,24 @@ function renderUsersDOM(userList) {
 }
 
 async function loadUsers() {
-    let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    let curUser = JSON.parse(localStorage.getItem('user'));
-    
-    let defaultUsers = [
-        { id: '1', username: 'a', role: 'admin', isPremium: true, email: 'admin@aiuniverse.com' },
-        { id: '2', username: 'x', role: 'developer', isPremium: true, email: 'dev@aiuniverse.com' },
-        { id: '3', username: 'demo_user', role: 'user', isPremium: false, email: 'user@aiuniverse.com' }
-    ];
-
-    if (curUser && curUser.username) localUsers.push(curUser);
-
-    let userMap = new Map();
-    defaultUsers.forEach(u => userMap.set(u.username, u));
-    localUsers.forEach(u => { if (u && u.username) userMap.set(u.username, u); });
-
-    renderUsersDOM(Array.from(userMap.values()));
+    const { allUsers } = getCombinedUsersAndKeys();
+    renderUsersDOM(allUsers);
 
     try {
         const res = await fetch(`${ADMIN_API_BASE}/users?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiUsers = await res.json();
-            apiUsers.forEach(u => { if (u && u.username) userMap.set(u.username, u); });
+            let userMap = new Map();
+            allUsers.forEach(u => userMap.set(u.username, u));
+            const revokedUsers = JSON.parse(localStorage.getItem('revokedUsers') || '[]');
+            apiUsers.forEach(u => {
+                if (u && u.username) {
+                    let existing = userMap.get(u.username) || {};
+                    let merged = { ...existing, ...u };
+                    if (revokedUsers.includes(u.username)) merged.isPremium = false;
+                    userMap.set(u.username, merged);
+                }
+            });
             renderUsersDOM(Array.from(userMap.values()));
         }
     } catch(e) {}
@@ -971,13 +1022,9 @@ async function revokeKeyAdmin(code, userId, username) {
     const targetName = username && username !== '-' ? username : (userId || code);
     if (!confirm(`'${targetName}' kullanıcısına ait '${code}' kodlu Premium Key'i iptal edip üyeliği sökmek istediğinize emin misiniz?`)) return;
 
-    try {
-        await fetch(`${ADMIN_API_BASE}/keys/revoke`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, userId })
-        });
-    } catch(e) {}
+    let revokedKeys = JSON.parse(localStorage.getItem('revokedKeys') || '[]');
+    if (!revokedKeys.includes(code)) revokedKeys.push(code);
+    localStorage.setItem('revokedKeys', JSON.stringify(revokedKeys));
 
     let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
     let foundKey = localKeys.find(k => String(k.code) === String(code));
@@ -989,6 +1036,10 @@ async function revokeKeyAdmin(code, userId, username) {
     }
 
     if (username && username !== '-') {
+        let revokedUsers = JSON.parse(localStorage.getItem('revokedUsers') || '[]');
+        if (!revokedUsers.includes(username)) revokedUsers.push(username);
+        localStorage.setItem('revokedUsers', JSON.stringify(revokedUsers));
+
         let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
         let userObj = localUsers.find(u => u.username === username);
         if (userObj) {
@@ -1009,9 +1060,17 @@ async function revokeKeyAdmin(code, userId, username) {
             '⚠️',
             'Premium Üyeliğiniz İptal Edildi',
             `'${code}' kodlu Premium lisans anahtarınız yönetim kararıyla iptal edilmiştir.`,
-            'Sayın kullanıcımız, hesabınızda aktif bulunan Premium Lisans Anahtarı yönetici tarafından iptal edilmiştir. Bir hata olduğunu düşünüyorsanız İletişim sayfasından tarafımıza ulaşabilirsiniz.'
+            'Sayın kullanıcımız, hesabınızda aktif bulunan Premium Lisans Anahtarı yönetici tarafından iptal edilmiştir.'
         );
     }
+
+    try {
+        await fetch(`${ADMIN_API_BASE}/keys/revoke`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, userId })
+        });
+    } catch(e) {}
 
     showToast(`'${code}' kodlu Premium Key başarıyla iptal edildi! 🚫`, "warning", "Premium İptal");
     await loadKeys();
@@ -1022,21 +1081,19 @@ async function revokeKeyAdmin(code, userId, username) {
 async function grantUserPremiumAdmin(userId, username) {
     if (!confirm(`'${username}' kullanıcısına Premium üyelik tanımlamak istediğinize emin misiniz?`)) return;
 
-    try {
-        await fetch(`${ADMIN_API_BASE}/grant-premium/${userId || username}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: '1_Yıl' })
-        });
-    } catch(e) {}
+    let revokedUsers = JSON.parse(localStorage.getItem('revokedUsers') || '[]');
+    revokedUsers = revokedUsers.filter(u => u !== username);
+    localStorage.setItem('revokedUsers', JSON.stringify(revokedUsers));
 
     let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
     let userObj = localUsers.find(u => u.username === username || u.id === userId);
     if (userObj) {
         userObj.isPremium = true;
         userObj.cancelledPremium = false;
-        localStorage.setItem('users', JSON.stringify(localUsers));
+    } else {
+        localUsers.push({ id: userId || Date.now().toString(), username: username, isPremium: true, role: 'user' });
     }
+    localStorage.setItem('users', JSON.stringify(localUsers));
 
     let curUser = JSON.parse(localStorage.getItem('user'));
     if (curUser && (curUser.username === username || curUser.id === userId)) {
@@ -1044,6 +1101,14 @@ async function grantUserPremiumAdmin(userId, username) {
         curUser.cancelledPremium = false;
         localStorage.setItem('user', JSON.stringify(curUser));
     }
+
+    try {
+        await fetch(`${ADMIN_API_BASE}/grant-premium/${userId || username}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: '1_Yıl' })
+        });
+    } catch(e) {}
 
     addNotification(
         username,
@@ -1062,9 +1127,9 @@ async function grantUserPremiumAdmin(userId, username) {
 async function revokeUserPremiumAdmin(userId, username) {
     if (!confirm(`'${username}' kullanıcısının Premium üyeliğini iptal etmek istediğinize emin misiniz?`)) return;
 
-    try {
-        await fetch(`${ADMIN_API_BASE}/revoke-premium/${userId || username}`, { method: 'DELETE' });
-    } catch(e) {}
+    let revokedUsers = JSON.parse(localStorage.getItem('revokedUsers') || '[]');
+    if (!revokedUsers.includes(username)) revokedUsers.push(username);
+    localStorage.setItem('revokedUsers', JSON.stringify(revokedUsers));
 
     let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
     let userObj = localUsers.find(u => u.username === username || u.id === userId);
@@ -1091,12 +1156,16 @@ async function revokeUserPremiumAdmin(userId, username) {
     });
     localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
 
+    try {
+        await fetch(`${ADMIN_API_BASE}/revoke-premium/${userId || username}`, { method: 'DELETE' });
+    } catch(e) {}
+
     addNotification(
         username,
         '⚠️',
         'Premium Üyeliğiniz İptal Edildi',
         'Hesabınıza tanımlı Premium üyelik yönetim kararıyla sonlandırılmıştır.',
-        'Herhangi bir sorunuz varsa İletişim sayfasından veya Gelen Kutusu üzerinden destek ekibimizle iletişime geçebilirsiniz.'
+        'Herhangi bir sorunuz varsa İletişim sayfasından tarafımıza ulaşabilirsiniz.'
     );
 
     showToast(`'${username}' kullanıcısının Premium üyeliği iptal edildi! 🚫`, "warning");
