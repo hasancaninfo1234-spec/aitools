@@ -580,71 +580,86 @@ function sayiAnimasyonu(element, hedefSayi, sure) {
 
 // AI ADVISOR TAVSİYE FONKSİYONLARI
 function aiAdvisorAyarla() {
-    const options = document.querySelectorAll('.advisor-option-btn');
     const msgContainer = document.getElementById('advisor-messages');
+    if (!msgContainer) return;
     
-    options.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const kategori = e.target.dataset.ask;
-            
-            // Kullanıcı mesajı ekle
+    // Event delegation: Dynamically works for all present and future option buttons
+    msgContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.advisor-option-btn');
+        if (!btn) return;
+        
+        const kategori = btn.dataset.ask;
+        if (!kategori) return; // Ignore buttons like Canlı Desteğe Bağlan which use onclick
+        
+        const btnText = btn.innerText;
+
+        // Add user selection bubble
+        msgContainer.innerHTML += `
+            <div style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.35); padding: 10px 15px; border-radius: 15px 15px 0 15px; color: #fff; font-size: 0.9rem; max-width: 85%; align-self: flex-end; margin-left: auto; margin-top: 10px;">
+                ${btnText}
+            </div>
+        `;
+
+        // Hide main options list temporarily
+        const optionsBox = document.getElementById('advisor-options');
+        if (optionsBox) optionsBox.style.display = 'none';
+
+        // Typing indicator
+        const yaziyorId = 'typing-' + Date.now();
+        msgContainer.innerHTML += `
+            <div id="${yaziyorId}" style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #94a3b8; font-size: 0.9rem; max-width: 85%; margin-top: 10px;">
+                Nova Düşünüyor...
+            </div>
+        `;
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+
+        setTimeout(() => {
+            const typingEl = document.getElementById(yaziyorId);
+            if (typingEl) typingEl.remove();
+
+            const kategoriSozlugu = {
+                "Görsel": ["görsel", "images", "3d", "image", "design", "art", "photo"],
+                "Metin": ["metin", "text", "language", "writing", "content", "email", "blog"],
+                "Kod": ["kod", "coding", "developer", "sql", "code", "github"],
+                "Ses/Video": ["ses/video", "video", "music", "audio", "voice", "speech", "podcast", "youtube"]
+            };
+
+            let uygunAraclar = butunAraclar.filter(arac => {
+                if (kategoriSozlugu[kategori]) {
+                    const aracKat = arac.category ? arac.category.toLowerCase() : "";
+                    return kategoriSozlugu[kategori].some(kelime => aracKat.includes(kelime));
+                }
+                return false;
+            });
+
+            let cevapMesaji = "";
+            if (uygunAraclar.length > 0) {
+                const secilen = uygunAraclar[Math.floor(Math.random() * Math.min(uygunAraclar.length, 4))];
+                cevapMesaji = `✨ Sana harika bir önerim var! <b>${secilen.name}</b> aracı tam aradığın yeteneklere sahip.<br><span style="color:#cbd5e1; font-size:0.85rem; display:block; margin-top:4px;">${secilen.description || ''}</span><br>
+                <a href="details.html?id=${secilen.id}" style="color: #38bdf8; text-decoration: none; font-weight: bold; background: rgba(56,189,248,0.15); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(56,189,248,0.3); display: inline-block; margin-top: 5px;">Hemen İncele ↗</a>`;
+            } else {
+                cevapMesaji = "Bu kategoride henüz sistemimizde kayıtlı bir araç bulunmuyor.";
+            }
+
             msgContainer.innerHTML += `
-                <div style="background: rgba(56, 189, 248, 0.2); padding: 10px 15px; border-radius: 15px 15px 0 15px; color: #fff; font-size: 0.9rem; max-width: 85%; align-self: flex-end; margin-top: 10px;">
-                    ${e.target.innerText}
+                <div style="background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%; margin-top: 10px;">
+                    ${cevapMesaji}
                 </div>
-            `;
-            
-            // Seçenekleri gizle
-            document.getElementById('advisor-options').style.display = 'none';
-            
-            // Yazıyor efekti
-            const yaziyorId = 'typing-' + Date.now();
-            msgContainer.innerHTML += `
-                <div id="${yaziyorId}" style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #94a3b8; font-size: 0.9rem; max-width: 85%; margin-top: 10px;">
-                    Düşünüyor...
+                <div style="margin-top: 10px; text-align: center;">
+                    <button onclick="resetAdvisorOptions()" style="background: rgba(56,189,248,0.1); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); padding: 6px 14px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer;">🔄 Başka Bir Seçenek Dene</button>
                 </div>
             `;
             msgContainer.scrollTop = msgContainer.scrollHeight;
-
-            // En iyi aracı bul
-            setTimeout(() => {
-                document.getElementById(yaziyorId).remove();
-                
-                // Sözlüğe göre filtrele
-                const kategoriSozlugu = {
-                    "Görsel": ["görsel", "images", "3d", "image", "design", "art", "photo"],
-                    "Metin": ["metin", "text", "language", "writing", "content", "email", "blog"],
-                    "Kod": ["kod", "coding", "developer", "sql", "code", "github"],
-                    "Ses/Video": ["ses/video", "video", "music", "audio", "voice", "speech", "podcast", "youtube"]
-                };
-                
-                let uygunAraclar = butunAraclar.filter(arac => {
-                    if (kategoriSozlugu[kategori]) {
-                        const aracKat = arac.category ? arac.category.toLowerCase() : "";
-                        return kategoriSozlugu[kategori].some(kelime => aracKat.includes(kelime));
-                    }
-                    return false;
-                });
-                
-                let cevapMesaji = "";
-                if(uygunAraclar.length > 0) {
-                    // Rastgele ama tutarlı olarak ilkini seçiyoruz, en iyisi olarak
-                    const enIyi = uygunAraclar[0];
-                    cevapMesaji = `Sana kesinlikle <b>${enIyi.name}</b> aracını öneririm! Çok yeteneklidir.<br><br>
-                    <a href="details.html?id=${enIyi.id}" style="color: #38bdf8; text-decoration: none; font-weight: bold; background: rgba(56,189,248,0.1); padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 5px;">Hemen İncele ↗</a>`;
-                } else {
-                    cevapMesaji = "Bu kategoride şu an veritabanımızda araç yok maalesef.";
-                }
-
-                msgContainer.innerHTML += `
-                    <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 15px 15px 15px 0; color: #e2e8f0; font-size: 0.9rem; max-width: 85%; margin-top: 10px;">
-                        ${cevapMesaji}
-                    </div>
-                `;
-                msgContainer.scrollTop = msgContainer.scrollHeight;
-            }, 1200);
-        });
+        }, 800);
     });
+}
+
+function resetAdvisorOptions() {
+    const optionsBox = document.getElementById('advisor-options');
+    if (optionsBox) {
+        optionsBox.style.display = 'flex';
+        optionsBox.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 function spotlightGuncelle(araclar) {
@@ -1380,7 +1395,15 @@ async function pollUserLiveSupport() {
         }
     } else if (req.status === 'rejected') {
         clearInterval(liveSupportPollTimer);
-        showToast("Temsilci canlı destek talebinizi şu an kabul edemedi.", "warning", "Canlı Destek");
+        const username = req.username || (JSON.parse(localStorage.getItem('user')) || {}).username || 'Kullanıcı';
+        addNotification(
+            username,
+            '🙏',
+            'Canlı Destek İptal Edildi - Özür Dileriz',
+            'Yoğunluk nedeniyle canlı destek talebiniz şu anda karşılanamadı.',
+            'Sayın kullanıcımız, temsilcilerimizin anlık yoğunluğu sebebiyle canlı destek talebiniz şu anda iptal edilmiştir. Yaşanan aksaklık ve gecikme nedeniyle özür dileriz. Sorularınız için İletişim sayfasındaki formu kullanabilir veya Gelen Kutunuz üzerinden bizlere ulaşabilirsiniz.'
+        );
+        showToast("Canlı destek talebiniz kabul edilemedi. Özür mesajı Gelen Kutunuza iletildi.", "warning", "Canlı Destek");
         endUserLiveSupport();
     } else if (req.status === 'ended') {
         clearInterval(liveSupportPollTimer);

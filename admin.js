@@ -720,6 +720,7 @@ async function loadLiveSupportRequests() {
             requests = await res.json();
         }
     } catch(e) {}
+    window.allLiveSupportRequests = requests;
 
     const waitingRequests = requests.filter(r => r.status === 'waiting');
     const waitingCount = waitingRequests.length;
@@ -817,6 +818,7 @@ async function acceptLiveSupportAdmin(id) {
 }
 
 async function rejectLiveSupportAdmin(id) {
+    let targetReq = (window.allLiveSupportRequests || []).find(r => r.id === id);
     try {
         await fetch('/api/live-support/reject', {
             method: 'POST',
@@ -825,7 +827,17 @@ async function rejectLiveSupportAdmin(id) {
         });
     } catch(e) {}
 
-    showToast("Canlı destek talebi reddedildi.", "info");
+    if (targetReq && targetReq.username) {
+        addNotification(
+            targetReq.username,
+            '🙏',
+            'Canlı Destek İptal Edildi - Özür Dileriz',
+            'Yoğunluk nedeniyle canlı destek talebiniz şu anda karşılanamadı.',
+            'Sayın kullanıcımız, temsilcilerimizin anlık yoğunluğu sebebiyle canlı destek talebiniz şu anda iptal edilmiştir. Yaşanan aksaklık ve gecikme nedeniyle özür dileriz. Sorularınız için İletişim sayfasındaki formu kullanabilir veya Gelen Kutunuz üzerinden bizlere ulaşabilirsiniz.'
+        );
+    }
+
+    showToast("Canlı destek talebi reddedildi ve kullanıcıya özür bildirimi gönderildi.", "info");
     if (activeAdminChatReqId === id) {
         activeAdminChatReqId = null;
         const emptyEl = document.getElementById('live-chat-empty');
@@ -897,6 +909,14 @@ async function sendAdminChatMessage() {
         return;
     }
     loadLiveSupportRequests();
+}
+
+function insertAdminPrompt(promptText) {
+    const input = document.getElementById('admin-chat-input');
+    if (input) {
+        input.value = promptText;
+        input.focus();
+    }
 }
 
 async function endLiveChatAdmin() {

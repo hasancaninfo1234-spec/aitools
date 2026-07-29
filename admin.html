@@ -510,6 +510,16 @@
                                 <!-- Mesajlar JS ile eklenecek -->
                             </div>
 
+                            <!-- Hazır Şablonlar / Hızlı Promptlar -->
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                                <span style="font-size: 0.75rem; color: #94a3b8; width: 100%; font-weight: 700; margin-bottom: 2px;">⚡ Hızlı Yanıt Şablonları:</span>
+                                <button type="button" onclick="insertAdminPrompt('Merhaba! AI Tools platformuna hoş geldiniz. Size nasıl yardımcı olabilirim? 👋')" class="edit-btn" style="font-size:0.75rem; padding: 4px 10px; background: rgba(56,189,248,0.12); color: #38bdf8; border-color: rgba(56,189,248,0.3); border-radius: 8px;">👋 Karşılama</button>
+                                <button type="button" onclick="insertAdminPrompt('Talebiniz incelemeye alındı, lütfen kısa bir süre bekleyiniz. ⏳')" class="edit-btn" style="font-size:0.75rem; padding: 4px 10px; background: rgba(245,158,11,0.12); color: #fbbf24; border-color: rgba(245,158,11,0.3); border-radius: 8px;">⏳ İncelemede</button>
+                                <button type="button" onclick="insertAdminPrompt('İşleminiz başarıyla tamamlanmıştır. Başka yardımcı olabileceğim bir konu var mıydı? ✅')" class="edit-btn" style="font-size:0.75rem; padding: 4px 10px; background: rgba(34,197,94,0.12); color: #4ade80; border-color: rgba(34,197,94,0.3); border-radius: 8px;">✅ Tamamlandı</button>
+                                <button type="button" onclick="insertAdminPrompt('Yaşanan aksaklık ve gecikme nedeniyle özür dileriz. İşleminiz öncelikli olarak işleme alınmıştır. 🙏')" class="edit-btn" style="font-size:0.75rem; padding: 4px 10px; background: rgba(239,68,68,0.12); color: #f87171; border-color: rgba(239,68,68,0.3); border-radius: 8px;">🙏 Özür Dileriz</button>
+                                <button type="button" onclick="insertAdminPrompt('İyi günler dileriz! AI Tools evreninde keyifli deneyimler. ✨')" class="edit-btn" style="font-size:0.75rem; padding: 4px 10px; background: rgba(192,132,252,0.12); color: #c084fc; border-color: rgba(192,132,252,0.3); border-radius: 8px;">✨ İyi Günler</button>
+                            </div>
+
                             <!-- Yanıt Gönderme Formu -->
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="admin-chat-input" class="admin-input" placeholder="Kullanıcıya yanıt yazın..." style="margin-bottom: 0;" onkeypress="if(event.key==='Enter') sendAdminChatMessage()">
