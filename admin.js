@@ -411,7 +411,10 @@ function loadSupportTickets() {
             <td><span style="background:${t.priority === 'Acil' ? 'rgba(239,68,68,0.2)' : 'rgba(56,189,248,0.1)'}; color:${t.priority === 'Acil' ? '#f87171' : '#38bdf8'}; padding:3px 8px; border-radius:10px; font-size:0.75rem; font-weight:700;">${t.priority}</span></td>
             <td><span style="color:${t.status === 'Çözüldü' ? '#4ade80' : '#fbbf24'}; font-weight:700;">${t.status}</span></td>
             <td>
-                ${t.status === 'Çözüldü' ? '<span style="color:#4ade80; font-size:0.8rem; font-weight:700;">✓ Yanıtlandı</span>' : `<button class="edit-btn" onclick="resolveTicket('${t.id}')">YANITLA / KAPAT</button>`}
+                <div style="display:flex; gap:6px; align-items:center;">
+                    ${t.status === 'Çözüldü' ? '<span style="color:#4ade80; font-size:0.8rem; font-weight:700;">✓ Yanıtlandı</span>' : `<button class="edit-btn" onclick="resolveTicket('${t.id}')">YANITLA / KAPAT</button>`}
+                    <button class="delete-btn" style="padding: 5px 10px; font-size: 0.75rem;" onclick="deleteSupportTicket('${t.id}')">SİL</button>
+                </div>
             </td>
         </tr>
     `).join('');
@@ -439,6 +442,52 @@ function resolveTicket(id) {
     loadSupportTickets();
     loadStats();
     showToast("Destek talebi yanıtlandı ve Gelen Kutusu bildirimi iletildi! ✅", "success");
+}
+
+function deleteSupportTicket(id) {
+    if(!confirm(`#${id} numaralı destek talebini silmek istediğinize emin misiniz?`)) return;
+
+    let tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+    tickets = tickets.filter(t => String(t.id) !== String(id));
+    localStorage.setItem('supportTickets', JSON.stringify(tickets));
+
+    loadSupportTickets();
+    loadStats();
+    showToast("Destek talebi başarıyla silindi! 🗑️", "success");
+}
+
+function clearSolvedTickets() {
+    let tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+    const solvedCount = tickets.filter(t => t.status === 'Çözüldü').length;
+    if (solvedCount === 0) {
+        showToast("Temizlenecek çözülen destek talebi bulunmuyor.", "info");
+        return;
+    }
+
+    if (!confirm(`Çözülmüş olan ${solvedCount} adet destek talebini silmek istediğinize emin misiniz?`)) return;
+
+    tickets = tickets.filter(t => t.status !== 'Çözüldü');
+    localStorage.setItem('supportTickets', JSON.stringify(tickets));
+
+    loadSupportTickets();
+    loadStats();
+    showToast(`${solvedCount} adet çözülen destek talebi temizlendi! 🧹`, "success");
+}
+
+function clearAllTickets() {
+    let tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+    if (tickets.length === 0) {
+        showToast("Silinecek destek talebi bulunmuyor.", "info");
+        return;
+    }
+
+    if (!confirm(`Tüm destek taleplerini (${tickets.length} adet) kalıcı olarak silmek istediğinize emin misiniz?`)) return;
+
+    localStorage.setItem('supportTickets', JSON.stringify([]));
+
+    loadSupportTickets();
+    loadStats();
+    showToast("Tüm destek talepleri temizlendi! 🗑️", "success");
 }
 
 function renderUsersDOM(userList) {
@@ -834,6 +883,10 @@ async function loadLiveSupportRequests() {
             actionBtns = `
                 <button onclick="openLiveChatAdmin('${r.id}')" class="admin-btn" style="width:100%; padding:5px 10px; font-size:0.75rem; margin-top:8px;">💬 Sohbete Bağlan</button>
             `;
+        } else if (r.status === 'ended' || r.status === 'rejected') {
+            actionBtns = `
+                <button onclick="event.stopPropagation(); deleteLiveSupportAdmin('${r.id}')" class="delete-btn" style="width:100%; padding:5px 10px; font-size:0.75rem; margin-top:8px;">🗑️ Talebi Sil</button>
+            `;
         }
 
         return `
@@ -903,6 +956,27 @@ async function rejectLiveSupportAdmin(id) {
         if (emptyEl) emptyEl.style.display = 'block';
         if (activeEl) activeEl.style.display = 'none';
     }
+    loadLiveSupportRequests();
+}
+
+async function deleteLiveSupportAdmin(id) {
+    if (!confirm("Bu canlı destek talebini silmek istediğinize emin misiniz?")) return;
+    try {
+        await fetch('/api/live-support/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+    } catch(e) {}
+
+    if (activeAdminChatReqId === id) {
+        activeAdminChatReqId = null;
+        const emptyEl = document.getElementById('live-chat-empty');
+        const activeEl = document.getElementById('live-chat-active');
+        if (emptyEl) emptyEl.style.display = 'block';
+        if (activeEl) activeEl.style.display = 'none';
+    }
+    showToast("Canlı destek talebi silindi. 🗑️", "success", "Canlı Destek");
     loadLiveSupportRequests();
 }
 

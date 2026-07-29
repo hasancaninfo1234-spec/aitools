@@ -346,8 +346,12 @@
         <!-- SEKME 8: DESTEK TALEPLERİ -->
         <div id="tab-tickets" class="tab-content">
             <section class="admin-section" style="border-color: rgba(56, 189, 248, 0.3);">
-                <div class="admin-section-title" style="color: #38bdf8;">
+                <div class="admin-section-title" style="color: #38bdf8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <span>🎫 Kullanıcı Destek Talepleri</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="delete-btn" style="padding: 5px 12px; font-size: 0.8rem; background: rgba(239, 68, 68, 0.15);" onclick="clearSolvedTickets()">✓ Çözülen Talepleri Temizle</button>
+                        <button class="delete-btn" style="padding: 5px 12px; font-size: 0.8rem;" onclick="clearAllTickets()">🗑️ Tüm Talepleri Sil</button>
+                    </div>
                 </div>
                 <div class="table-wrap">
                     <table>

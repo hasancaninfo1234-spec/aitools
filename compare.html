@@ -272,6 +272,28 @@
         </div>
     </div>
 
+    <!-- PRO / PREMİUM KİLİT POP-UP MODALI -->
+    <div id="compare-pro-gate-modal" class="modal-overlay" style="display: none; z-index: 10000; padding: 20px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px);">
+        <div class="auth-card" style="width: 100%; max-width: 520px; background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #f59e0b; box-shadow: 0 0 40px rgba(245, 158, 11, 0.25); text-align: center; position: relative; border-radius: 20px; padding: 35px 25px;">
+            <div style="font-size: 3.5rem; margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));">👑</div>
+            <h2 style="color: #f59e0b; margin-bottom: 8px; font-size: 1.8rem; font-weight: 800;">PRO / Premium Özellik</h2>
+            <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 25px; line-height: 1.5;">
+                <strong>Yapay Zeka Karşılaştırma Laboratuvarı</strong> sadece <b>AI Tools PRO</b> kullanıcılarına özeldir!
+            </p>
+
+            <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 16px; text-align: left; margin-bottom: 25px; color: #e2e8f0; font-size: 0.88rem; display: flex; flex-direction: column; gap: 10px;">
+                <div>✨ <strong>194+ Yapay Zeka Aracı:</strong> ChatGPT, Gemini, Claude, Midjourney ve tüm yeni araçları yan yana analiz edin.</div>
+                <div>⚡ <strong>Nova Performans Puanı:</strong> Hız, kodlama, metin ve yaratıcılık puanlarına göre en üstün modeli seçin.</div>
+                <div>🔑 <strong>Sınırsız Lisans:</strong> Lisans kodunuzu profilinizden girerek tüm PRO yetkilerini anında açın.</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="profile.html" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; text-decoration: none; padding: 14px 20px; border-radius: 12px; font-weight: 800; font-size: 1rem; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); display: block;">🔑 PRO Key Aktifleştir / Üye Ol ↗</a>
+                <a href="index.html" style="background: rgba(255,255,255,0.08); color: #94a3b8; text-decoration: none; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; display: block;">⬅️ Ana Sayfaya Dön</a>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script>
         let tools = [];
@@ -279,21 +301,23 @@
         async function init() {
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
+                const isPremium = user && user.isPremium && !user.cancelledPremium;
+                const isAdmin = user && user.role === 'admin';
+
                 if(!user) {
                     showToast("Yetkisiz erişim! Lütfen önce giriş yapınız.", "warning");
                     setTimeout(() => { window.location.href = 'index.html'; }, 1500);
                     return;
                 }
 
-                // Sunum için geçici olarak Premium kontrolü kaldırıldı
-                // const authRes = await fetch(`http://localhost:3000/api/verify-premium/${user.id}`);
-                // const authData = await authRes.json();
-                
-                // if(authData.status !== "premium") {
-                //     alert("✨ Karşılaştırma Laboratuvarı sadece Premium üyelere özeldir!");
-                //     window.location.href = 'index.html';
-                //     return;
-                // }
+                if (!isPremium && !isAdmin) {
+                    const gateModal = document.getElementById('compare-pro-gate-modal');
+                    if (gateModal) gateModal.style.display = 'flex';
+                    document.getElementById('tool1-select').disabled = true;
+                    document.getElementById('tool2-select').disabled = true;
+                    document.getElementById('nova-category').disabled = true;
+                    return;
+                }
 
                 let res = await fetch('/api/tools?t=' + Date.now()).catch(() => null);
                 if (!res || !res.ok) res = await fetch('tools.json').catch(() => null);

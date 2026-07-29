@@ -529,6 +529,12 @@ app.post('/api/live-support/send-message', (req, res) => {
     }
 });
 
+app.post('/api/live-support/delete', (req, res) => {
+    const { id } = req.body;
+    liveSupportRequests = liveSupportRequests.filter(r => r.id !== id);
+    res.json({ message: 'Canlı destek talebi silindi.' });
+});
+
 // --- Sunucu başlatma ---
 app.listen(PORT, HOST, () => {
     console.log(`🚀 Server ${HOST}:${PORT} üzerinde çalışıyor!`);
