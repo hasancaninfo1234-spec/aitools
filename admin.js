@@ -307,7 +307,10 @@ function renderKeysDOM(uniqueKeys) {
             <td>${k.type || '1_Yıl'}</td>
             <td><span style="color:${k.isUsed ? '#f87171' : '#4ade80'}; font-weight:700;">${k.isUsed ? 'Kullanıldı' : 'Aktif'}</span></td>
             <td><strong style="color: #38bdf8">${k.isUsed ? (k.username || 'x') : '-'}</strong></td>
-            <td><button class="delete-btn" onclick="deleteKey('${k.code}', '${k.id || ''}')">SİL</button></td>
+            <td>
+                ${k.isUsed ? `<button class="delete-btn" style="background:rgba(239,68,68,0.2); color:#f87171; border-color:rgba(239,68,68,0.4); margin-right:6px;" onclick="revokeKeyAdmin('${k.code}', '${k.usedBy || ''}', '${k.username || ''}')">PREMİUM İPTAL ET</button>` : ''}
+                <button class="delete-btn" onclick="deleteKey('${k.code}', '${k.id || ''}')">SİL</button>
+            </td>
         </tr>
     `).join('');
 }
@@ -398,6 +401,10 @@ function renderUsersDOM(userList) {
             <td><span style="color:${u.role === 'admin' ? '#f59e0b' : u.role === 'developer' || u.isDev ? '#c084fc' : '#94a3b8'}; font-weight:700;">${u.role === 'admin' ? '🛡️ Yönetici' : u.role === 'developer' || u.isDev ? '💻 Developer' : '👤 Kullanıcı'}</span></td>
             <td><strong style="color:${u.isPremium ? '#fbbf24' : '#94a3b8'}">${u.isPremium ? '👑 Premium' : 'Standart'}</strong></td>
             <td>
+                ${u.isPremium ? 
+                    `<button class="delete-btn" style="background:rgba(239,68,68,0.2); color:#f87171; border-color:rgba(239,68,68,0.4); margin-right:6px;" onclick="revokeUserPremiumAdmin('${u.id || ''}', '${u.username}')">Premium İptal Et</button>` :
+                    `<button class="edit-btn" style="background:rgba(251,191,36,0.15); color:#fbbf24; border-color:rgba(251,191,36,0.3); margin-right:6px;" onclick="grantUserPremiumAdmin('${u.id || ''}', '${u.username}')">👑 Premium Yap</button>`
+                }
                 <button class="edit-btn" style="background:#c084fc; color:#0f172a;" onclick="toggleUserDev('${u.username}')">${u.isDev || u.role === 'developer' ? 'Dev Yetkisini Al' : 'Dev Yetkisi Ver'}</button>
             </td>
         </tr>
@@ -952,7 +959,232 @@ async function createTestLiveSupportRequest() {
         });
         if (res.ok) {
             showToast("✅ Test Canlı Destek Talebi sunucuya eklendi!", "success");
-        } else {
+        }
+    } catch(e) {}
+    loadLiveSupportRequests();
+}
+
+/* ============================================================================
+   PREMİUM KEY & KULLANICI İPTAL İŞLEMLERİ (ADMİN)
+   ============================================================================ */
+async function revokeKeyAdmin(code, userId, username) {
+    const targetName = username && username !== '-' ? username : (userId || code);
+    if (!confirm(`'${targetName}' kullanıcısına ait '${code}' kodlu Premium Key'i iptal edip üyeliği sökmek istediğinize emin misiniz?`)) return;
+
+    try {
+        await fetch(`${ADMIN_API_BASE}/keys/revoke`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, userId })
+        });
+    } catch(e) {}
+
+    let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+    let foundKey = localKeys.find(k => String(k.code) === String(code));
+    if (foundKey) {
+        foundKey.isUsed = false;
+        foundKey.usedBy = null;
+        foundKey.username = '-';
+        localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
+    }
+
+    if (username && username !== '-') {
+        let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        let userObj = localUsers.find(u => u.username === username);
+        if (userObj) {
+            userObj.isPremium = false;
+            userObj.cancelledPremium = true;
+            localStorage.setItem('users', JSON.stringify(localUsers));
+        }
+
+        let curUser = JSON.parse(localStorage.getItem('user'));
+        if (curUser && curUser.username === username) {
+            curUser.isPremium = false;
+            curUser.cancelledPremium = true;
+            localStorage.setItem('user', JSON.stringify(curUser));
+        }
+
+        addNotification(
+            username,
+            '⚠️',
+            'Premium Üyeliğiniz İptal Edildi',
+            `'${code}' kodlu Premium lisans anahtarınız yönetim kararıyla iptal edilmiştir.`,
+            'Sayın kullanıcımız, hesabınızda aktif bulunan Premium Lisans Anahtarı yönetici tarafından iptal edilmiştir. Bir hata olduğunu düşünüyorsanız İletişim sayfasından tarafımıza ulaşabilirsiniz.'
+        );
+    }
+
+    showToast(`'${code}' kodlu Premium Key başarıyla iptal edildi! 🚫`, "warning", "Premium İptal");
+    await loadKeys();
+    await loadUsers();
+    await loadStats();
+}
+
+async function grantUserPremiumAdmin(userId, username) {
+    if (!confirm(`'${username}' kullanıcısına Premium üyelik tanımlamak istediğinize emin misiniz?`)) return;
+
+    try {
+        await fetch(`${ADMIN_API_BASE}/grant-premium/${userId || username}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: '1_Yıl' })
+        });
+    } catch(e) {}
+
+    let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    let userObj = localUsers.find(u => u.username === username || u.id === userId);
+    if (userObj) {
+        userObj.isPremium = true;
+        userObj.cancelledPremium = false;
+        localStorage.setItem('users', JSON.stringify(localUsers));
+    }
+
+    let curUser = JSON.parse(localStorage.getItem('user'));
+    if (curUser && (curUser.username === username || curUser.id === userId)) {
+        curUser.isPremium = true;
+        curUser.cancelledPremium = false;
+        localStorage.setItem('user', JSON.stringify(curUser));
+    }
+
+    addNotification(
+        username,
+        '👑',
+        'Tebrikler! Premium Üyeliğiniz Tanımlandı',
+        'Yönetim ekibi tarafından hesabınıza 1 Yıllık Premium üyelik hediye edilmiştir.',
+        'Sınırsız AI araç erişiminiz aktifleştirilmiştir. AI Tools evreninin tadını çıkarın!'
+    );
+
+    showToast(`'${username}' kullanıcısına Premium tanımlandı! 👑`, "success");
+    await loadUsers();
+    await loadKeys();
+    await loadStats();
+}
+
+async function revokeUserPremiumAdmin(userId, username) {
+    if (!confirm(`'${username}' kullanıcısının Premium üyeliğini iptal etmek istediğinize emin misiniz?`)) return;
+
+    try {
+        await fetch(`${ADMIN_API_BASE}/revoke-premium/${userId || username}`, { method: 'DELETE' });
+    } catch(e) {}
+
+    let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    let userObj = localUsers.find(u => u.username === username || u.id === userId);
+    if (userObj) {
+        userObj.isPremium = false;
+        userObj.cancelledPremium = true;
+        localStorage.setItem('users', JSON.stringify(localUsers));
+    }
+
+    let curUser = JSON.parse(localStorage.getItem('user'));
+    if (curUser && (curUser.username === username || curUser.id === userId)) {
+        curUser.isPremium = false;
+        curUser.cancelledPremium = true;
+        localStorage.setItem('user', JSON.stringify(curUser));
+    }
+
+    let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+    localKeys.forEach(k => {
+        if (k.username === username || k.usedBy === userId) {
+            k.isUsed = false;
+            k.usedBy = null;
+            k.username = '-';
+        }
+    });
+    localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
+
+    addNotification(
+        username,
+        '⚠️',
+        'Premium Üyeliğiniz İptal Edildi',
+        'Hesabınıza tanımlı Premium üyelik yönetim kararıyla sonlandırılmıştır.',
+        'Herhangi bir sorunuz varsa İletişim sayfasından veya Gelen Kutusu üzerinden destek ekibimizle iletişime geçebilirsiniz.'
+    );
+
+    showToast(`'${username}' kullanıcısının Premium üyeliği iptal edildi! 🚫`, "warning");
+    await loadUsers();
+    await loadKeys();
+    await loadStats();
+}
+
+/* ============================================================================
+   CANLI SOHBET ÜZERİNDEN DESTEK TALEBİ OLUŞTURMA (ADMİN)
+   ============================================================================ */
+function openCreateTicketModalFromChat() {
+    if (!activeAdminChatReqId || !window.allLiveSupportRequests) {
+        showToast("Lütfen önce aktif bir canlı sohbet seçiniz.", "warning");
+        return;
+    }
+    const reqObj = window.allLiveSupportRequests.find(r => r.id === activeAdminChatReqId);
+    if (!reqObj) return;
+
+    document.getElementById('modal-ticket-user').value = `${reqObj.username} (${reqObj.email || '-'})`;
+    document.getElementById('modal-ticket-subject').value = `Canlı Destek Görüşmesi (${reqObj.username})`;
+    document.getElementById('modal-ticket-priority').value = "Normal";
+    document.getElementById('modal-ticket-message').value = reqObj.messages && reqObj.messages.length > 0 
+        ? `Kullanıcı canlı sohbet ilk mesajı: "${reqObj.messages[0].text}"`
+        : '';
+
+    document.getElementById('admin-create-ticket-modal').style.display = 'flex';
+}
+
+function closeCreateTicketModalFromChat() {
+    document.getElementById('admin-create-ticket-modal').style.display = 'none';
+}
+
+async function saveAdminTicketFromChat() {
+    if (!activeAdminChatReqId || !window.allLiveSupportRequests) return;
+    const reqObj = window.allLiveSupportRequests.find(r => r.id === activeAdminChatReqId);
+    if (!reqObj) return;
+
+    const subject = document.getElementById('modal-ticket-subject').value.trim();
+    const priority = document.getElementById('modal-ticket-priority').value;
+    const message = document.getElementById('modal-ticket-message').value.trim();
+
+    if (!subject || !message) {
+        showToast("Lütfen konu başlığı ve açıklamayı doldurunuz.", "warning");
+        return;
+    }
+
+    const ticketId = Math.floor(1000 + Math.random() * 9000).toString();
+    const newTicket = {
+        id: ticketId,
+        username: reqObj.username,
+        email: reqObj.email || '-',
+        subject: subject,
+        message: message,
+        priority: priority,
+        status: 'Açık',
+        date: new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    };
+
+    let tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+    tickets.unshift(newTicket);
+    localStorage.setItem('supportTickets', JSON.stringify(tickets));
+
+    // Send inbox notification to the user
+    addNotification(
+        reqObj.username,
+        '🎫',
+        `Destek Talebi Oluşturuldu (#${ticketId})`,
+        `Temsilcimiz canlı sohbet sırasında sizin adınıza bir destek talebi oluşturdu.`,
+        `Konu: ${subject} (${priority} Öncelik)\nAçıklama: ${message}`
+    );
+
+    // Also send system response message in the live chat log
+    const systemChatMsg = `🎫 Temsilci sizin adınıza bir destek talebi oluşturdu! (Talep No: #${ticketId} | Öncelik: ${priority} | Konu: ${subject})`;
+    try {
+        await fetch('/api/live-support/send-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: activeAdminChatReqId, sender: 'admin', text: systemChatMsg })
+        });
+    } catch(e) {}
+
+    closeCreateTicketModalFromChat();
+    loadSupportTickets();
+    loadStats();
+    loadLiveSupportRequests();
+    showToast(`Destek talebi (#${ticketId}) oluşturuldu ve 'Destek Talepleri' sekmesine eklendi! ✅`, "success", "Destek Talebi");
+}
             showToast("Sunucu hatası! Tekrar deneyin.", "error");
         }
     } catch(e) {

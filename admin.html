@@ -502,7 +502,10 @@
                                     <strong id="active-chat-user" style="color: #fff; font-size: 1.05rem;">Kullanıcı</strong>
                                     <span id="active-chat-status" style="font-size: 0.75rem; background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(34, 197, 94, 0.4);">🟢 Aktif Sohbet</span>
                                 </div>
-                                <button onclick="endLiveChatAdmin()" class="delete-btn" style="padding: 6px 14px; font-size: 0.8rem;">🔴 Sohbeti Sonlandır</button>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="openCreateTicketModalFromChat()" class="edit-btn" style="background: rgba(56,189,248,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.3); font-size: 0.8rem; font-weight: 700; padding: 6px 12px; margin-right: 0;">🎫 Destek Talebi Aç</button>
+                                    <button onclick="endLiveChatAdmin()" class="delete-btn" style="padding: 6px 14px; font-size: 0.8rem;">🔴 Sohbeti Sonlandır</button>
+                                </div>
                             </div>
 
                             <!-- Mesajlar Kutusu -->
@@ -564,6 +567,45 @@
                 <button onclick="confirmApproveTool()" class="admin-btn" style="background:#34d399; color:#0f172a; flex: 1;">ONAYLA</button>
                 <button onclick="confirmRejectTool()" class="delete-btn" style="flex: 1; padding: 11px;">REDDET</button>
                 <button onclick="closeReviewModal()" class="admin-btn" style="background:#475569; color:#fff; flex: 1;">İptal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CANLI SOHBET ESNASINDA ADMİN DESTEK TALEBİ OLUŞTURMA MODALI -->
+    <div id="admin-create-ticket-modal" class="modal-overlay-admin">
+        <div class="admin-section" style="width: 100%; max-width: 520px; margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="color:#38bdf8; font-size: 1.2rem;">🎫 Kullanıcı Adına Destek Talebi Aç</h2>
+                <button onclick="closeCreateTicketModalFromChat()" style="background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Kullanıcı</label>
+                <input type="text" id="modal-ticket-user" class="admin-input" readonly style="background: rgba(255,255,255,0.05); color: #38bdf8; font-weight: bold;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Konu Başlığı</label>
+                <input type="text" id="modal-ticket-subject" class="admin-input" placeholder="Örn: Canlı Destek Ödeme Hatası / Teknik Destek" required>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Durum Önceliği</label>
+                <select id="modal-ticket-priority" class="admin-input">
+                    <option value="Acil">🔴 Acil Öncelik</option>
+                    <option value="Normal" selected>🟡 Normal Öncelik</option>
+                    <option value="Düşük">🟢 Düşük Öncelik</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Talep Açıklaması & Notlar</label>
+                <textarea id="modal-ticket-message" class="admin-input" rows="4" placeholder="Kullanıcı ile yapılan sohbet detayı ve çözüm bekleyen konu açıklaması..."></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="saveAdminTicketFromChat()" class="admin-btn" style="flex: 1;">TALEBİ OLUŞTUR & KAYDET</button>
+                <button onclick="closeCreateTicketModalFromChat()" class="admin-btn" style="background:#475569; color:#fff; flex: 1;">İptal</button>
             </div>
         </div>
     </div>

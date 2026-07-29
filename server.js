@@ -317,6 +317,20 @@ app.delete('/api/keys/:id', (req, res) => {
     res.status(204).send();
 });
 
+app.post('/api/keys/revoke', (req, res) => {
+    let db = loadJson(DB_FILE, { users: [], keys: [] });
+    const { code, userId } = req.body;
+    let found = db.keys.find(k => (code && k.code === code) || (userId && k.usedBy === userId));
+    if (found) {
+        found.isUsed = false;
+        found.usedBy = null;
+        found.expiryDate = null;
+        saveJson(DB_FILE, db);
+        return res.json({ success: true, message: "Key başarıyla pasife alındı ve iptal edildi." });
+    }
+    res.status(404).json({ success: false, message: "Key bulunamadı." });
+});
+
 // Admin direkt premium tanımlama
 app.post('/api/grant-premium/:userId', (req, res) => {
     let db = loadJson(DB_FILE, { users: [], keys: [] });
