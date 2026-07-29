@@ -1254,13 +1254,6 @@ async function saveAdminTicketFromChat() {
     loadLiveSupportRequests();
     showToast(`Destek talebi (#${ticketId}) oluşturuldu ve 'Destek Talepleri' sekmesine eklendi! ✅`, "success", "Destek Talebi");
 }
-            showToast("Sunucu hatası! Tekrar deneyin.", "error");
-        }
-    } catch(e) {
-        showToast("Sunucuya bağlanılamadı!", "error");
-    }
-    setTimeout(loadLiveSupportRequests, 500);
-}
 
 // Sekmeler Arası Anlık Senkronizasyon (Storage Event & Fast Polling)
 window.addEventListener('storage', (e) => {
