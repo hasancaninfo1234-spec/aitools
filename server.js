@@ -312,7 +312,7 @@ app.post('/api/activate-key', (req, res) => {
 
 app.delete('/api/keys/:id', (req, res) => {
     let db = loadJson(DB_FILE, { users: [], keys: [] });
-    db.keys = db.keys.filter(k => k.id !== req.params.id);
+    db.keys = db.keys.filter(k => k.id !== req.params.id && k.code !== req.params.id);
     saveJson(DB_FILE, db);
     res.status(204).send();
 });

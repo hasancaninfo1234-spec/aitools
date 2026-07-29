@@ -432,10 +432,32 @@
                     keyInput.value = '';
                     premiumKontrol();
                 } else {
-                    showMsg(msg, data.message || "Geçersiz key!", false);
+                    let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+                    let foundLocalKey = localKeys.find(k => k.code === key && !k.isUsed);
+                    if (foundLocalKey) {
+                        foundLocalKey.isUsed = true;
+                        foundLocalKey.username = profAktifKullanici.username;
+                        localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
+
+                        profAktifKullanici.isPremium = true;
+                        profAktifKullanici.cancelledPremium = false;
+                        localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+                        showMsg(msg, "Tebrikler! Premium başarıyla aktif edildi 👑", true);
+                        keyInput.value = '';
+                        premiumKontrol();
+                    } else {
+                        showMsg(msg, data.message || "Geçersiz key!", false);
+                    }
                 }
             } catch {
-                if (key.length > 3) {
+                let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
+                let foundLocalKey = localKeys.find(k => k.code === key && !k.isUsed);
+                if (foundLocalKey || key.length > 3) {
+                    if (foundLocalKey) {
+                        foundLocalKey.isUsed = true;
+                        foundLocalKey.username = profAktifKullanici.username;
+                        localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
+                    }
                     profAktifKullanici.isPremium = true;
                     profAktifKullanici.cancelledPremium = false;
                     localStorage.setItem('user', JSON.stringify(profAktifKullanici));

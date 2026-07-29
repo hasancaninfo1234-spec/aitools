@@ -486,19 +486,25 @@ function toggleFavorite(event, id) {
 // VERİTABANINDAN (API'DEN) VERİLERİ ÇEKİYORUZ
 async function modelleriGetir() {
     try {
+        let localCustom = JSON.parse(localStorage.getItem('customTools') || '[]');
+        let cachedTools = JSON.parse(localStorage.getItem('cachedTools') || '[]');
+        let tools = cachedTools;
+
         let cevap = await fetch(`/api/tools?t=` + Date.now()).catch(() => null);
         if (!cevap || !cevap.ok) {
             cevap = await fetch(`tools.json`).catch(() => null);
         }
         if (cevap && cevap.ok) {
-            butunAraclar = await cevap.json();
-            console.log(butunAraclar.length + " tane araç geldi kanka.");
-            uiEfektleriniBaslat(butunAraclar);
-            ekranaAraclariBas(butunAraclar);
-            populerAraclariBas(butunAraclar);
-        } else {
-            console.error("Hocam veriler hiçbir kaynaktan çekilemedi.");
+            tools = await cevap.json();
+            try { localStorage.setItem('cachedTools', JSON.stringify(tools)); } catch(e) {}
         }
+
+        const combined = [...tools, ...localCustom];
+        butunAraclar = Array.from(new Map(combined.map(item => [String(item.id || item.name), item])).values());
+        console.log(butunAraclar.length + " tane araç yüklendi.");
+        uiEfektleriniBaslat(butunAraclar);
+        ekranaAraclariBas(butunAraclar);
+        spotlightGuncelle(butunAraclar);
     } catch (hata) { 
         console.error("Hocam api çöktü galiba, modeller yüklenemedi:", hata); 
     }

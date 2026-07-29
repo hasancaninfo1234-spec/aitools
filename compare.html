@@ -300,9 +300,11 @@
                 if (res && res.ok) {
                     tools = await res.json();
                 }
+                let localCustom = JSON.parse(localStorage.getItem('customTools') || '[]');
+                tools = Array.from(new Map([...tools, ...localCustom].map(t => [String(t.id || t.name), t])).values());
                 
                 // İsimlere göre A-Z sıralama
-                tools.sort((a,b) => a.name.localeCompare(b.name));
+                tools.sort((a,b) => (a.name || '').localeCompare(b.name || ''));
 
                 populateSelects();
                 

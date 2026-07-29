@@ -27,19 +27,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 specs: document.getElementById('add-specs').value,
                 about: document.getElementById('add-about').value
             };
-            fetch(`${API_BASE}/tools`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(tool)
-            }).catch(() => null);
+            try {
+                await fetch(`${API_BASE}/tools`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(tool)
+                });
+            } catch(e) {}
 
             let customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
             customTools.push(tool);
             localStorage.setItem('customTools', JSON.stringify(customTools));
 
             showToast("Model sisteme başarıyla eklendi! ✅", "success");
-            loadModels();
-            loadStats();
+            await loadModels();
+            await loadStats();
             e.target.reset();
         };
     }
@@ -51,19 +53,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = typeSelect ? typeSelect.value : '1_Yıl';
             const code = "AI-" + Math.random().toString(36).substr(2, 9).toUpperCase();
             
-            fetch(`${API_BASE}/keys`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ code, type })
-            }).catch(() => null);
+            try {
+                await fetch(`${API_BASE}/keys`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ code, type })
+                });
+            } catch(err) {}
 
             let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
             localKeys.push({ id: Date.now().toString(), code, type, isUsed: false, username: '-' });
             localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
 
             showToast(`Yeni Premium Key Üretildi: ${code}`, "purple", "Premium Key Üretildi");
-            loadKeys();
-            loadStats();
+            await loadKeys();
+            await loadStats();
         };
     }
 });
@@ -140,23 +144,29 @@ function renderModelsDOM(uniqueTools) {
 
 async function loadModels() {
     let localCustom = JSON.parse(localStorage.getItem('customTools') || '[]');
-    let tools = [];
+    let cachedTools = JSON.parse(localStorage.getItem('cachedTools') || '[]');
+    let tools = cachedTools;
 
+    // 1. Önce statik tools.json dosyasını çek
     try {
-        let res = await fetch(`${API_BASE}/tools?t=` + Date.now()).catch(() => null);
+        let res = await fetch(`tools.json?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             tools = await res.json();
+            try { localStorage.setItem('cachedTools', JSON.stringify(tools)); } catch(e) {}
         }
     } catch(e) {}
 
-    if (!tools || tools.length === 0) {
-        try {
-            let res = await fetch(`tools.json?t=` + Date.now()).catch(() => null);
-            if (res && res.ok) {
-                tools = await res.json();
+    // 2. Ardından sunucu API'sinden güncellenmiş modelleri dene
+    try {
+        let res = await fetch(`${API_BASE}/tools?t=` + Date.now()).catch(() => null);
+        if (res && res.ok) {
+            const apiTools = await res.json();
+            if (apiTools && apiTools.length > 0) {
+                tools = apiTools;
+                try { localStorage.setItem('cachedTools', JSON.stringify(tools)); } catch(e) {}
             }
-        } catch(e) {}
-    }
+        }
+    } catch(e) {}
 
     const combined = [...tools, ...localCustom];
     const uniqueTools = Array.from(new Map(combined.map(item => [String(item.id || item.name), item])).values());
@@ -450,7 +460,9 @@ async function deleteModel(id) {
 async function deleteKey(code, id) {
     if(!confirm(`'${code}' kodlu keyi silmek istediğinize emin misiniz?`)) return;
 
-    fetch(`${API_BASE}/keys/${id || code}`, { method: 'DELETE' }).catch(() => null);
+    try {
+        await fetch(`${API_BASE}/keys/${id || code}`, { method: 'DELETE' });
+    } catch(e) {}
 
     let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
     localKeys = localKeys.filter(k => 
@@ -459,8 +471,8 @@ async function deleteKey(code, id) {
     );
     localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
 
-    loadKeys();
-    loadStats();
+    await loadKeys();
+    await loadStats();
     showToast("Lisans key başarıyla silindi! ✅", "info");
 }
 

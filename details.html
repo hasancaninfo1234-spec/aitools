@@ -163,7 +163,9 @@
             }
 
             const tools = await fetchToolsData();
-            currentTool = tools.find(t => t && t.id !== undefined && String(t.id).trim() === String(id).trim());
+            const localCustom = JSON.parse(localStorage.getItem('customTools') || '[]');
+            const allTools = [...tools, ...localCustom];
+            currentTool = allTools.find(t => t && t.id !== undefined && String(t.id).trim() === String(id).trim());
 
             if(currentTool) {
                 // LocalStorage'da kayıtlı yorumları kontrol et
