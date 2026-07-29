@@ -1,5 +1,5 @@
 /* Bu dosya, yönetici panelinin arka plan işlemlerini yönetme işini yapar. (Güncelleme: Canlı Destek Sunucu Modu) */
-const API_BASE = '/api';
+const ADMIN_API_BASE = '/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('adminAuthed') === 'true') {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 about: document.getElementById('add-about').value
             };
             try {
-                await fetch(`${API_BASE}/tools`, {
+                await fetch(`${ADMIN_API_BASE}/tools`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(tool)
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const code = "AI-" + Math.random().toString(36).substr(2, 9).toUpperCase();
             
             try {
-                await fetch(`${API_BASE}/keys`, {
+                await fetch(`${ADMIN_API_BASE}/keys`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ code, type })
@@ -106,7 +106,7 @@ async function loadStats() {
     applyStatsDOM(usersCount, premiumCount, toolsCount, unusedKeysCount, pendingToolsCount, pendingDevsCount, openTicketsCount);
 
     try {
-        const res = await fetch(`${API_BASE}/stats?t=` + Date.now()).catch(() => null);
+        const res = await fetch(`${ADMIN_API_BASE}/stats?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const stats = await res.json();
             if (stats.totalUsers !== undefined) usersCount = stats.totalUsers;
@@ -158,7 +158,7 @@ async function loadModels() {
 
     // 2. Ardından sunucu API'sinden güncellenmiş modelleri dene
     try {
-        let res = await fetch(`${API_BASE}/tools?t=` + Date.now()).catch(() => null);
+        let res = await fetch(`${ADMIN_API_BASE}/tools?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiTools = await res.json();
             if (apiTools && apiTools.length > 0) {
@@ -202,7 +202,7 @@ async function loadPendingTools() {
     renderPendingToolsDOM(localTools);
 
     try {
-        const res = await fetch(`${API_BASE}/pending-tools?t=` + Date.now()).catch(() => null);
+        const res = await fetch(`${ADMIN_API_BASE}/pending-tools?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiTools = await res.json();
             const combined = [...apiTools, ...localTools];
@@ -240,7 +240,7 @@ async function loadPendingDevs() {
     renderPendingDevsDOM(localDevs);
 
     try {
-        const res = await fetch(`${API_BASE}/pending-developers?t=` + Date.now()).catch(() => null);
+        const res = await fetch(`${ADMIN_API_BASE}/pending-developers?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiDevs = await res.json();
             const combined = [...apiDevs, ...localDevs];
@@ -283,7 +283,7 @@ async function loadDevelopers() {
     renderDevelopersDOM(Array.from(devMap.values()));
 
     try {
-        const res = await fetch(`${API_BASE}/developers?t=` + Date.now()).catch(() => null);
+        const res = await fetch(`${ADMIN_API_BASE}/developers?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiDevs = await res.json();
             apiDevs.forEach(d => { if (d && d.username) devMap.set(d.username, d); });
@@ -326,7 +326,7 @@ async function loadKeys() {
     renderKeysDOM(Array.from(keyMap.values()));
 
     try {
-        const res = await fetch(`${API_BASE}/keys?t=` + Date.now()).catch(() => null);
+        const res = await fetch(`${ADMIN_API_BASE}/keys?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiKeys = await res.json();
             apiKeys.forEach(k => { if (k && k.code) keyMap.set(k.code, k); });
@@ -423,7 +423,7 @@ async function loadUsers() {
     renderUsersDOM(Array.from(userMap.values()));
 
     try {
-        const res = await fetch(`${API_BASE}/users?t=` + Date.now()).catch(() => null);
+        const res = await fetch(`${ADMIN_API_BASE}/users?t=` + Date.now()).catch(() => null);
         if (res && res.ok) {
             const apiUsers = await res.json();
             apiUsers.forEach(u => { if (u && u.username) userMap.set(u.username, u); });
@@ -447,7 +447,7 @@ function toggleUserDev(username) {
 async function deleteModel(id) {
     if(!confirm("Bu modeli silmek istediğinize emin misiniz?")) return;
     
-    fetch(`${API_BASE}/tools/${id}`, { method: 'DELETE' }).catch(() => null);
+    fetch(`${ADMIN_API_BASE}/tools/${id}`, { method: 'DELETE' }).catch(() => null);
     
     let customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
     customTools = customTools.filter(t => String(t.id) !== String(id));
@@ -461,7 +461,7 @@ async function deleteKey(code, id) {
     if(!confirm(`'${code}' kodlu keyi silmek istediğinize emin misiniz?`)) return;
 
     try {
-        await fetch(`${API_BASE}/keys/${id || code}`, { method: 'DELETE' });
+        await fetch(`${ADMIN_API_BASE}/keys/${id || code}`, { method: 'DELETE' });
     } catch(e) {}
 
     let localKeys = JSON.parse(localStorage.getItem('generatedKeys') || '[]');
@@ -512,7 +512,7 @@ function closeReviewModal() {
 
 async function confirmApproveTool() {
     const id = document.getElementById('review-id').value;
-    fetch(`${API_BASE}/approve-tool/${id}`, { method: 'POST' }).catch(() => null);
+    fetch(`${ADMIN_API_BASE}/approve-tool/${id}`, { method: 'POST' }).catch(() => null);
 
     let pendingTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
     const toolToApprove = pendingTools.find(t => String(t.id) === String(id));
@@ -549,7 +549,7 @@ async function confirmRejectTool() {
     let pendingTools = JSON.parse(localStorage.getItem('pendingTools') || '[]');
     const toolToReject = pendingTools.find(t => String(t.id) === String(id));
 
-    fetch(`${API_BASE}/pending-tools/${id}`, { method: 'DELETE' }).catch(() => null);
+    fetch(`${ADMIN_API_BASE}/pending-tools/${id}`, { method: 'DELETE' }).catch(() => null);
 
     pendingTools = pendingTools.filter(t => String(t.id) !== String(id));
     localStorage.setItem('pendingTools', JSON.stringify(pendingTools));
@@ -574,7 +574,7 @@ async function confirmRejectTool() {
 async function approveDev(id) {
     if(!confirm("Bu kullanıcıyı Geliştirici yapmak istediğinize emin misiniz?")) return;
 
-    fetch(`${API_BASE}/approve-developer/${id}`, { method: 'POST' }).catch(() => null);
+    fetch(`${ADMIN_API_BASE}/approve-developer/${id}`, { method: 'POST' }).catch(() => null);
 
     let pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
     const devToApprove = pendingDevs.find(d => String(d.id) === String(id));
@@ -618,7 +618,7 @@ async function rejectDev(id) {
     let pendingDevs = JSON.parse(localStorage.getItem('pendingDevs') || '[]');
     const devToReject = pendingDevs.find(d => String(d.id) === String(id));
 
-    fetch(`${API_BASE}/reject-developer/${id}`, { method: 'DELETE' }).catch(() => null);
+    fetch(`${ADMIN_API_BASE}/reject-developer/${id}`, { method: 'DELETE' }).catch(() => null);
 
     pendingDevs = pendingDevs.filter(d => String(d.id) !== String(id));
     localStorage.setItem('pendingDevs', JSON.stringify(pendingDevs));
@@ -642,7 +642,7 @@ async function rejectDev(id) {
 async function revokeDev(id) {
     if(!confirm("Bu kullanıcının Geliştirici yetkisini almak istediğinize emin misiniz?")) return;
 
-    fetch(`${API_BASE}/revoke-developer/${id}`, { method: 'DELETE' }).catch(() => null);
+    fetch(`${ADMIN_API_BASE}/revoke-developer/${id}`, { method: 'DELETE' }).catch(() => null);
 
     let approvedDevs = JSON.parse(localStorage.getItem('approvedDevs') || '[]');
     approvedDevs = approvedDevs.filter(d => String(d.id || d.username) !== String(id));
@@ -688,7 +688,7 @@ async function updateModel() {
         about: document.getElementById('edit-about').value
     };
 
-    fetch(`${API_BASE}/tools/${id}`, {
+    fetch(`${ADMIN_API_BASE}/tools/${id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(updatedTool)

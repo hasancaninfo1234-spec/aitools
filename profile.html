@@ -325,7 +325,7 @@
     <script>
         let profAktifKullanici = null;
         let isLoginMode = true;
-        const API_BASE = "";
+        const PROFILE_API_BASE = "";
 
         initPage();
 
@@ -381,7 +381,7 @@
 
             if (isPremium && !profAktifKullanici.cancelledPremium) {
                 try {
-                    const res = await fetch(`${API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
+                    const res = await fetch(`${PROFILE_API_BASE}/api/verify-premium/${profAktifKullanici.id}`).catch(() => null);
                     if (res && res.ok) {
                         const data = await res.json();
                         if (data.status === "premium") isPremium = true;
@@ -418,7 +418,7 @@
             showMsg(msg, "Kontrol ediliyor...", true);
 
             try {
-                const res = await fetch(`${API_BASE}/api/activate-key`, {
+                const res = await fetch(`${PROFILE_API_BASE}/api/activate-key`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key, userId: profAktifKullanici.id })
@@ -516,7 +516,7 @@
             if (!username) return;
 
             try {
-                const res = await fetch(`${API_BASE}${isLoginMode ? '/login' : '/register'}`, {
+                const res = await fetch(`${PROFILE_API_BASE}${isLoginMode ? '/login' : '/register'}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
