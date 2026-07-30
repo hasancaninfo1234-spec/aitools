@@ -300,22 +300,47 @@
 
         async function init() {
             try {
-                const user = JSON.parse(localStorage.getItem('user'));
-                if(!user) {
+                let user = JSON.parse(localStorage.getItem('user'));
+                if (!user) {
                     showToast("Yetkisiz erişim! Lütfen önce giriş yapınız.", "warning");
                     setTimeout(() => { window.location.href = 'index.html'; }, 1500);
                     return;
                 }
 
-                // Gate modal engeli kaldırıldı - Tüm kayıtlı kullanıcılar karşılaştırma yapabilir
-                const gateModal = document.getElementById('compare-pro-gate-modal');
-                if (gateModal) gateModal.style.display = 'none';
-                if (document.getElementById('tool1-select')) document.getElementById('tool1-select').disabled = false;
-                if (document.getElementById('tool2-select')) document.getElementById('tool2-select').disabled = false;
-                if (document.getElementById('nova-category')) document.getElementById('nova-category').disabled = false;
+                // Kullanıcı premium durumunu yerel kullanıcılar ve revokedUsers listesinden senkronize et
+                const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+                const dbUser = localUsers.find(u => u.username === user.username || u.id === user.id);
+                if (dbUser) {
+                    user.isPremium = dbUser.isPremium;
+                    if (dbUser.cancelledPremium !== undefined) user.cancelledPremium = dbUser.cancelledPremium;
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
 
+                const revokedUsers = JSON.parse(localStorage.getItem('revokedUsers') || '[]');
+                const isRevoked = revokedUsers.includes(user.username);
+                const isPremium = (user.isPremium || user.role === 'admin' || user.isDev) && !user.cancelledPremium && !isRevoked;
+
+                const gateModal = document.getElementById('compare-pro-gate-modal');
+                const select1 = document.getElementById('tool1-select');
+                const select2 = document.getElementById('tool2-select');
+                const novaCat = document.getElementById('nova-category');
+
+                if (!isPremium) {
+                    if (gateModal) gateModal.style.display = 'flex';
+                    if (select1) select1.disabled = true;
+                    if (select2) select2.disabled = true;
+                    if (novaCat) novaCat.disabled = true;
+                    return;
+                }
+
+                if (gateModal) gateModal.style.display = 'none';
+                if (select1) select1.disabled = false;
+                if (select2) select2.disabled = false;
+                if (novaCat) novaCat.disabled = false;
+
+                // Araç verilerini yükle
                 let res = await fetch('/api/tools?t=' + Date.now()).catch(() => null);
-                if (!res || !res.ok) res = await fetch('tools.json').catch(() => null);
+                if (!res || !res.ok) res = await fetch('tools.json?t=' + Date.now()).catch(() => null);
                 if (res && res.ok) {
                     tools = await res.json();
                 }
@@ -327,13 +352,13 @@
 
                 populateSelects();
                 
-                document.getElementById('tool1-select').addEventListener('change', updateComparison);
-                document.getElementById('tool2-select').addEventListener('change', updateComparison);
-                document.getElementById('nova-category').addEventListener('change', updateComparison);
+                if (select1) select1.addEventListener('change', updateComparison);
+                if (select2) select2.addEventListener('change', updateComparison);
+                if (novaCat) novaCat.addEventListener('change', updateComparison);
 
             } catch(e) {
                 console.error("Araçlar yüklenemedi:", e);
-                document.getElementById('empty-state').innerHTML = "<span style='color:#ef4444;'>Araçlar yüklenirken bir hata oluştu!</span> sunucunun çalıştığından emin olun.";
+                document.getElementById('empty-state').innerHTML = "<span style='color:#ef4444;'>Araçlar yüklenirken bir hata oluştu!</span> Sunucunun çalıştığından emin olun.";
             }
         }
 

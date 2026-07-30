@@ -417,17 +417,36 @@
 
             showMsg(msg, "Kontrol ediliyor...", true);
 
+            function applyPremiumSuccessToLocalUser() {
+                profAktifKullanici.isPremium = true;
+                profAktifKullanici.cancelledPremium = false;
+                localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+
+                let revokedUsers = JSON.parse(localStorage.getItem('revokedUsers') || '[]');
+                revokedUsers = revokedUsers.filter(u => u !== profAktifKullanici.username);
+                localStorage.setItem('revokedUsers', JSON.stringify(revokedUsers));
+
+                let localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+                let uObj = localUsers.find(u => u.username === profAktifKullanici.username || u.id === profAktifKullanici.id);
+                if (uObj) {
+                    uObj.isPremium = true;
+                    uObj.cancelledPremium = false;
+                } else {
+                    localUsers.push({ id: profAktifKullanici.id, username: profAktifKullanici.username, isPremium: true, cancelledPremium: false });
+                }
+                localStorage.setItem('users', JSON.stringify(localUsers));
+            }
+
             try {
                 const res = await fetch(`${PROFILE_API_BASE}/api/activate-key`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key, userId: profAktifKullanici.id })
                 });
+
                 const data = await res.json();
                 if (data.success) {
-                    profAktifKullanici.isPremium = true;
-                    profAktifKullanici.cancelledPremium = false;
-                    localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+                    applyPremiumSuccessToLocalUser();
                     showMsg(msg, "Tebrikler! Premium başarıyla aktif edildi 👑", true);
                     keyInput.value = '';
                     premiumKontrol();
@@ -439,9 +458,7 @@
                         foundLocalKey.username = profAktifKullanici.username;
                         localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
 
-                        profAktifKullanici.isPremium = true;
-                        profAktifKullanici.cancelledPremium = false;
-                        localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+                        applyPremiumSuccessToLocalUser();
                         showMsg(msg, "Tebrikler! Premium başarıyla aktif edildi 👑", true);
                         keyInput.value = '';
                         premiumKontrol();
@@ -458,9 +475,7 @@
                         foundLocalKey.username = profAktifKullanici.username;
                         localStorage.setItem('generatedKeys', JSON.stringify(localKeys));
                     }
-                    profAktifKullanici.isPremium = true;
-                    profAktifKullanici.cancelledPremium = false;
-                    localStorage.setItem('user', JSON.stringify(profAktifKullanici));
+                    applyPremiumSuccessToLocalUser();
                     showMsg(msg, "Tebrikler! Premium başarıyla aktif edildi 👑", true);
                     keyInput.value = '';
                     premiumKontrol();
