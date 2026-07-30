@@ -301,23 +301,18 @@
         async function init() {
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
-                const isPremium = user && user.isPremium && !user.cancelledPremium;
-                const isAdmin = user && user.role === 'admin';
-
                 if(!user) {
                     showToast("Yetkisiz erişim! Lütfen önce giriş yapınız.", "warning");
                     setTimeout(() => { window.location.href = 'index.html'; }, 1500);
                     return;
                 }
 
-                if (!isPremium && !isAdmin) {
-                    const gateModal = document.getElementById('compare-pro-gate-modal');
-                    if (gateModal) gateModal.style.display = 'flex';
-                    document.getElementById('tool1-select').disabled = true;
-                    document.getElementById('tool2-select').disabled = true;
-                    document.getElementById('nova-category').disabled = true;
-                    return;
-                }
+                // Gate modal engeli kaldırıldı - Tüm kayıtlı kullanıcılar karşılaştırma yapabilir
+                const gateModal = document.getElementById('compare-pro-gate-modal');
+                if (gateModal) gateModal.style.display = 'none';
+                if (document.getElementById('tool1-select')) document.getElementById('tool1-select').disabled = false;
+                if (document.getElementById('tool2-select')) document.getElementById('tool2-select').disabled = false;
+                if (document.getElementById('nova-category')) document.getElementById('nova-category').disabled = false;
 
                 let res = await fetch('/api/tools?t=' + Date.now()).catch(() => null);
                 if (!res || !res.ok) res = await fetch('tools.json').catch(() => null);

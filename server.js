@@ -396,47 +396,85 @@ app.get('/api/verify-premium/:userId', (req, res) => {
 });
 
 
-// --- YAPAY ZEKA SOHBET İŞLEMİ ---
+// --- YAPAY ZEKA SOHBET İŞLEMİ (AKILLI NOVA ASİSTAN) ---
 app.post('/api/chat', async (req, res) => {
     try {
         const { message, toolsContext } = req.body;
+        if (!message || typeof message !== 'string') {
+            return res.json({ response: "Merhaba! Ben Nova. Size yapay zeka araçları hakkında nasıl yardımcı olabilirim?" });
+        }
         
-        // SUNUM KURTARICI: Kritik kelimelere hemen mantıklı cevap ver (API çökse bile sunumda çalışır)
         const msgLow = message.toLowerCase();
-        if(msgLow.includes("yazılım") || msgLow.includes("kod")) {
-            return res.json({ response: "Yazılım geliştirmek için platformumuzda harika araçlar var. Özellikle <strong style='color:#f59e0b;'>ChatGPT</strong> ve <strong style='color:#f59e0b;'>Claude</strong> gibi modellerle temiz kod yazabilir, hatalarınızı hızlıca ayıklayabilirsiniz." });
-        }
-        if(msgLow.includes("görsel") || msgLow.includes("resim")) {
-            return res.json({ response: "Görsel üretmek için <strong style='color:#f59e0b;'>Midjourney</strong> ve <strong style='color:#f59e0b;'>DALL-E 3</strong>'ü deneyebilirsiniz. Sağ üstteki filtrelerden 'Görsel' seçerek araçları inceleyebilirsiniz." });
-        }
-        if(msgLow.includes("merhaba") || msgLow.includes("selam")) {
-            return res.json({ response: "Merhaba! Ben Nova. AI Tools platformuna hoş geldiniz. Size hangi yapay zeka aracı lazım?" });
+
+        // Akıllı Dinamik Yerel Arama (Fallback & Hızlı Yanıt Motoru)
+        function getSmartLocalResponse() {
+            let matchedTools = [];
+            if (Array.isArray(toolsContext) && toolsContext.length > 0) {
+                matchedTools = toolsContext.filter(t => {
+                    const name = (t.name || '').toLowerCase();
+                    const cat = (t.category || '').toLowerCase();
+                    const desc = (t.description || '').toLowerCase();
+                    return msgLow.split(' ').some(word => word.length > 2 && (name.includes(word) || cat.includes(word) || desc.includes(word)));
+                }).slice(0, 3);
+            }
+
+            if (msgLow.includes("merhaba") || msgLow.includes("selam") || msgLow.includes("hey") || msgLow.includes("günaydın")) {
+                return `👋 **Merhaba! Ben Nova**, AI Tools platformunun akıllı asistanıyım.<br><br>Sizin için 194'ten fazla yapay zeka aracı arasından en iyilerini filtreleyebilir, modelleri yan yana **Karşılaştırma Laboratuvarı**'nda analiz edebilir veya teknik konularda rehberlik edebilirim. Bugün ne üretmek istiyorsunuz?`;
+            }
+
+            if (msgLow.includes("karşılaştır") || msgLow.includes("karsilastir") || msgLow.includes("fark") || msgLow.includes("vs")) {
+                return `⚖️ **Karşılaştırma Laboratuvarı:**<br>İki yapay zeka aracını yan yana performans, kodlama, hız ve yaratıcılık kriterlerinde analiz etmek için üst barda bulunan **'✨ Karşılaştır'** sayfamızı kullanabilirsiniz!`;
+            }
+
+            if (msgLow.includes("geliştirici") || msgLow.includes("gelistirici")) {
+                return `💻 **Geliştirici Modu:**<br>Kendi yapay zeka modelinizi veya yazılım aracınızı platformumuza eklemek isterseniz, navigasyon barındaki **'💻 Geliştirici Ol'** butonundan e-posta adresinizle saniyeler içinde başvuru yapabilirsiniz.`;
+            }
+
+            if (msgLow.includes("premium") || msgLow.includes("key") || msgLow.includes("lisans")) {
+                return `👑 **Premium & PRO Üyelik:**<br>Tüm gelişmiş yapay zeka araçlarına ve özel analiz modellerine sınırsız erişmek için profil sayfanızdaki **'🔑 Premium Key Aktifleştir'** alanına lisans kodunuzu girebilirsiniz.`;
+            }
+
+            if (matchedTools.length > 0) {
+                let toolListHtml = matchedTools.map(t => `• <strong style="color:#38bdf8;">${t.name}</strong> (${t.category || 'AI Tool'}): ${t.description || 'Gelişmiş yapay zeka çözümü.'}`).join('<br>');
+                return `🔍 **Aramanızla Eşleşen Öne Çıkan Araçlar:**<br><br>${toolListHtml}<br><br>Daha fazla detay için ana sayfadaki arama barını ve kategori filtrelerini kullanabilirsiniz!`;
+            }
+
+            return `🤖 **Nova Yanıtlıyor:**<br>Sorduğunuz konuyla ilgili platformumuzda 194+ yapay zeka aracı bulunmaktadır. İhtiyacınıza en uygun modeli seçmek için ana sayfadaki **Kategori Filtreleri** veya **'✨ Karşılaştır'** sayfamızı deneyebilirsiniz!`;
         }
 
         if (!process.env.GEMINI_API_KEY) {
-            return res.json({ response: "Gemini API anahtarı eksik, ancak sistem manuel modda çalışmaya devam ediyor." });
+            return res.json({ response: getSmartLocalResponse() });
         }
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // En güncel modele geçiş yapıldı
         const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
         
-        const simplifiedTools = toolsContext ? toolsContext.map(t => ({ name: t.name, category: t.category })) : [];
-        const prompt = `Senin adın Nova. "AI Tools" adlı platformun asistanısın. Kullanıcı sorusu: ${message}\nMevcut Araçlar:\n${JSON.stringify(simplifiedTools)}`;
+        const simplifiedTools = toolsContext ? toolsContext.map(t => ({ name: t.name, category: t.category, description: t.description ? t.description.substring(0, 100) : '' })).slice(0, 50) : [];
+        
+        const systemPrompt = `Sen "AI Tools" platformunun resmi yapay zeka asistanı NOVA'sın.
+Görevlerin:
+1. Kullanıcılara yapay zeka araçları (yazılım, görsel, video, ses, metin, 3D vb.) hakkında profesyonel, anlaşılır, samimi ve detaylı rehberlik sunmak.
+2. Platform özellikleri hakkında soru gelirse (Karşılaştırma Laboratuvarı "compare.html", Geliştirici Modu "Geliştirici Ol", Premium Key, Canlı Destek "İletişim") doğru yönlendirme yapmak.
+3. Sorulara maddeler halinde net, estetik ve faydalı yanıtlar ver. HTML formatında vurgulamalar kullan (<strong style="color:#38bdf8;">kelime</strong>, <em>eğik</em>, liste vb.).
+4. Kullanıcının dilinde (Türkçe) yanıt ver.
 
-        const result = await model.generateContent(prompt);
+Mevcut Popüler Platform Araçları Örneği:
+${JSON.stringify(simplifiedTools)}
+
+Kullanıcının Sorusu: ${message}`;
+
+        const result = await model.generateContent(systemPrompt);
         const responseText = result.response.text();
         
         let formattedText = responseText
-            .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#f59e0b;">$1</strong>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#38bdf8;">$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/\n/g, '<br>');
 
         res.json({ response: formattedText });
     } catch (error) {
         console.error("Gemini API Error:", error);
-        // API çökse bile ekrana saçma hata gitmesin, mantıklı bir şey yazsın
-        res.json({ response: "Nova (Yoğunluk Modu): Sistemde anlık bir yoğunluk var. Ancak aradığınız yapay zeka araçlarını ana sayfadaki filtreleme bölümünden kolayca bulabilirsiniz!" });
+        res.json({ response: `🤖 **Nova Asistan:**<br>Aradığınız yapay zeka kategorisi veya araçları için ana sayfadaki **Arama & Filtreleme** bölümünü veya **'✨ Karşılaştır'** sayfasını güvenle kullanabilirsiniz!` });
     }
 });
 

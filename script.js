@@ -1404,11 +1404,43 @@ async function pollUserLiveSupport() {
             'Sayın kullanıcımız, temsilcilerimizin anlık yoğunluğu sebebiyle canlı destek talebiniz şu anda iptal edilmiştir. Yaşanan aksaklık ve gecikme nedeniyle özür dileriz. Sorularınız için İletişim sayfasındaki formu kullanabilir veya Gelen Kutunuz üzerinden bizlere ulaşabilirsiniz.'
         );
         showToast("Canlı destek talebiniz kabul edilemedi. Özür mesajı Gelen Kutunuza iletildi.", "warning", "Canlı Destek");
+        showLiveSupportRejectedModal();
         endUserLiveSupport();
     } else if (req.status === 'ended') {
         clearInterval(liveSupportPollTimer);
         showToast("Canlı destek sohbeti sonlandırıldı.", "info", "Canlı Destek");
         endUserLiveSupport();
+    }
+}
+
+function showLiveSupportRejectedModal() {
+    let existingModal = document.getElementById('live-support-rejected-modal');
+    if (!existingModal) {
+        existingModal = document.createElement('div');
+        existingModal.id = 'live-support-rejected-modal';
+        existingModal.className = 'modal-overlay';
+        existingModal.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; padding: 20px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); align-items: center; justify-content: center;';
+        existingModal.innerHTML = `
+            <div style="width: 100%; max-width: 500px; background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid rgba(239, 68, 68, 0.5); box-shadow: 0 0 50px rgba(239, 68, 68, 0.25); text-align: center; border-radius: 24px; padding: 35px 25px; color: #fff;">
+                <div style="font-size: 3.8rem; margin-bottom: 12px; filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.5));">🙏</div>
+                <h3 style="color: #f87171; font-size: 1.5rem; font-weight: 800; margin-bottom: 10px;">Canlı Destek Talebi İptal Edildi</h3>
+                <p style="color: #cbd5e1; font-size: 0.92rem; margin-bottom: 22px; line-height: 1.6;">
+                    Sayın kullanıcımız, temsilcilerimizin anlık yoğunluğu sebebiyle canlı destek talebiniz şu anda karşılanamamıştır. Yaşanan aksaklık ve gecikme nedeniyle özür dileriz.
+                </p>
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 14px; padding: 14px; text-align: left; margin-bottom: 24px; color: #e2e8f0; font-size: 0.85rem;">
+                    💡 <strong>Ne Yapabilirsiniz?</strong><br>
+                    • Sorularınızı ve taleplerinizi <strong>İletişim Formu</strong> üzerinden bizlere iletebilirsiniz.<br>
+                    • Yöneticilerimizin cevabı Gelen Kutunuza (inbox.html) otomatik ulaştırılacaktır.
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <a href="inbox.html" style="background: linear-gradient(135deg, #38bdf8, #0284c7); color: #0f172a; text-decoration: none; padding: 12px 22px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; display: inline-block;">📥 Gelen Kutuma Git</a>
+                    <button onclick="document.getElementById('live-support-rejected-modal').style.display='none';" style="background: rgba(255,255,255,0.08); color: #94a3b8; border: 1px solid rgba(255,255,255,0.15); padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Anladım</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(existingModal);
+    } else {
+        existingModal.style.display = 'flex';
     }
 }
 
