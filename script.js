@@ -1084,17 +1084,41 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (lowerMsg.includes('premium') || lowerMsg.includes('key')) {
             akilliCevap = "👑 **Premium Üyelik:** Profil sayfanızdaki **'🔑 Premium Key Aktifleştir'** alanına lisans kodunuzu girerek tüm gelişmiş AI araçlarına erişim sağlayabilirsiniz!";
         }
-        // DESTEK TALEBİ & İLETİŞİM SORGULARI
-        else if (lowerMsg.includes('destek') || lowerMsg.includes('talep') || lowerMsg.includes('iletişim') || lowerMsg.includes('iletisim') || lowerMsg.includes('ulaş') || lowerMsg.includes('ulas') || lowerMsg.includes('sorun')) {
+        // DESTEK TALEBİ & İLETİŞİM SORGULARI (NOVA DESTEK TAKİP MOTORU)
+        else if (lowerMsg.includes('destek') || lowerMsg.includes('talep') || lowerMsg.includes('iletişim') || lowerMsg.includes('iletisim') || lowerMsg.includes('ulaş') || lowerMsg.includes('ulas') || lowerMsg.includes('sorun') || lowerMsg.includes('tkt')) {
             const user = JSON.parse(localStorage.getItem('user'));
-            const tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
-            const userTickets = user ? tickets.filter(t => t.username === user.username) : [];
-
-            if (userTickets.length > 0) {
-                const latest = userTickets[0];
-                akilliCevap = `💬 **Destek Talebiniz (#${latest.id}):**\nKonu: *${latest.subject}*\nDurum: **${latest.status}**\n\nYöneticilerimiz talebinizi yanıtladığında bildirimi Gelen Kutunuza (inbox.html) gönderecektir. Yeni talep açmak için 'Hakkımızda & İletişim' sayfamızı ziyaret edebilirsiniz!`;
+            if (!user) {
+                akilliCevap = "🔑 **Destek Talebi Sorgulama:**\nTaleplerinizi incelemek için lütfen önce hesabınıza giriş yapınız!";
             } else {
-                akilliCevap = "💬 **Destek & İletişim:**\nBir sorunuz, öneriniz veya teknik bir probleminiz varsa **'Hakkımızda & İletişim'** sayfasındaki *Destek Talebi Oluştur* formundan mesaj iletebilirsiniz. Yöneticilerimiz Gelen Kutunuza (inbox.html) yanıt iletecektir!";
+                const tickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
+                const userTickets = tickets.filter(t => t.username === user.username);
+                const notifs = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+
+                // Belirli bir talep numarası arandı mı?
+                const searchedIdMatch = kullaniciMesaji.match(/tkt-?\d+/i);
+                let searchedTicket = null;
+                if (searchedIdMatch) {
+                    const rawId = searchedIdMatch[0].toUpperCase().replace('TKT', 'TKT-');
+                    searchedTicket = userTickets.find(t => t.id.toUpperCase() === rawId || t.id.toUpperCase() === rawId.replace('-', ''));
+                }
+
+                if (searchedTicket) {
+                    const isSolved = searchedTicket.status === 'Çözüldü';
+                    const replyNotif = notifs.find(n => n.targetUser === user.username && n.title && n.title.includes(`#${searchedTicket.id}`));
+                    const replyText = replyNotif && replyNotif.adminNote ? replyNotif.adminNote : 'Talebiniz incelenmiş ve gerekli işlem sağlanmıştır.';
+
+                    akilliCevap = `🎫 **Talep Detayı (#${searchedTicket.id}):**\n• Konu: **${searchedTicket.subject}**\n• Öncelik: *${searchedTicket.priority}*\n• Durum: **${searchedTicket.status}** (${searchedTicket.date})\n• Mesajınız: "${searchedTicket.message}"\n\n${isSolved ? `🛡️ **Yönetici Yanıtı:**\n"${replyText}"` : '⏳ Talebiniz şu anda yöneticilerimiz tarafından incelenmektedir.'}\n\n👉 Detaylı takip için [Destek Taleplerim (tickets.html)](tickets.html) sayfasını ziyaret edebilirsiniz.`;
+                } else if (userTickets.length > 0) {
+                    let ticketSummaryList = userTickets.slice(0, 3).map(t => {
+                        const isSolved = t.status === 'Çözüldü';
+                        const statusBadge = isSolved ? '✓ Çözüldü' : '⏳ İncelemede';
+                        return `• **#${t.id}** - ${t.subject} (${statusBadge})`;
+                    }).join('\n');
+
+                    akilliCevap = `🎫 **Sisteme Kayıtlı Destek Talepleriniz (${userTickets.length} Adet):**\n\n${ticketSummaryList}\n\n${userTickets.length > 3 ? '*...ve diğer talepleriniz*\n\n' : ''}👉 Tüm taleplerinizi görüntülemek, durumlarını sorgulamak ve yönetici yanıtlarını incelemek için **[Destek Taleplerim (tickets.html)](tickets.html)** sayfasını açabilirsiniz!`;
+                } else {
+                    akilliCevap = "💬 **Destek Talebi Bulunamadı:**\nHenüz oluşturulmuş bir destek talebiniz bulunmuyor. Bir sorunuz veya probleminiz varsa **[İletişim & Destek Formu](iletisim.html)** üzerinden hızlıca talep gönderebilirsiniz!";
+                }
             }
         }
 
